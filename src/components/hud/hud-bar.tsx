@@ -7,8 +7,8 @@ export interface HudData {
   readonly xpTotal: number;
   readonly level: number;
   readonly currentStreak: number;
-  /** Avance dentro del nivel actual, 0–1 (lo calcula el motor de la Fase 1). */
-  readonly levelProgress: number;
+  /** Avance dentro del nivel actual, 0–1 (lo calcula el motor de la Fase 1); `null` = sin calcular. */
+  readonly levelProgress: number | null;
 }
 
 /** HUD compacto de la barra superior. `data = null` dibuja el estado de carga (igual en servidor y cliente). */

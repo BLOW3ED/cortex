@@ -39,7 +39,9 @@ export default async function LessonPage({ params }: PageProps<"/materias/[mater
             Inicio
           </Link>{" "}
           /{" "}
-          {subject?.name ?? materia}
+          <Link href={`/materias/${materia}`} className="hover:text-ink">
+            {subject?.name ?? materia}
+          </Link>
         </nav>
         <header className="mt-4 mb-10">
           <p className="font-mono text-sm text-muted-foreground">
@@ -49,7 +51,7 @@ export default async function LessonPage({ params }: PageProps<"/materias/[mater
           <ul aria-label="Conceptos de la lección" className="mt-5 flex flex-wrap gap-1.5">
             {fm.conceptos.map((c) => (
               <li key={c}>
-                <Badge>{conceptNames.get(c) ?? c}</Badge>
+                <Badge className="max-w-full text-left whitespace-normal">{conceptNames.get(c) ?? c}</Badge>
               </li>
             ))}
           </ul>
