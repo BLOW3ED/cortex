@@ -1,0 +1,170 @@
+import Dexie from "dexie";
+import { describe, expect, it } from "vitest";
+import { CortexDb, FutureSchemaError, openCortexDb, probeDb } from "./db";
+import { defaultProfile } from "./defaults";
+import { SCHEMA_HISTORY, SCHEMA_VERSION, type SchemaStep, STORES_V1, TABLE_NAMES } from "./schema";
+import { freshIdb, nativeSnapshot } from "./test-utils";
+
+describe("esquema v1", () => {
+  it("no cambia: una versión publicada no se edita (agrega una nueva)", () => {
+    expect(SCHEMA_VERSION).toBe(1);
+    expect(SCHEMA_HISTORY).toEqual([{ version: 1, stores: STORES_V1 }]);
+    expect(STORES_V1).toEqual({
+      meta: "key",
+      profile: "id",
+      unitProgress: "unitKey, subjectId",
+      attempts: "++id, exerciseId, sessionId, at",
+      cards: "exerciseId, due",
+      sessions: "++id, startedAt, kind",
+      missions: "key, day",
+      records: "key",
+      ghosts: "context",
+      achievements: "id",
+      gymResults: "++id, game, at",
+      mistakes: "exerciseId",
+      reports: "++id, exerciseId, createdAt",
+    });
+  });
+
+  it("crea las 12 tablas de docs/02 más meta con sus índices", async () => {
+    const opts = freshIdb();
+    (await openCortexDb(opts)).close();
+    const snap = await nativeSnapshot(opts);
+    expect(snap.version).toBe(10); // Dexie guarda la versión ×10
+    expect(Object.keys(snap.stores).sort()).toEqual([...TABLE_NAMES].sort());
+    expect(snap.stores.attempts).toEqual({ keyPath: "id", autoIncrement: true, indexes: ["at", "exerciseId", "sessionId"] });
+    expect(snap.stores.cards).toEqual({ keyPath: "exerciseId", autoIncrement: false, indexes: ["due"] });
+  });
+});
+
+describe("populate", () => {
+  it("al crear la base deja el perfil en ceros, sonido apagado, y meta.schemaVersion = 1", async () => {
+    const db = await openCortexDb(freshIdb());
+    expect(await db.profile.get(1)).toEqual(defaultProfile());
+    expect((await db.profile.get(1))?.preferences.sound).toBe(false);
+    expect(await db.meta.get("schemaVersion")).toEqual({ key: "schemaVersion", value: 1 });
+    db.close();
+  });
+
+  it("no vuelve a correr al reabrir (no pisa los datos)", async () => {
+    const opts = freshIdb();
+    const db = await openCortexDb(opts);
+    await db.profile.update(1, { xpTotal: 42 });
+    db.close();
+    const again = await openCortexDb(opts);
+    expect((await again.profile.get(1))?.xpTotal).toBe(42);
+    expect(await again.profile.count()).toBe(1);
+    again.close();
+  });
+});
+
+describe("schemaVersion en cada registro", () => {
+  it("se estampa al crear y al actualizar", async () => {
+    const db = await openCortexDb(freshIdb());
+    const id = await db.reports.add({ exerciseId: "calc-01-001", comment: "x", createdAt: 1, schemaVersion: 0 });
+    expect((await db.reports.get(id))?.schemaVersion).toBe(1);
+    await db.reports.update(id, { comment: "y" });
+    expect((await db.reports.get(id))?.schemaVersion).toBe(1);
+    db.close();
+  });
+});
+
+describe("guarda de versión (ADR-014)", () => {
+  const futureHistory = (extra: Record<string, string | null>): SchemaStep[] => [
+    ...SCHEMA_HISTORY,
+    { version: 2, stores: { ...STORES_V1, ...extra } },
+  ];
+
+  it("la sonda no crea una base que no existe", async () => {
+    const opts = freshIdb();
+    expect(await probeDb(opts)).toEqual({ exists: false, version: 0, metaVersion: null });
+    expect(await opts.indexedDB.databases()).toEqual([]);
+  });
+
+  it.each([
+    ["con una tabla nueva", { nuevaTabla: "id" }],
+    ["sin un índice de la v1", { attempts: "++id, exerciseId, at" }],
+  ])("una base del futuro %s no se abre ni se toca", async (_label, extra) => {
+    const opts = freshIdb();
+    const future = await openCortexDb(opts, futureHistory(extra));
+    await future.meta.put({ key: "schemaVersion", value: 2 });
+    await future.attempts.add({ exerciseId: "calc-01-001", at: 1, correct: true, timeMs: 5, confidence: 3, answer: "3", sessionId: null, schemaVersion: 2 });
+    future.close();
+    const before = await nativeSnapshot(opts);
+
+    await expect(openCortexDb(opts)).rejects.toBeInstanceOf(FutureSchemaError);
+
+    expect(await nativeSnapshot(opts)).toEqual(before);
+    expect(Object.keys(before.stores)).not.toContain("$meta");
+  });
+
+  it("también rechaza si meta dice una versión más nueva", async () => {
+    const opts = freshIdb();
+    const db = await openCortexDb(opts);
+    await db.meta.put({ key: "schemaVersion", value: 3 });
+    db.close();
+    await expect(openCortexDb(opts)).rejects.toThrow(/esquema 3/);
+  });
+
+  it("sin la guarda, Dexie abriría en silencio la base del futuro (por eso existe)", async () => {
+    const opts = freshIdb();
+    (await openCortexDb(opts, futureHistory({ nuevaTabla: "id" }))).close();
+    const naive = new CortexDb(opts);
+    await expect(naive.open()).resolves.toBeDefined();
+    naive.close();
+  });
+});
+
+describe("migraciones (arnés para versiones futuras)", () => {
+  it("v1 → v2 transforma los datos y conserva el resto", async () => {
+    const opts = freshIdb();
+    const v1 = await openCortexDb(opts);
+    await v1.mistakes.add({ exerciseId: "calc-01-001", misses: 2, lastAnswer: "4", note: "", schemaVersion: 1 });
+    await v1.profile.update(1, { xpTotal: 99 });
+    v1.close();
+
+    const history: SchemaStep[] = [
+      ...SCHEMA_HISTORY,
+      {
+        version: 2,
+        stores: { ...STORES_V1, mistakes: "exerciseId, misses" },
+        upgrade: (tx) => tx.table("mistakes").toCollection().modify((m: { note: string }) => {
+          m.note = m.note || "(migrado)";
+        }),
+      },
+    ];
+    const v2 = await openCortexDb(opts, history);
+    expect(await v2.mistakes.get("calc-01-001")).toMatchObject({ misses: 2, note: "(migrado)" });
+    expect(await v2.mistakes.where("misses").equals(2).count()).toBe(1);
+    expect((await v2.profile.get(1))?.xpTotal).toBe(99);
+    v2.close();
+  });
+});
+
+describe("transacciones", () => {
+  it("un error dentro de una transacción rw deshace todo", async () => {
+    const db = await openCortexDb(freshIdb());
+    await expect(
+      db.transaction("rw", db.profile, db.reports, async () => {
+        await db.profile.update(1, { xpTotal: 500 });
+        await db.reports.add({ exerciseId: "x", comment: "y", createdAt: 1, schemaVersion: 1 });
+        throw new Error("falla a propósito");
+      }),
+    ).rejects.toThrow("falla a propósito");
+    expect((await db.profile.get(1))?.xpTotal).toBe(0);
+    expect(await db.reports.count()).toBe(0);
+    db.close();
+  });
+});
+
+describe("importar el módulo en el servidor", () => {
+  it("no toca IndexedDB (getDb es perezoso y rechaza fuera del navegador)", async () => {
+    const mod = await import("./db");
+    expect(typeof indexedDB).toBe("undefined");
+    await expect(mod.getDb()).rejects.toThrow(/solo existe en el navegador/);
+  });
+
+  it("Dexie está disponible como dependencia", () => {
+    expect(Dexie.semVer).toBe("4.4.6");
+  });
+});
