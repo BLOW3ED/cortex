@@ -1,6 +1,6 @@
 # ESTADO · Tablero vivo de Cortex
 
-**Fase actual:** 0 · Fundaciones (en curso, paso 13 de 14)
+**Fase actual:** 0 · Fundaciones (en curso, paso 14 de 14; falta el cierre)
 **Última actualización:** 2026-10-01 · plan de la Fase 0 aprobado; decisiones registradas
 
 ## Decisiones tomadas (Carlo, 2026-10-01)
@@ -53,7 +53,7 @@
 - [x] ESLint, Vitest, Playwright (smoke)
 - [x] Loader de contenido con Zod + índice en build
 - [x] MDX con KaTeX
-- [ ] Capa Dexie + exportar/importar respaldo
+- [x] Capa Dexie + exportar/importar respaldo
 - [x] Sistema visual base y componentes de HUD
 - [x] Inicio con materias desde `plan-2020.json`
 - [x] `pnpm content:check`
@@ -109,6 +109,7 @@ Complementan los ADR-001 a 008 de `docs/02`. Cada uno se escribe en el commit de
 **ADR-013 · Nomenclatura** (paso 1, decisión D1). Código, tablas y campos de IndexedDB en inglés, con equivalencias en `docs/02`. Las claves de YAML y del front matter siguen en español (son el formato de contenido). Los componentes MDX conservan su nombre en español porque son la API del contenido (`Predice` se implementa como `PredictPrompt`). Las URL van en español porque son interfaz. `APP_ID = 'cortex'` es inmutable (nombre de la base y marca de los respaldos); renombrar la app solo cambia `APP_NAME`. *Descartado:* todo en español (contradice `CLAUDE.md`) o una capa de traducción.
 
 ## Bitácora
+- 2026-10-01 · Paso 14: `/ajustes` con sonido (apagado por defecto; solo guarda la preferencia), estado de almacenamiento con botón para pedir que sea persistente, y respaldo: descargar, elegir archivo (botón propio en español), validar y comparar ahora vs respaldo, y reemplazar tras un diálogo con foco en Cancelar y la opción de descargar antes los datos actuales; errores con `role=alert`, avisos con `aria-live`. Los manejadores piden la base a `getDb()` (sin carreras tras recargar). Evidencia: `pnpm check` 242 + 79; smoke 4/4, incluido el caso 4: activar sonido → descargar (JSON `cortex`/1/1 con sonido activado) → borrar la base y recargar (sonido apagado) → importar → Cancelar enfocado, Esc no cambia nada → confirmar → sonido activado → un respaldo con esquema 2 se rechaza sin tocar nada; en 375 px no desborda ninguna página. Rareza del entorno documentada en la prueba: `setInputFiles` no carga archivos de rutas con "·" (se usan carpetas temporales ASCII).
 - 2026-10-01 · Paso 13: inicio con el plan 2020 (`buildHomeModel` puro): hero con cifras, lecciones disponibles, mapa por semestre (numeral grande en mono; materias con contenido arcade y enlazadas, el resto apagadas, con fase o backlog) y catálogo de optativas; página `/materias/[materia]` (SSG, solo materias con contenido); `ProfileHud` lee el perfil de Dexie (mismo estado de carga en servidor y cliente; aviso visible si la base es de una versión más nueva). Evidencia: `pnpm check` en verde; smoke 3/3: 45 entradas y exactamente 2 con contenido, HUD real "Nivel 1 · 0 XP · Racha: empieza hoy", base `cortex` creada en IndexedDB, primer Tab al salto al contenido con foco visible, transiciones en 0 con movimiento reducido, recorrido solo con teclado inicio → Cálculo → Límites, 0 errores de consola/hidratación/HTTP; en 375 px no hay desborde (se corrigieron chips de optativas y de conceptos que no se partían).
 - 2026-10-01 · Paso 12: HUD presentacional (`src/components/hud/`): `XpBar` en ticks (`role=progressbar`, acotada a [0, 1], `null` = cargando sin inventar valores), `LevelBadge`, `StreakChip` (en 0 dice "Empieza hoy"), `Lives` ("2 de 3 vidas") y `HudBar`; solo reciben números (la curva de niveles es de la Fase 1). Estados límite en `/estilo`, revisados en captura. Evidencia: 18 pruebas (aria, acotado de 1.5/-1/NaN/∞, plurales, carga sin números, ninguna palabra de culpa, toda animación detrás de `motion-safe`); `pnpm check` 233 + 79.
 - 2026-10-01 · Paso 11: sistema visual "Consola arcade" (ADR-016) con la dirección que eligió Carlo; tokens OKLCH oscuro/claro, botón/tarjeta/chip/switch/diálogo de shadcn adaptados, `AppShell` con salto al contenido, catálogo vivo `/estilo` y página de lección con prosa de ~68ch y panel lateral. Evidencia: `pnpm check` en verde (215 + 79); 48 pruebas de contraste AA (y bajar un token hace fallar 3); capturas revisadas: en móvil (390 px) la lección no desborda (0 px) tras forzar `minmax(0,1fr)`; el encabezado ya no sale rojizo (`color-mix` en sRGB); la sombra arcade se ve en oscuro. Smoke 2/2.

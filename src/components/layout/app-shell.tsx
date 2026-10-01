@@ -10,16 +10,19 @@ export function AppShell({ children, hud }: { children: ReactNode; hud?: ReactNo
         Saltar al contenido
       </a>
       <header className="sticky top-0 z-40 border-b bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-5 px-4 sm:px-6">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:gap-5 sm:px-6">
           <Link href="/" className="flex items-center gap-2.5 rounded-sm font-mono text-sm font-semibold tracking-[0.2em] uppercase">
             <span aria-hidden className="arcade grid size-7 place-items-center rounded-sm border-2 border-[var(--shadow-color)] bg-brand text-xs font-bold text-brand-ink">
               C
             </span>
-            {APP_NAME}
+            <span className="sr-only sm:not-sr-only">{APP_NAME}</span>
           </Link>
-          <nav aria-label="Principal" className="flex items-center gap-1 text-sm text-ink-2">
+          <nav aria-label="Principal" className="flex items-center gap-0.5 text-sm text-ink-2 sm:gap-1">
             <Link href="/" className="rounded-md px-2.5 py-1.5 hover:bg-surface-2 hover:text-ink">
               Inicio
+            </Link>
+            <Link href="/ajustes" className="rounded-md px-2.5 py-1.5 hover:bg-surface-2 hover:text-ink">
+              Ajustes
             </Link>
           </nav>
           <div className="ml-auto">{hud}</div>
