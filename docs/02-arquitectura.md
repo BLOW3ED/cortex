@@ -26,14 +26,20 @@ cortex/
   docs/
   curriculum/        plan-2020.json, programas/
   content/           <materia>/{conceptos.yaml, NN-unidad/{leccion.mdx, ejercicios.yaml, jefe.yaml}}
-  scripts/           verify_content.py
+  scripts/           verify_content.py, content-check.ts, lib/ (Python multiplataforma, paridad YAML)
   src/
-    app/             rutas
-    engine/          xp, niveles, rachas, fsrs, jefes, verificadores (puro TS, sin React)
-    content/         loader, esquemas Zod, índice
-    db/              esquema Dexie, respaldo
-    components/      ui, hud, ejercicios, lecciones, gym
-    runners/         pyodide worker, cliente del runner de C
+    app/             rutas: / · /materias/[materia] · /materias/[materia]/[unidad] · /ajustes · /estilo
+    content/
+      schema/        esquemas Zod de docs/05 (puro)
+      core/          índice, reglas cruzadas, lector YAML, API de componentes de lección (puro)
+      loader.ts      lee content/ del disco · server.ts (solo servidor) · mdx.ts (MDX + KaTeX + guardia)
+    db/              esquema Dexie y guarda de versión, respaldo, hooks de React
+    components/      ui (shadcn/ui) · hud · lessons · subjects · settings · layout
+    engine/          (Fase 1) xp, niveles, rachas, fsrs, jefes, verificadores (puro TS, sin React)
+    runners/         (Fase 2) pyodide worker, cliente del runner de C
+    lib/  styles/
+  tests/             pruebas con Python (paridad, content:check) y stubs
+  e2e/               Playwright (smoke)
   .claude/commands/
 ```
 
