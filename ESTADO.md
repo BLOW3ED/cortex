@@ -1,6 +1,6 @@
 # ESTADO · Tablero vivo de Cortex
 
-**Fase actual:** 0 · Fundaciones (en curso, paso 2 de 14)
+**Fase actual:** 0 · Fundaciones (en curso, paso 3 de 14)
 **Última actualización:** 2026-10-01 · plan de la Fase 0 aprobado; decisiones registradas
 
 ## Decisiones tomadas (Carlo, 2026-10-01)
@@ -50,7 +50,7 @@
 
 ### Fase 0 · Fundaciones
 - [ ] Next.js + TS estricto + Tailwind + shadcn/ui + pnpm
-- [ ] ESLint, Vitest, Playwright (smoke)
+- [x] ESLint, Vitest, Playwright (smoke)
 - [ ] Loader de contenido con Zod + índice en build
 - [ ] MDX con KaTeX
 - [ ] Capa Dexie + exportar/importar respaldo
@@ -99,6 +99,7 @@ Complementan los ADR-001 a 008 de `docs/02`. Cada uno se escribe en el commit de
 **ADR-013 · Nomenclatura** (paso 1, decisión D1). Código, tablas y campos de IndexedDB en inglés, con equivalencias en `docs/02`. Las claves de YAML y del front matter siguen en español (son el formato de contenido). Los componentes MDX conservan su nombre en español porque son la API del contenido (`Predice` se implementa como `PredictPrompt`). Las URL van en español porque son interfaz. `APP_ID = 'cortex'` es inmutable (nombre de la base y marca de los respaldos); renombrar la app solo cambia `APP_NAME`. *Descartado:* todo en español (contradice `CLAUDE.md`) o una capa de traducción.
 
 ## Bitácora
+- 2026-10-01 · Paso 3: ESLint 9.39.5 (config de Next + `no-explicit-any`, `consistent-type-imports`, `next/font/google` prohibido, zonas puras sin React/Next/Dexie/DOM salvo `import type`), Vitest 5.0.3 (+ vite 8.3.2; JSX sin plugin) y Playwright 1.63.0 con un smoke contra `next start -p 3100`. Evidencia: `pnpm lint` 0 problemas; `pnpm test` 10/10; al vaciar las zonas puras fallan 4 pruebas de fronteras (la prueba sí detecta); `pnpm test:e2e` 1/1 con `CORTEX_CHROMIUM_PATH` apuntando al Chromium 1194 del contenedor (el CDN de Playwright no responde aquí). El smoke detectó un 404 real (`/favicon.ico`): se agregó `src/app/icon.svg`.
 - 2026-10-01 · Paso 2: andamiaje Next 16.3.8 + React 19.3 + TS 6.0.3 estricto + Tailwind 4.3.3 + pnpm 10.28 (ADR-009, ADR-010). Evidencia: `pnpm install --frozen-lockfile` limpio sin scripts ignorados; con Node 20.20.2 pnpm rechaza la instalación (`engines`); `pnpm typecheck` y `pnpm build` en verde (`/` estático); `pnpm dev` responde 200 en `localhost:3000` con `lang="es-MX"`; un segundo `pnpm dev` falla con `EADDRINUSE` en vez de mudarse de puerto; con `CLAUDECODE=1` definido, `next dev` no creó `AGENTS.md` ni tocó `CLAUDE.md`; `tsconfig.json` sin cambios tras `typegen`, `build` y `dev`; `pnpm telemetry:check` → "You have opted-out"; `git add --renormalize .` sin cambios en `content/`; `verify_content.py` en verde.
 - 2026-10-01 · Paso 1 de la Fase 0: decisiones de Carlo registradas; Mecánica y electromagnetismo como Fase 4 (`docs/01`, `docs/06`, `cortex_fase` en `plan-2020.json`); requisitos corregidos (Node 22.12+, pnpm 10.28) en README y PRIMER-PROMPT; `docs/00` (`APP_ID`), `docs/02` (tablas en inglés + `meta`), `docs/05` (`respuestas`, componentes provisionales, escapes, YAML 1.1, campos comunes). ADR-013. `verify_content.py` en verde (2 unidades, 24 ejercicios, 17/7, 2 avisos). Versiones verificadas antes de fijar: ESLint 10 incompatible con `eslint-plugin-react` 7.37.5 (peer `^9.7`); `typescript-eslint` 8.71 exige TS < 6.1; `rehype-katex` 7.0.1 depende de `katex ^0.16`; Vitest 5 exige Node ^22.12; `next dev` 16.3.8 escribe un bloque en `CLAUDE.md`/`AGENTS.md` (`generate-agent-files.js`) salvo con `agentRules: false`.
 - 2026-10-01 · Repo base creado: docs, plan de estudios en datos, dos unidades de ejemplo verificadas (`calculo/01-limites`, `programacion/01-variables-y-tipos`), script de verificación y comandos de Claude Code.
