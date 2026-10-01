@@ -3,7 +3,7 @@
 El contenido es pre-escrito, así que **el riesgo principal son los errores** (una respuesta mal calculada, una definición imprecisa). Estas son las defensas, de más a menos automática.
 
 ## Capa 1 · Estructura (automática)
-`scripts/verify_content.py` y los esquemas Zod comprueban: campos obligatorios, ids únicos, conceptos existentes, grafo sin ciclos, referencias de jefes, cantidad de huecos vs. respuestas, etc. Las reglas compartidas tienen la misma severidad en ambos (catálogo en `src/content/core/catalog.ts`); Zod agrega reglas más estrictas (campos desconocidos, carpeta, NN del id, `repaso_de` de unidades anteriores, jefes sin autoevaluación).
+`scripts/verify_content.py` y los esquemas Zod comprueban: campos obligatorios, ids únicos, conceptos existentes, grafo sin ciclos, referencias de jefes, cantidad de huecos vs. respuestas, etc. Las reglas compartidas tienen la misma severidad en ambos (catálogo en `src/content/core/catalog.ts`, probado caso por caso contra `verify_content.py` en `tests/content/parity.test.ts`); Zod agrega reglas más estrictas (campos desconocidos, carpeta, NN del id, `repaso_de` de unidades anteriores, jefes sin autoevaluación).
 
 `pnpm content:check [ruta]` corre todo junto y sale con 1 si algo falla: (1) esquemas y reglas, (2) cada lección compila y se dibuja (MDX, componentes, KaTeX estricto, escapes), (3) la app y PyYAML leen igual cada YAML, (4) `verify_content.py`. `next build` también falla si el contenido es inválido. Nota: con una ruta, `verify_content.py` solo carga esa materia, así que un `repaso_de` hacia otra materia sale como inexistente; corre `pnpm content:check` sin ruta antes de cerrar.
 
