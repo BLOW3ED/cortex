@@ -3,7 +3,7 @@
 import Dexie from "dexie";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useEffect, useState } from "react";
-import { type CortexDb, DbClosedElsewhereError, getDb } from "./db";
+import { type CortexDb, DbClosedError, getDb } from "./db";
 import type { ProfileRecord } from "./types";
 
 export type DbState =
@@ -12,8 +12,9 @@ export type DbState =
   | { status: "error"; error: Error };
 
 /**
- * Abre la base local al montar. En el servidor y en el primer render siempre es `loading`. Si otra
- * pestaña la actualiza o la borra, pasa a `error` con `DbClosedElsewhereError` (hay que recargar).
+ * Abre la base local al montar. En el servidor y en el primer render siempre es `loading`. Si la
+ * conexión se cierra (otra pestaña o el navegador cambió o borró la base), pasa a `error` con
+ * `DbClosedError`: sin `autoOpen` ya no se reabre sola, así que hay que recargar.
  */
 export function useCortexDb(): DbState {
   const [state, setState] = useState<DbState>({ status: "loading" });
@@ -21,14 +22,14 @@ export function useCortexDb(): DbState {
     let alive = true;
     let opened: CortexDb | null = null;
     const onClose = () => {
-      if (alive && opened?.closedElsewhere) setState({ status: "error", error: new DbClosedElsewhereError() });
+      if (alive) setState({ status: "error", error: new DbClosedError() });
     };
     getDb().then(
       (db) => {
         if (!alive) return;
         opened = db;
         db.on("close", onClose);
-        setState(db.closedElsewhere ? { status: "error", error: new DbClosedElsewhereError() } : { status: "ready", db });
+        setState(db.isOpen() ? { status: "ready", db } : { status: "error", error: new DbClosedError() });
       },
       (error: unknown) => alive && setState({ status: "error", error: error instanceof Error ? error : new Error(String(error)) }),
     );

@@ -289,7 +289,7 @@ test("6 - si otra pestaña sube la versión de la base, esta se desconecta y no 
 
   // La pestaña vieja lo dice y deja de escribir.
   await expect(page.getByRole("banner").getByRole("status")).toContainText("Recarga la página");
-  await expect(page.getByRole("main").getByRole("alert")).toContainText("Otra pestaña cambió tus datos");
+  await expect(page.getByRole("main").getByRole("alert")).toContainText("Se perdió la conexión con tus datos");
   await expect(page.getByRole("switch", { name: "Sonido" })).toBeDisabled();
 
   const native = () =>
@@ -322,5 +322,26 @@ test("6 - si otra pestaña sube la versión de la base, esta se desconecta y no 
   expect(chip && header && chip.y >= header.y && chip.y + chip.height <= header.y + header.height).toBe(true);
   expect(await noHorizontalOverflow(page)).toBeLessThanOrEqual(0);
   await other.close();
+  expect(errors).toEqual([]);
+});
+
+test("7 - si el navegador borra los datos del sitio, la pestaña lo dice en vez de fallar en silencio", async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto("/ajustes");
+  const sound = page.getByRole("switch", { name: "Sonido" });
+  await expect(sound).toBeEnabled();
+
+  // Lo mismo que "Borrar datos del sitio": cierra la conexión a la fuerza, sin `versionchange`.
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Storage.clearDataForOrigin", { origin: new URL(page.url()).origin, storageTypes: "indexeddb" });
+
+  await expect(page.getByRole("banner").getByRole("status")).toContainText("Recarga la página");
+  await expect(page.getByRole("main").getByRole("alert")).toContainText("Se perdió la conexión con tus datos");
+  await expect(sound).toBeDisabled();
+
+  // Al recargar arranca limpio, con el perfil de fábrica.
+  await page.reload();
+  await expect(page.getByRole("banner").getByRole("img", { name: "Nivel 1" })).toBeVisible();
+  await expect(sound).toBeEnabled();
   expect(errors).toEqual([]);
 });

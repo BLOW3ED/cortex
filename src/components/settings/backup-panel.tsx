@@ -27,7 +27,7 @@ import {
   utf8ByteLength,
 } from "@/db/backup";
 import type { Backup } from "@/db/backup-schema";
-import { type CortexDb, DbClosedElsewhereError, FutureSchemaError, getDb } from "@/db/db";
+import { type CortexDb, DbClosedError, FutureSchemaError, getDb } from "@/db/db";
 import { DATA_TABLES, type DataTableName } from "@/db/schema";
 import { useCortexDb } from "@/db/use-profile";
 import { APP_NAME, APP_VERSION } from "@/lib/app";
@@ -102,8 +102,8 @@ export function BackupPanel() {
         <p className="font-semibold text-warning">
           {db.error instanceof FutureSchemaError
             ? `Tus datos son de una versión más nueva de ${APP_NAME}`
-            : db.error instanceof DbClosedElsewhereError
-              ? "Otra pestaña cambió tus datos"
+            : db.error instanceof DbClosedError
+              ? "Se perdió la conexión con tus datos"
               : "No pude abrir tus datos"}
         </p>
         <p className="mt-1 text-ink-2">{db.error.message}</p>

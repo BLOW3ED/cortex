@@ -1,7 +1,7 @@
 import Dexie from "dexie";
 import { describe, expect, it } from "vitest";
 import { exportBackup, importBackup } from "./backup";
-import { CortexDb, DbClosedElsewhereError, FutureSchemaError, openCortexDb, probeDb } from "./db";
+import { CortexDb, DbClosedError, FutureSchemaError, openCortexDb, probeDb } from "./db";
 import { defaultProfile } from "./defaults";
 import { SCHEMA_HISTORY, SCHEMA_VERSION, type SchemaStep, STORES_V1, TABLE_NAMES } from "./schema";
 import { freshIdb, nativeSnapshot } from "./test-utils";
@@ -171,8 +171,32 @@ describe("guarda de versión (ADR-014)", () => {
     expect(await opts.indexedDB.databases()).toEqual([]);
   });
 
+  it("si el navegador cierra la conexión a la fuerza (borrar datos del sitio), no se reabre sola", async () => {
+    const opts = freshIdb();
+    const db = await openCortexDb(opts);
+    let closes = 0;
+    db.on("close", () => closes++);
+    db.backendDB().onclose?.call(db.backendDB(), new Event("close"));
+    expect(closes).toBe(1);
+    expect(db.isOpen()).toBe(false);
+    await expect(db.profile.update(1, { xpTotal: 5 })).rejects.toBeInstanceOf(Dexie.DatabaseClosedError);
+  });
+
+  it("primer arranque con dos pestañas: la sonda de una no borra la base que la otra acaba de crear", async () => {
+    const opts = freshIdb();
+    await probeDb(opts);
+    const otherTabProbe = probeDb(opts);
+    const first = new CortexDb(opts);
+    await first.open();
+    await otherTabProbe;
+    expect(first.closedElsewhere).toBe(false);
+    expect(first.isOpen()).toBe(true);
+    expect((await opts.indexedDB.databases()).map((d) => d.name)).toEqual(["cortex"]);
+    first.close();
+  });
+
   it("el error de base cerrada explica qué hacer", () => {
-    expect(new DbClosedElsewhereError().message).toMatch(/Otra pestaña de Cortex .*Recarga la página/);
+    expect(new DbClosedError().message).toMatch(/otra pestaña de Cortex .*o el navegador los borró.*recarga la página/);
     expect(new FutureSchemaError(2, 1).message).toMatch(/más nueva de Cortex \(esquema 2/);
   });
 });

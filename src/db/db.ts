@@ -32,14 +32,17 @@ export class FutureSchemaError extends Error {
   }
 }
 
-/** Otra pestaña actualizó o borró la base mientras esta la tenía abierta: esta conexión ya no sirve. */
-export class DbClosedElsewhereError extends Error {
+/**
+ * La conexión con la base se cerró mientras la página la usaba: otra pestaña la actualizó o la borró,
+ * o el navegador la borró (p. ej. "Borrar datos del sitio"). Esta pestaña ya no la toca.
+ */
+export class DbClosedError extends Error {
   constructor() {
     super(
-      `Otra pestaña de ${APP_NAME} actualizó o borró tus datos, así que esta se desconectó para no tocarlos. ` +
-        "Recarga la página para seguir.",
+      `Se cerró la conexión con tus datos (otra pestaña de ${APP_NAME} los actualizó o borró, o el navegador los borró). ` +
+        "Esta pestaña ya no los toca: recarga la página para seguir.",
     );
-    this.name = "DbClosedElsewhereError";
+    this.name = "DbClosedError";
   }
 }
 
@@ -143,10 +146,17 @@ export interface ProbeResult {
 }
 
 /**
- * Mira la base SIN declarar esquema: Dexie no hace upgrade ni crea nada. Si no existe, lanza
- * `NoSuchDatabaseError` y la base sigue sin existir.
+ * Mira la base SIN declarar esquema: Dexie no hace upgrade. Si no existe, no se abre (o, sin
+ * `databases()`, Dexie lanza `NoSuchDatabaseError` y la base sigue sin existir).
  */
 export async function probeDb(options: DexieOptions = {}): Promise<ProbeResult> {
+  // Si la base no existe, Dexie la crea y la borra al instante; ese borrado podría alcanzar a la base
+  // que otra pestaña acaba de crear (primer arranque con dos pestañas). `databases()` evita abrirla.
+  const factory = (options.indexedDB as IDBFactory | undefined) ?? (typeof indexedDB === "undefined" ? undefined : indexedDB);
+  if (typeof factory?.databases === "function") {
+    const names = (await factory.databases()).map((d) => d.name);
+    if (!names.includes(APP_ID)) return { exists: false, version: 0, metaVersion: null };
+  }
   const probe = new Dexie(APP_ID, options);
   try {
     await probe.open();

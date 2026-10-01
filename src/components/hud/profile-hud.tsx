@@ -1,7 +1,7 @@
 "use client";
 
 import { TriangleAlert } from "lucide-react";
-import { DbClosedElsewhereError, FutureSchemaError } from "@/db/db";
+import { DbClosedError, FutureSchemaError } from "@/db/db";
 import { useProfile } from "@/db/use-profile";
 import { HudBar } from "./hud-bar";
 
@@ -15,7 +15,7 @@ export function ProfileHud() {
     const [label, short] =
       state.error instanceof FutureSchemaError
         ? ["Datos de una versión más nueva", "Versión nueva"]
-        : state.error instanceof DbClosedElsewhereError
+        : state.error instanceof DbClosedError
           ? ["Recarga la página", "Recarga"]
           : ["No pude abrir tus datos", "Sin datos"];
     return (
