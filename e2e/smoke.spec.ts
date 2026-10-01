@@ -95,12 +95,62 @@ test("2 - una lección carga con fórmulas y tablas", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+/** Escribe valores en el perfil directo en IndexedDB (misma versión: no dispara `versionchange`). */
+async function setProfile(page: Page, values: Record<string, number>): Promise<void> {
+  await page.evaluate(
+    (v) =>
+      new Promise<void>((resolve, reject) => {
+        const req = indexedDB.open("cortex", 10);
+        req.onsuccess = () => {
+          const tx = req.result.transaction("profile", "readwrite");
+          const store = tx.objectStore("profile");
+          const get = store.get(1);
+          get.onsuccess = () => store.put({ ...get.result, ...v });
+          tx.oncomplete = () => {
+            req.result.close();
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+        req.onerror = () => reject(req.error);
+      }),
+    values,
+  );
+}
+
+/** Cuánto se mete el HUD en el margen derecho del header (0 = respeta el margen). */
+const hudIntrusion = (page: Page) =>
+  page.evaluate(() => {
+    const row = document.querySelector("header > div");
+    const hud = row?.lastElementChild;
+    if (!row || !hud) return Number.NaN;
+    const padding = parseFloat(getComputedStyle(row).paddingRight);
+    return hud.getBoundingClientRect().right - (row.getBoundingClientRect().right - padding);
+  });
+
 test("3 - en un celular no hay desborde horizontal (320 y 375 px)", async ({ page }) => {
   for (const width of [320, 375]) {
     await page.setViewportSize({ width, height: 800 });
     for (const url of ["/", "/materias/calculo", "/materias/calculo/01-limites", "/materias/programacion/01-variables-y-tipos", "/ajustes", "/estilo"]) {
       await page.goto(url);
       expect(await noHorizontalOverflow(page), `${url} a ${width} px`).toBeLessThanOrEqual(0);
+    }
+  }
+
+  // El HUD cabe en su margen aun con números grandes, en el ancho mínimo y donde aparece la barra de XP.
+  await page.goto("/");
+  await expect(page.getByRole("banner").getByRole("img", { name: "Nivel 1" })).toBeVisible();
+  for (const [profile, widths] of [
+    [{ level: 1, currentStreak: 0 }, [320, 640, 768]],
+    [{ level: 100, currentStreak: 1240, xpTotal: 98_760 }, [320, 375, 640, 768, 1024]],
+  ] as const) {
+    await setProfile(page, profile);
+    await page.reload();
+    await expect(page.getByRole("banner").getByRole("img", { name: `Nivel ${profile.level}` })).toBeVisible();
+    for (const width of widths) {
+      await page.setViewportSize({ width, height: 800 });
+      expect(await noHorizontalOverflow(page), `nivel ${profile.level} a ${width} px`).toBeLessThanOrEqual(0);
+      expect(await hudIntrusion(page), `HUD con nivel ${profile.level} a ${width} px`).toBeLessThanOrEqual(0.5);
     }
   }
 });
@@ -173,6 +223,9 @@ test("4 - respaldo: exportar, borrar, importar con confirmación y rechazar uno 
     const b = await button.boundingBox();
     expect(b && box && b.x + b.width <= box.x + box.width + 0.5, await button.innerText()).toBe(true);
   }
+  // Descargar desde el diálogo deja el resultado a la vista dentro del diálogo.
+  await Promise.all([page.waitForEvent("download"), dialog.getByRole("button", { name: "Descargar mis datos actuales primero" }).click()]);
+  await expect(dialog.getByRole("status")).toContainText("Respaldo descargado");
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
   await expect(replace).toBeFocused();
@@ -257,8 +310,17 @@ test("6 - si otra pestaña sube la versión de la base, esta se desconecta y no 
 
   // Al recargar, la guarda la reconoce como más nueva y tampoco la toca.
   await page.reload();
-  await expect(page.getByRole("banner").getByRole("status")).toContainText("Datos de una versión más nueva");
+  const warning = page.getByRole("banner").getByRole("status");
+  await expect(warning).toContainText("Datos de una versión más nueva");
   expect(await native()).toEqual({ version: 20, indexes: ["at", "exerciseId"] });
+
+  // En el celular más chico el aviso cabe en el header (texto corto; el completo para lectores de pantalla).
+  await page.setViewportSize({ width: 320, height: 800 });
+  await expect(warning).toContainText("Datos de una versión más nueva");
+  const header = await page.getByRole("banner").boundingBox();
+  const chip = await warning.boundingBox();
+  expect(chip && header && chip.y >= header.y && chip.y + chip.height <= header.y + header.height).toBe(true);
+  expect(await noHorizontalOverflow(page)).toBeLessThanOrEqual(0);
   await other.close();
   expect(errors).toEqual([]);
 });

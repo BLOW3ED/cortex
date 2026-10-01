@@ -50,6 +50,20 @@ const TABLE_LABELS: Record<DataTableName, string> = {
 
 const formatDate = (iso: string) => new Date(iso).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" });
 
+/** Aviso de resultado: `ok` en color de acento; `warning` cuando algo requiere tu atención. */
+interface Notice {
+  readonly tone: "ok" | "warning";
+  readonly text: string;
+}
+
+interface ErrorBlock {
+  readonly title: string;
+  readonly items: readonly string[];
+}
+
+const IMPORT_ERROR = "Ese archivo no se puede importar. Tus datos no cambiaron.";
+const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
 interface Pending {
   readonly backup: Backup;
   readonly summary: BackupSummary;
@@ -68,8 +82,10 @@ export function BackupPanel() {
   // Se confirmó el reemplazo: el botón que abrió el diálogo va a desaparecer, así que Radix no
   // debe devolverle el foco; lo recibe el resultado (aviso de estado o de error).
   const confirmed = useRef(false);
-  const [status, setStatus] = useState("");
-  const [errors, setErrors] = useState<string[]>([]);
+  const [status, setStatus] = useState<Notice | null>(null);
+  const [errors, setErrors] = useState<ErrorBlock | null>(null);
+  // Resultado de "Descargar mis datos actuales primero", visible dentro del diálogo.
+  const [dialogNote, setDialogNote] = useState<Notice | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
   const [busy, setBusy] = useState(false);
   const [fileName, setFileName] = useState("");
@@ -97,45 +113,49 @@ export function BackupPanel() {
 
   // Los manejadores piden la base a getDb() (misma promesa compartida): así no dependen de un
   // render anterior en el que todavía no estaba lista.
-  const download = async () => {
+  /** Descarga el respaldo y devuelve el aviso del resultado (en el panel o dentro del diálogo). */
+  const download = async (): Promise<Notice> => {
     try {
       const name = backupFileName();
       const text = serializeBackup(await exportBackup(await getDb(), APP_VERSION));
       downloadText(name, text);
       // Nunca un respaldo "exitoso" que luego no se pueda importar sin que lo sepas.
       const tooBig = backupSizeError(utf8ByteLength(text));
-      setStatus(
-        tooBig
-          ? `Respaldo descargado: ${name}. Ojo: ${tooBig} Guárdalo y pide que se suba el límite antes de importarlo.`
-          : `Respaldo descargado: ${name}`,
-      );
+      return tooBig
+        ? { tone: "warning", text: `Se descargó ${name}, pero no se podrá importar: ${tooBig} Guárdalo y pide que se suba el límite.` }
+        : { tone: "ok", text: `Respaldo descargado: ${name}` };
     } catch (e) {
-      setErrors([`No se pudo descargar el respaldo: ${e instanceof Error ? e.message : String(e)}`]);
+      return { tone: "warning", text: `No pude descargar el respaldo: ${message(e)}` };
     }
   };
 
+  const downloadFromPanel = async () => {
+    setErrors(null);
+    setStatus(await download());
+  };
+
   const choose = async (file: File | undefined) => {
-    setErrors([]);
+    setErrors(null);
     setPending(null);
-    setStatus("");
+    setStatus(null);
     if (!file) return;
     // El tamaño se revisa antes de leer: un archivo enorme ni siquiera se carga en memoria.
     const tooBig = backupSizeError(file.size);
     if (tooBig) {
-      setErrors([tooBig]);
+      setErrors({ title: IMPORT_ERROR, items: [tooBig] });
       return;
     }
     try {
       const parsed = parseBackup(await file.text());
       if (!parsed.ok) {
-        setErrors(parsed.errors);
+        setErrors({ title: IMPORT_ERROR, items: parsed.errors });
         return;
       }
       const current = await summarizeDb(await getDb());
       setPending({ backup: parsed.backup, summary: summarizeBackup(parsed.backup), current, fileName: file.name });
-      setStatus(`Respaldo listo para revisar: ${file.name}. Compara abajo y confirma si quieres reemplazar.`);
+      setStatus({ tone: "ok", text: `Respaldo listo para revisar: ${file.name}. Compara abajo y confirma si quieres reemplazar.` });
     } catch (e) {
-      setErrors([`No pude leer ese archivo: ${e instanceof Error ? e.message : String(e)}`]);
+      setErrors({ title: IMPORT_ERROR, items: [`No pude leer ese archivo: ${message(e)}`] });
     }
   };
 
@@ -144,13 +164,14 @@ export function BackupPanel() {
     setBusy(true);
     try {
       await importBackup(await getDb(), pending.backup);
-      setStatus(`Listo: tus datos se restauraron · respaldo del ${formatDate(pending.summary.exportedAt)}`);
+      setErrors(null);
+      setStatus({ tone: "ok", text: `Listo: tus datos se restauraron · respaldo del ${formatDate(pending.summary.exportedAt)}` });
       setPending(null);
       setFileName("");
       if (input.current) input.current.value = "";
       setFocusAfterImport({ target: "status" });
     } catch (e) {
-      setErrors([`No se pudo importar y tus datos quedaron como estaban: ${e instanceof Error ? e.message : String(e)}`]);
+      setErrors({ title: "No se pudo importar. Tus datos quedaron como estaban.", items: [message(e)] });
       setFocusAfterImport({ target: "errors" });
     } finally {
       setBusy(false);
@@ -166,7 +187,7 @@ export function BackupPanel() {
             Un archivo JSON con todo tu progreso. Guárdalo donde quieras; nada sale de tu máquina.
           </p>
         </div>
-        <Button onClick={() => void download()} disabled={!ready}>
+        <Button onClick={() => void downloadFromPanel()} disabled={!ready}>
           <Download aria-hidden /> Descargar respaldo
         </Button>
       </div>
@@ -204,11 +225,11 @@ export function BackupPanel() {
         </div>
       </div>
 
-      {errors.length ? (
+      {errors ? (
         <div ref={errorsRef} tabIndex={-1} role="alert" className="rounded-lg border border-danger p-4 text-sm outline-offset-4">
-          <p className="font-semibold text-danger">Ese archivo no se puede importar. Tus datos no cambiaron.</p>
+          <p className="font-semibold text-danger">{errors.title}</p>
           <ul className="mt-2 list-disc pl-5 text-ink-2">
-            {errors.map((e) => (
+            {errors.items.map((e) => (
               <li key={e}>{e}</li>
             ))}
           </ul>
@@ -254,6 +275,7 @@ export function BackupPanel() {
                 disabled={busy}
                 onClick={() => {
                   confirmed.current = false;
+                  setDialogNote(null);
                 }}
               >
                 Reemplazar mis datos con este respaldo
@@ -272,9 +294,18 @@ export function BackupPanel() {
                   la mitad, nada cambia
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <Button variant="outline" className="h-auto min-h-9 py-2 whitespace-normal" onClick={() => void download()}>
-                <Download aria-hidden /> Descargar mis datos actuales primero
-              </Button>
+              <div className="grid gap-2">
+                <Button
+                  variant="outline"
+                  className="h-auto min-h-9 py-2 whitespace-normal"
+                  onClick={() => void download().then(setDialogNote)}
+                >
+                  <Download aria-hidden /> Descargar mis datos actuales primero
+                </Button>
+                <p role="status" aria-live="polite" className={dialogNote?.tone === "warning" ? "text-sm text-warning" : "text-sm text-brand"}>
+                  {dialogNote?.text}
+                </p>
+              </div>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                 <AlertDialogAction
@@ -292,8 +323,14 @@ export function BackupPanel() {
         </section>
       ) : null}
 
-      <p ref={statusRef} tabIndex={-1} aria-live="polite" role="status" className="text-sm text-brand outline-offset-4">
-        {status}
+      <p
+        ref={statusRef}
+        tabIndex={-1}
+        aria-live="polite"
+        role="status"
+        className={`text-sm outline-offset-4 ${status?.tone === "warning" ? "text-warning" : "text-brand"}`}
+      >
+        {status?.text}
       </p>
     </div>
   );

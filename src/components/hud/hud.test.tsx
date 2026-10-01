@@ -44,7 +44,7 @@ describe("StreakChip", () => {
     [0, "Empieza hoy", "Racha: empieza hoy", null],
     [1, "1 día", "Racha: 1 día", "1"],
     [4, "4 días", "Racha: 4 días", "4"],
-    [1240, "1,240 días", "Racha: 1,240 días", "1,240"],
+    [1240, "1,240 días", "Racha: 1,240 días", "1.2\u00a0k"], // Intl usa espacio sin corte
   ])("%s días", (days, text, label, short) => {
     const m = html(<StreakChip days={days} />);
     expect(m).toContain(text);
@@ -52,8 +52,8 @@ describe("StreakChip", () => {
     expect(m).toContain(`role="img" aria-label="${label}"`);
     // En pantallas chicas solo el número (en 0, solo la llama), sin partirse en dos renglones.
     expect(m).toContain("whitespace-nowrap");
-    if (short === null) expect(m).not.toContain("sm:hidden");
-    else expect(m).toContain(`sm:hidden">${short}</span>`);
+    if (short === null) expect(m).not.toContain("md:hidden");
+    else expect(m).toContain(`md:hidden">${short}</span>`);
   });
 });
 

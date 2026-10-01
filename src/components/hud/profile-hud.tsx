@@ -12,20 +12,24 @@ import { HudBar } from "./hud-bar";
 export function ProfileHud() {
   const state = useProfile();
   if (state.status === "error") {
-    const label =
+    const [label, short] =
       state.error instanceof FutureSchemaError
-        ? "Datos de una versión más nueva"
+        ? ["Datos de una versión más nueva", "Versión nueva"]
         : state.error instanceof DbClosedElsewhereError
-          ? "Recarga la página"
-          : "No pude abrir tus datos";
+          ? ["Recarga la página", "Recarga"]
+          : ["No pude abrir tus datos", "Sin datos"];
     return (
       <span
         role="status"
         title={state.error.message}
-        className="inline-flex items-center gap-1.5 rounded-sm border border-warning px-2 py-1 font-mono text-xs text-warning"
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-warning px-2 py-1 font-mono text-xs whitespace-nowrap text-warning"
       >
         <TriangleAlert aria-hidden className="size-3.5" />
-        {label}
+        {/* En móvil, texto corto a la vista; el lector de pantalla siempre oye el completo. */}
+        <span aria-hidden className="sm:hidden">
+          {short}
+        </span>
+        <span className="sr-only sm:not-sr-only">{label}</span>
       </span>
     );
   }
