@@ -1,0 +1,9 @@
+unidad: calculo/01-limites
+nombre: "El Guardián del Infinito"
+vidas: 3
+tiempo_segundos: 480
+aprobado_minimo: 0.8
+preguntas:
+  propias: [calc-01-004, calc-01-005, calc-01-006, calc-01-008, calc-01-009, calc-01-014]
+  repaso_de: []
+recompensa: { xp: 300, insignia: "domador-de-limites" }

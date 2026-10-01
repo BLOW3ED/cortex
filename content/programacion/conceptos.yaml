@@ -1,0 +1,27 @@
+materia: programacion
+notacion: "Ejemplos en Python 3 y en C (estándar C99 o posterior). Los bloques de código indican el lenguaje."
+conceptos:
+  - id: variables-asignacion
+    nombre: "Variables y asignación"
+    prerequisitos: []
+  - id: tipos-basicos
+    nombre: "Tipos básicos (enteros, flotantes, texto, booleanos)"
+    prerequisitos: [variables-asignacion]
+  - id: entrada-salida
+    nombre: "Entrada y salida estándar"
+    prerequisitos: [variables-asignacion]
+  - id: aritmetica-entera
+    nombre: "División entera y residuo"
+    prerequisitos: [tipos-basicos]
+  - id: conversion-tipos
+    nombre: "Conversión de tipos"
+    prerequisitos: [tipos-basicos]
+  - id: formato-salida
+    nombre: "Formato de salida"
+    prerequisitos: [entrada-salida]
+  - id: precision-flotante
+    nombre: "Precisión de los números de punto flotante"
+    prerequisitos: [tipos-basicos]
+  - id: estructura-programa-c
+    nombre: "Estructura de un programa en C"
+    prerequisitos: [entrada-salida]

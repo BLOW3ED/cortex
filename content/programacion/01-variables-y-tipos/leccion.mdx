@@ -1,0 +1,104 @@
+---
+titulo: "Variables, tipos y entrada/salida"
+materia: programacion
+unidad: 01-variables-y-tipos
+duracion_min: 25
+prerrequisitos: []
+conceptos: [variables-asignacion, tipos-basicos, entrada-salida, aritmetica-entera, conversion-tipos, formato-salida, precision-flotante, estructura-programa-c]
+programa_ref: "pendiente"
+---
+
+## El problema
+
+Un programa es una receta que la computadora sigue al pie de la letra. Para seguirla necesita **dónde guardar datos** (variables), **qué clase de datos son** (tipos) y **cómo hablar contigo** (entrada y salida). Casi todos los errores de principiante nacen de confundir una de estas tres cosas.
+
+<Predice pregunta="¿Qué crees que da `7 / 2` en Python? ¿Y en C si 7 y 2 son enteros? Escribe tus dos respuestas antes de seguir." revela="En Python da 3.5. En C con enteros da 3. Misma operación, resultados distintos: los tipos mandan." />
+
+## Variables
+
+<Concepto titulo="Variable">
+Un nombre asociado a un valor guardado en memoria. Asignar es darle (o cambiarle) el valor: `x = 5` en Python, `x = 5;` en C.
+</Concepto>
+
+En C debes **declarar el tipo** antes de usar la variable; en Python el tipo va con el valor.
+
+```python
+edad = 20          # int
+altura = 1.75      # float
+nombre = "Ana"     # str
+estudia = True     # bool
+```
+
+```c
+int edad = 20;
+double altura = 1.75;
+char nombre[] = "Ana";   /* texto: arreglo de caracteres */
+int estudia = 1;          /* en C clásico no hay bool: 0 es falso, distinto de 0 es verdadero */
+```
+
+## Tipos y operaciones
+
+| Idea | Python | C |
+|---|---|---|
+| Entero | `int` (tamaño ilimitado) | `int` (tamaño fijo, normalmente 32 bits) |
+| Decimal | `float` (64 bits) | `double` (64 bits) o `float` (32 bits) |
+| División "normal" | `7 / 2` → `3.5` | `7 / 2` → `3` (enteros), `7 / 2.0` → `3.5` |
+| División entera | `7 // 2` → `3` | `7 / 2` → `3` |
+| Residuo | `7 % 2` → `1` | `7 % 2` → `1` |
+
+Para convertir de tipo: `int("5")`, `float(3)`, `str(7)` en Python; en C se usa un *cast*: `(double)a / b`.
+
+## Entrada y salida
+
+```python
+nombre = input("¿Cómo te llamas? ")
+print("Hola,", nombre)
+```
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    int a, b;
+    scanf("%d %d", &a, &b);       /* %d = entero; & es "la dirección de" */
+    printf("Suma: %d\n", a + b);  /* \n = salto de línea */
+    return 0;
+}
+```
+
+Formatos comunes en C: `%d` entero, `%f` decimal, `%c` carácter, `%s` texto. Para fijar decimales o ceros a la izquierda: `%.2f`, `%02d`.
+
+<Ejemplo titulo="Promedio sin perder decimales (C)">
+Quieres el promedio de dos enteros $a$ y $b$.
+
+1. `(a + b) / 2` hace división entera: con 3 y 4 da `3`, no `3.5`.
+2. Basta que **uno** de los operandos sea decimal: `(a + b) / 2.0` da `3.5`.
+3. Se imprime con `printf("%.2f\n", (a + b) / 2.0);`.
+</Ejemplo>
+
+<Desvanecido titulo="Convertir segundos" pasos={[
+  "Tienes 135 segundos y quieres minutos completos: `135 // 60` da ___ .",
+  "Los segundos que sobran: `135 % 60` da ___ ."
+]} respuestas={["2", "15"]} />
+
+<Ojo>
+- **División entera en C.** `7 / 2` es `3`. Si quieres decimales, convierte uno de los operandos.
+- **Negativos.** En Python `-7 // 2` es `-4` (redondea hacia abajo); en C99 o posterior `-7 / 2` es `-3` (trunca hacia cero).
+- **Comparar decimales con `==`.** `0.1 + 0.2 == 0.3` es falso en Python y en C (con `double`): los decimales se guardan en binario con redondeo. Compara con una tolerancia.
+- **Olvidar el `&` en `scanf`.** Sin él, el programa falla o se comporta de forma impredecible.
+- **`input()` siempre devuelve texto.** Convierte con `int()` o `float()` antes de calcular.
+</Ojo>
+
+<Conexion materia="Inteligencia artificial">
+En aprendizaje profundo importa si los números son `float32` o `float64`: ocupan la mitad de memoria pero tienen menos precisión. Es el mismo tema que `double` contra `float` en C.
+</Conexion>
+
+<Resumen>
+- Una variable es un nombre para un valor en memoria; en C además lleva tipo declarado.
+- `/` con enteros en C es división entera; en Python `//` y `%` dan cociente y residuo.
+- Los decimales tienen error de redondeo: no los compares con `==`.
+</Resumen>
+
+<Feynman>
+Explícale a alguien por qué `7 / 2` da `3.5` en Python pero `3` en C con enteros, y qué cambiarías en C para obtener `3.5`.
+</Feynman>

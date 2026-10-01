@@ -1,0 +1,118 @@
+# Plantilla de ejercicios. Copia el bloque que necesites. Ver docs/05-formato-contenido.md.
+# Usa comillas simples para enunciados con LaTeX (así no hay que duplicar las barras invertidas).
+unidad: materia/NN-nombre-unidad
+ejercicios:
+  # --- numerico ---
+  - id: pref-NN-001
+    tipo: numerico
+    dificultad: 1
+    conceptos: [concepto-uno]
+    enunciado: 'Calcula $...$.'
+    respuesta: 0
+    tolerancia: 0
+    verificar: { sympy: "expresion_de_sympy" }   # o { python: "..." } o { revision: "manual" }
+    pistas: ["Pista 1"]
+    explicacion: 'Explicación paso a paso.'
+
+  # --- simbolico ---
+  - id: pref-NN-002
+    tipo: simbolico
+    dificultad: 2
+    conceptos: [concepto-uno]
+    enunciado: 'Simplifica ...'
+    respuesta: "x+3"
+    verificar: { sympy: "expresion_equivalente" }
+    explicacion: '...'
+
+  # --- opcion_multiple (valores es opcional y verificable) ---
+  - id: pref-NN-003
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [concepto-uno]
+    enunciado: '...'
+    opciones: ["A", "B", "C", "D"]
+    valores: [1, 2, 3, 4]
+    correcta: 1
+    verificar: { sympy: "expresion" }
+    explicacion: '...'
+
+  # --- completar ---
+  - id: pref-NN-004
+    tipo: completar
+    dificultad: 2
+    conceptos: [concepto-uno]
+    enunciado: 'Completa.'
+    texto: 'Un ___ y un ___.'
+    respuestas: ["uno", "otro"]
+    explicacion: '...'
+
+  # --- ordenar ---
+  - id: pref-NN-005
+    tipo: ordenar
+    dificultad: 2
+    conceptos: [concepto-uno]
+    enunciado: 'Ordena los pasos.'
+    elementos: ["Paso 1", "Paso 2", "Paso 3"]
+    explicacion: '...'
+
+  # --- codigo (python) ---
+  - id: pref-NN-006
+    tipo: codigo
+    dificultad: 2
+    conceptos: [concepto-uno]
+    lenguaje: python
+    enunciado: 'Escribe `f(x)` que ...'
+    plantilla: |
+      def f(x):
+          pass
+    solucion: |
+      def f(x):
+          return x
+    tests:
+      - { expr: "f(2)", esperado: 2, tolerancia: 0 }
+    explicacion: '...'
+
+  # --- codigo (c) ---
+  - id: pref-NN-007
+    tipo: codigo
+    dificultad: 3
+    conceptos: [concepto-uno]
+    lenguaje: c
+    enunciado: 'Escribe un programa en C que ...'
+    plantilla: |
+      #include <stdio.h>
+      int main(void) {
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+      int main(void) {
+          printf("hola\n");
+          return 0;
+      }
+    tests:
+      - { entrada: "", salida: "hola\n" }
+    explicacion: '...'
+
+  # --- predecir_salida ---
+  - id: pref-NN-008
+    tipo: predecir_salida
+    dificultad: 2
+    conceptos: [concepto-uno]
+    lenguaje: python
+    enunciado: '¿Qué imprime?'
+    codigo: |
+      print(1 + 1)
+    respuesta: "2"
+    explicacion: '...'
+
+  # --- autoevaluacion ---
+  - id: pref-NN-009
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [concepto-uno]
+    enunciado: 'Explica con tus palabras ...'
+    rubrica: ["Criterio 1", "Criterio 2", "Criterio 3"]
+    respuesta_modelo: '...'
+    explicacion: '...'
+    tarjeta: false

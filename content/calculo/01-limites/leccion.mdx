@@ -1,0 +1,91 @@
+---
+titulo: "Límites: acercarse sin llegar"
+materia: calculo
+unidad: 01-limites
+duracion_min: 25
+prerrequisitos: []
+conceptos: [limite-intuitivo, limite-lateral, limite-polinomio, indeterminacion-cero-cero, limite-notable-seno, limite-infinito]
+programa_ref: "pendiente"
+---
+
+## El problema
+
+Un auto marca 0 km/h, acelera y frena. ¿Cuál es su velocidad **en el instante** $t=3$ s? La velocidad es distancia entre tiempo, pero en un instante no pasa tiempo, ¡y quedaría $0/0$! La salida es mirar velocidades promedio en intervalos cada vez más pequeños alrededor de $t=3$ y ver a qué número se acercan. Ese "a qué se acerca" es un **límite**.
+
+<Predice pregunta="Considera $f(x)=\dfrac{x^2-9}{x-3}$. No puedes evaluar en $x=3$ (división entre cero). ¿Qué crees que pasa con los valores de $f(x)$ cuando $x$ se acerca a 3? Anota tu intuición antes de seguir." revela="Verás que se acercan a 6. Ahora vamos a demostrar por qué." />
+
+## Idea central
+
+<Concepto titulo="Límite">
+Decimos que $\displaystyle\lim_{x\to a} f(x)=L$ cuando $f(x)$ se puede hacer tan cercano a $L$ como queramos tomando $x$ suficientemente cerca de $a$, **con $x\neq a$**.
+</Concepto>
+
+Lo importante: el límite habla de lo que pasa **cerca** de $a$, no **en** $a$. El valor $f(a)$ puede no existir, o ser distinto de $L$, y el límite sigue siendo $L$.
+
+Para $f(x)=\dfrac{x^2-9}{x-3}$:
+
+| $x$ | 2.9 | 2.99 | 2.999 | 3.001 | 3.01 | 3.1 |
+|---|---|---|---|---|---|---|
+| $f(x)$ | 5.9 | 5.99 | 5.999 | 6.001 | 6.01 | 6.1 |
+
+Por ambos lados se acerca a 6, así que $\displaystyle\lim_{x\to 3}\frac{x^2-9}{x-3}=6$.
+
+### Límites laterales
+
+$\displaystyle\lim_{x\to a^-}f(x)$ mira solo valores menores que $a$; $\displaystyle\lim_{x\to a^+}f(x)$, solo mayores. El límite existe **si y solo si** ambos laterales existen y son iguales.
+
+## Técnicas
+
+1. **Sustitución directa.** Si $f$ es polinomial (o suficientemente "bien portada" en $a$), $\lim_{x\to a}f(x)=f(a)$.
+2. **Si sale $0/0$: simplifica.** Factoriza, racionaliza o usa identidades. $0/0$ **no significa nada por sí solo**: es una señal de que hay que trabajar más.
+3. **Límite notable:** $\displaystyle\lim_{x\to 0}\frac{\sin x}{x}=1$ (con $x$ en radianes).
+4. **Al infinito (cociente de polinomios):** divide numerador y denominador entre la mayor potencia de $x$.
+
+<Ejemplo titulo="Factorizar">
+Calcula $\displaystyle\lim_{x\to 3}\frac{x^2-9}{x-3}$.
+
+1. Sustituir da $\frac{0}{0}$: no concluye nada.
+2. Factoriza: $x^2-9=(x-3)(x+3)$.
+3. Para $x\neq 3$: $\dfrac{(x-3)(x+3)}{x-3}=x+3$.
+4. Como el límite ignora $x=3$, $\displaystyle\lim_{x\to3}(x+3)=6$.
+</Ejemplo>
+
+<Desvanecido titulo="Racionalizar" pasos={[
+  "Calcula $\\lim_{x\\to 1}\\dfrac{\\sqrt{x+3}-2}{x-1}$. Sustituir da $0/0$.",
+  "Multiplica arriba y abajo por el conjugado $\\sqrt{x+3}+2$.",
+  "El numerador queda $(x+3)-4=$ ___ .",
+  "Simplifica el factor común y evalúa $\\dfrac{1}{\\sqrt{x+3}+2}$ en $x=1$: el resultado es ___ ."
+]} respuestas={["x-1", "1/4"]} />
+
+<Ejemplo titulo="Al infinito">
+$\displaystyle\lim_{x\to\infty}\frac{2x^2+1}{x^2+5x}$. Divide todo entre $x^2$: $\dfrac{2+1/x^2}{1+5/x}$. Cuando $x\to\infty$, $1/x^2\to 0$ y $5/x\to 0$, así que el límite es $\dfrac{2}{1}=2$.
+</Ejemplo>
+
+<Ojo>
+- **"$0/0$ es cero" o "$0/0$ no existe": falso.** Es una forma indeterminada; el límite puede ser cualquier número, infinito o no existir.
+- **Cancelar sumandos.** $\dfrac{x^2-9}{x-3}$ no se simplifica "quitando el 3 y el 9". Solo se cancelan **factores**.
+- **Tratar $\infty$ como número.** $\infty-\infty$ y $\infty/\infty$ también son indeterminados; hay que trabajarlos.
+- **Calculadora en grados.** En $\sin x/x\to 1$, $x$ va en radianes.
+</Ojo>
+
+<Conexion materia="Programación y análisis de algoritmos">
+La notación asintótica ($O(n^2)$, $\Theta(n\log n)$) se define comparando funciones cuando $n\to\infty$: es un límite al infinito disfrazado. Saber dividir entre la mayor potencia te dice qué término domina el costo de un algoritmo.
+</Conexion>
+
+<Conexion materia="Inteligencia artificial">
+La derivada, base del descenso de gradiente con el que se entrenan los modelos, **es un límite**: $f'(a)=\lim_{h\to0}\frac{f(a+h)-f(a)}{h}$. Esta lección es el primer paso hacia ahí.
+</Conexion>
+
+### Nivel experto: la definición formal
+
+$\displaystyle\lim_{x\to a}f(x)=L$ significa: para todo $\varepsilon>0$ existe $\delta>0$ tal que si $0<|x-a|<\delta$ entonces $|f(x)-L|<\varepsilon$. Es un "reto": tú eliges qué tan cerca de $L$ quieres estar ($\varepsilon$) y yo debo encontrar qué tan cerca de $a$ hay que tomar $x$ ($\delta$).
+
+<Resumen>
+- El límite describe a qué valor se acerca $f(x)$ cuando $x$ se acerca a $a$, sin importar $f(a)$.
+- Primero sustituye; si sale $0/0$, factoriza o racionaliza.
+- Al infinito, divide entre la mayor potencia.
+</Resumen>
+
+<Feynman>
+Explícale a un amigo que no ha visto cálculo por qué el límite de $\dfrac{x^2-9}{x-3}$ en $x=3$ existe aunque la función no esté definida ahí. Si te trabas, vuelve a la tabla.
+</Feynman>

@@ -1,0 +1,9 @@
+unidad: programacion/01-variables-y-tipos
+nombre: "El Compilador Terco"
+vidas: 3
+tiempo_segundos: 900
+aprobado_minimo: 0.8
+preguntas:
+  propias: [prog-01-002, prog-01-004, prog-01-005, prog-01-007, prog-01-008, prog-01-009]
+  repaso_de: []
+recompensa: { xp: 200, insignia: "primer-programa" }

@@ -1,0 +1,155 @@
+unidad: calculo/01-limites
+ejercicios:
+  - id: calc-01-001
+    tipo: numerico
+    dificultad: 1
+    conceptos: [limite-polinomio]
+    enunciado: 'Calcula $\lim_{x\to 2}\left(3x^2-5x+1\right)$.'
+    respuesta: 3
+    tolerancia: 0
+    verificar: { sympy: "limit(3*x**2-5*x+1, x, 2)" }
+    pistas: ["Es un polinomio: ¿qué pasa si sustituyes directamente?"]
+    explicacion: 'Un polinomio es continuo, así que basta sustituir: $3(2)^2-5(2)+1 = 12-10+1 = 3$.'
+
+  - id: calc-01-002
+    tipo: numerico
+    dificultad: 2
+    conceptos: [indeterminacion-cero-cero]
+    enunciado: 'Calcula $\lim_{x\to 3}\dfrac{x^2-9}{x-3}$.'
+    respuesta: 6
+    tolerancia: 0
+    verificar: { sympy: "limit((x**2-9)/(x-3), x, 3)" }
+    pistas: ["Sustituir da 0/0. ¿Cómo se factoriza una diferencia de cuadrados?"]
+    explicacion: 'Como $x^2-9=(x-3)(x+3)$, para $x\neq3$ la expresión es $x+3$. Entonces el límite es $3+3=6$.'
+
+  - id: calc-01-003
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [limite-notable-seno]
+    enunciado: '¿Cuánto vale $\lim_{x\to 0}\dfrac{\sin(3x)}{x}$?'
+    opciones: ["1", "3", "0", "1/3"]
+    valores: [1, 3, 0, "1/3"]
+    correcta: 1
+    verificar: { sympy: "limit(sin(3*x)/x, x, 0)" }
+    pistas: ["Multiplica y divide por 3 para formar $\\sin(3x)/(3x)$."]
+    explicacion: 'Escribe $\dfrac{\sin 3x}{x}=3\cdot\dfrac{\sin 3x}{3x}$. Con $u=3x\to0$, $\dfrac{\sin u}{u}\to1$, así que el límite es $3\cdot1=3$.'
+
+  - id: calc-01-004
+    tipo: numerico
+    dificultad: 2
+    conceptos: [limite-infinito]
+    enunciado: 'Calcula $\lim_{x\to\infty}\dfrac{2x^2+1}{x^2+5x}$.'
+    respuesta: 2
+    tolerancia: 0
+    verificar: { sympy: "limit((2*x**2+1)/(x**2+5*x), x, oo)" }
+    pistas: ["Divide numerador y denominador entre la mayor potencia de $x$."]
+    explicacion: 'Dividiendo entre $x^2$ queda $\dfrac{2+1/x^2}{1+5/x}$. Cuando $x\to\infty$ los términos con $1/x$ tienden a 0, así que el límite es $2/1=2$.'
+
+  - id: calc-01-005
+    tipo: numerico
+    dificultad: 3
+    conceptos: [limite-notable-seno, indeterminacion-cero-cero]
+    enunciado: 'Calcula $\lim_{x\to 0}\dfrac{1-\cos x}{x^2}$. Puedes dar decimal.'
+    respuesta: 0.5
+    tolerancia: 0.001
+    verificar: { sympy: "limit((1-cos(x))/x**2, x, 0)" }
+    pistas: ["Multiplica arriba y abajo por $1+\\cos x$.", "Recuerda que $1-\\cos^2x=\\sin^2x$."]
+    explicacion: 'Multiplicando por $\dfrac{1+\cos x}{1+\cos x}$: $\dfrac{1-\cos^2x}{x^2(1+\cos x)}=\dfrac{\sin^2x}{x^2}\cdot\dfrac{1}{1+\cos x}$. Cuando $x\to0$ queda $1^2\cdot\dfrac12=\dfrac12$.'
+
+  - id: calc-01-006
+    tipo: numerico
+    dificultad: 3
+    conceptos: [indeterminacion-cero-cero]
+    enunciado: 'Calcula $\lim_{x\to 1}\dfrac{\sqrt{x+3}-2}{x-1}$. Puedes dar decimal.'
+    respuesta: 0.25
+    tolerancia: 0.001
+    verificar: { sympy: "limit((sqrt(x+3)-2)/(x-1), x, 1)" }
+    pistas: ["Racionaliza multiplicando por el conjugado $\\sqrt{x+3}+2$."]
+    explicacion: 'El numerador por el conjugado da $(x+3)-4=x-1$, que cancela el denominador. Queda $\dfrac{1}{\sqrt{x+3}+2}$, que en $x=1$ vale $\dfrac{1}{4}$.'
+
+  - id: calc-01-007
+    tipo: simbolico
+    dificultad: 2
+    conceptos: [indeterminacion-cero-cero]
+    enunciado: 'Simplifica $\dfrac{x^2-9}{x-3}$ para $x\neq 3$.'
+    respuesta: "x+3"
+    verificar: { sympy: "(x**2-9)/(x-3)" }
+    pistas: ["Factoriza el numerador."]
+    explicacion: 'Se cancela el factor común $(x-3)$ (válido porque $x\neq3$), quedando $x+3$.'
+
+  - id: calc-01-008
+    tipo: numerico
+    dificultad: 4
+    conceptos: [limite-notable-seno, indeterminacion-cero-cero]
+    enunciado: 'Calcula $\lim_{x\to 0}\dfrac{\tan x-\sin x}{x^3}$. Puedes dar decimal.'
+    respuesta: 0.5
+    tolerancia: 0.001
+    verificar: { sympy: "limit((tan(x)-sin(x))/x**3, x, 0)" }
+    pistas: ["Escribe $\\tan x=\\sin x/\\cos x$ y factoriza $\\sin x$.", "Te queda un factor $(1-\\cos x)/x^2$."]
+    explicacion: 'Como $\tan x-\sin x=\sin x\left(\dfrac1{\cos x}-1\right)=\dfrac{\sin x(1-\cos x)}{\cos x}$, la expresión es $\dfrac{\sin x}{x}\cdot\dfrac{1}{\cos x}\cdot\dfrac{1-\cos x}{x^2}$. Los límites son $1$, $1$ y $\tfrac12$ (ejercicio calc-01-005), de modo que el resultado es $\tfrac12$.'
+
+  - id: calc-01-009
+    tipo: numerico
+    dificultad: 4
+    conceptos: [limite-infinito, indeterminacion-cero-cero]
+    enunciado: 'Calcula $\lim_{x\to\infty}\left(\sqrt{x^2+x}-x\right)$. Puedes dar decimal.'
+    respuesta: 0.5
+    tolerancia: 0.001
+    verificar: { sympy: "limit(sqrt(x**2+x)-x, x, oo)" }
+    pistas: ["Es de la forma $\\infty-\\infty$. Multiplica por el conjugado."]
+    explicacion: 'Multiplicando por $\dfrac{\sqrt{x^2+x}+x}{\sqrt{x^2+x}+x}$ queda $\dfrac{x}{\sqrt{x^2+x}+x}$. Dividiendo entre $x$ (con $x>0$): $\dfrac{1}{\sqrt{1+1/x}+1}\to\dfrac12$.'
+
+  - id: calc-01-010
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [limite-intuitivo, definicion-epsilon-delta]
+    enunciado: '¿Puede existir $\lim_{x\to a}f(x)$ aunque $f(a)$ no esté definida? Explícalo con tus palabras y da un ejemplo.'
+    rubrica:
+      - "Dice que el límite depende de los valores cerca de $a$, no del valor en $a$."
+      - "Da un ejemplo concreto (p. ej. $(x^2-9)/(x-3)$ en $x=3$)."
+      - "Menciona que el valor $f(a)$, si existe, puede diferir del límite."
+    respuesta_modelo: 'Sí. El límite solo mira lo que hace $f$ para $x$ cercano a $a$ pero distinto de $a$. Por ejemplo, $f(x)=(x^2-9)/(x-3)$ no está definida en $x=3$, pero para $x\neq3$ es igual a $x+3$, así que el límite es 6.'
+    explicacion: 'Si tu explicación incluyó los tres puntos de la rúbrica, vas bien. Si omitiste el tercero, piensa en una función que valga 0 en $a$ pero cuyo límite sea 5.'
+    tarjeta: false
+
+  - id: calc-01-011
+    tipo: completar
+    dificultad: 2
+    conceptos: [indeterminacion-cero-cero]
+    enunciado: 'Completa el procedimiento.'
+    texto: 'Para calcular $\lim_{x\to3}\frac{x^2-9}{x-3}$ primero se ___ el numerador como $(x-3)(x+3)$ y luego se ___ el factor común.'
+    respuestas: ["factoriza", "cancela"]
+    explicacion: 'Se factoriza la diferencia de cuadrados y se cancela $(x-3)$, válido porque el límite considera $x\neq3$.'
+
+  - id: calc-01-012
+    tipo: ordenar
+    dificultad: 2
+    conceptos: [indeterminacion-cero-cero]
+    enunciado: 'Ordena los pasos para calcular un límite con una raíz que da $0/0$.'
+    elementos:
+      - "Sustituir y detectar la forma 0/0"
+      - "Multiplicar arriba y abajo por el conjugado"
+      - "Simplificar el factor que causa el 0"
+      - "Evaluar el límite de la expresión resultante"
+    explicacion: 'Primero se detecta la indeterminación; el conjugado permite eliminar la raíz y producir el factor que se cancela; al final ya se puede sustituir.'
+
+  - id: calc-01-013
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [limite-lateral]
+    enunciado: 'Si $\lim_{x\to2^-}f(x)=3$ y $\lim_{x\to2^+}f(x)=5$, entonces $\lim_{x\to2}f(x)$:'
+    opciones: ["es 3", "es 5", "es 4", "no existe"]
+    correcta: 3
+    pistas: ["¿Qué exige la existencia del límite sobre los laterales?"]
+    explicacion: 'El límite existe solo si los dos laterales existen y son iguales. Aquí son distintos (3 y 5), así que el límite no existe.'
+
+  - id: calc-01-014
+    tipo: numerico
+    dificultad: 3
+    conceptos: [indeterminacion-cero-cero]
+    enunciado: 'Calcula $\lim_{x\to2}\dfrac{x^2-4}{x^2-5x+6}$.'
+    respuesta: -4
+    tolerancia: 0
+    verificar: { sympy: "limit((x**2-4)/(x**2-5*x+6), x, 2)" }
+    pistas: ["Factoriza numerador y denominador."]
+    explicacion: 'Se tiene $\dfrac{(x-2)(x+2)}{(x-2)(x-3)}=\dfrac{x+2}{x-3}$ para $x\neq2$. En $x=2$: $\dfrac{4}{-1}=-4$.'

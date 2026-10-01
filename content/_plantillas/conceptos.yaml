@@ -1,0 +1,9 @@
+materia: id-de-materia
+notacion: "Convenciones de notación de la materia (una línea)."
+conceptos:
+  - id: concepto-uno
+    nombre: "Nombre legible"
+    prerequisitos: []
+  - id: concepto-dos
+    nombre: "Otro concepto"
+    prerequisitos: [concepto-uno]

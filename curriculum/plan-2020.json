@@ -1,0 +1,134 @@
+{
+  "programa": "Ingeniería en Inteligencia Artificial",
+  "plan": "2020",
+  "vigencia": "Enero 2020",
+  "unidades_academicas": ["ESCOM", "UPIIC", "UPIIT", "UPIIZ", "UPIIAP"],
+  "fuente": "Mapa curricular oficial IPN (PDF de 2 páginas). Horas por semana; créditos TEPIC.",
+  "totales": { "teoria": 139.5, "practica": 72.0, "horas": 211.5, "creditos_tepic": 351.0 },
+  "tracks": {
+    "programacion": "Programación y algoritmos",
+    "matematicas": "Matemáticas",
+    "ciencias": "Ciencias básicas",
+    "ia": "Inteligencia artificial",
+    "ingenieria": "Ingeniería y sistemas",
+    "negocios": "Economía y gestión",
+    "humanidades": "Comunicación, ética y liderazgo",
+    "proyecto": "Proyecto terminal y estancia"
+  },
+  "semestres": [
+    {
+      "n": 1,
+      "creditos": 51.0,
+      "materias": [
+        { "id": "programacion", "nombre": "Fundamentos de programación", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "programacion", "cortex_fase": 2 },
+        { "id": "matematicas-discretas", "nombre": "Matemáticas discretas", "teoria": 4.5, "practica": 1.5, "th": 6.0, "creditos": 10.5, "track": "matematicas", "cortex_fase": 3 },
+        { "id": "calculo", "nombre": "Cálculo", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "matematicas", "cortex_fase": 3 },
+        { "id": "mecanica-electromagnetismo", "nombre": "Mecánica y electromagnetismo", "teoria": 4.5, "practica": 1.5, "th": 6.0, "creditos": 10.5, "track": "ciencias", "cortex_fase": null },
+        { "id": "fundamentos-economicos", "nombre": "Fundamentos económicos", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "negocios", "cortex_fase": 4 },
+        { "id": "comunicacion-oral-escrita", "nombre": "Comunicación oral y escrita", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "humanidades", "cortex_fase": null }
+      ]
+    },
+    {
+      "n": 2,
+      "creditos": 48.0,
+      "materias": [
+        { "id": "algoritmos-estructuras-datos", "nombre": "Algoritmos y estructuras de datos", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "programacion", "cortex_fase": null },
+        { "id": "algebra-lineal", "nombre": "Álgebra lineal", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "matematicas", "cortex_fase": 5 },
+        { "id": "calculo-multivariable", "nombre": "Cálculo multivariable", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "matematicas", "cortex_fase": 6 },
+        { "id": "diseno-digital", "nombre": "Fundamentos de diseño digital", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ingenieria", "cortex_fase": null },
+        { "id": "etica-sociedad", "nombre": "Ingeniería, ética y sociedad", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "humanidades", "cortex_fase": null },
+        { "id": "finanzas-empresariales", "nombre": "Finanzas empresariales", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "negocios", "cortex_fase": null }
+      ]
+    },
+    {
+      "n": 3,
+      "creditos": 46.5,
+      "materias": [
+        { "id": "analisis-diseno-algoritmos", "nombre": "Análisis y diseño de algoritmos", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "programacion", "cortex_fase": null },
+        { "id": "paradigmas-programacion", "nombre": "Paradigmas de programación", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "programacion", "cortex_fase": null },
+        { "id": "ecuaciones-diferenciales", "nombre": "Ecuaciones diferenciales", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "matematicas", "cortex_fase": 7 },
+        { "id": "bases-datos", "nombre": "Bases de datos", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ingenieria", "cortex_fase": null },
+        { "id": "sistemas-digitales", "nombre": "Diseño de sistemas digitales", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ingenieria", "cortex_fase": null },
+        { "id": "liderazgo-personal", "nombre": "Liderazgo personal", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "humanidades", "cortex_fase": null }
+      ]
+    },
+    {
+      "n": 4,
+      "creditos": 48.0,
+      "materias": [
+        { "id": "fundamentos-ia", "nombre": "Fundamentos de inteligencia artificial", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null },
+        { "id": "probabilidad-estadistica", "nombre": "Probabilidad y estadística", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "matematicas", "cortex_fase": 8 },
+        { "id": "matematicas-avanzadas", "nombre": "Matemáticas avanzadas para la ingeniería", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "matematicas", "cortex_fase": 8 },
+        { "id": "desarrollo-web", "nombre": "Tecnologías para el desarrollo de aplicaciones web", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ingenieria", "cortex_fase": null },
+        { "id": "analisis-diseno-sistemas", "nombre": "Análisis y diseño de sistemas", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ingenieria", "cortex_fase": null },
+        { "id": "procesamiento-imagenes", "nombre": "Procesamiento digital de imágenes", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null }
+      ]
+    },
+    {
+      "n": 5,
+      "creditos": 45.0,
+      "materias": [
+        { "id": "aprendizaje-maquina", "nombre": "Aprendizaje de máquina", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null },
+        { "id": "vision-artificial", "nombre": "Visión artificial", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null },
+        { "id": "teoria-computacion", "nombre": "Teoría de la computación", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "programacion", "cortex_fase": null },
+        { "id": "procesamiento-senales", "nombre": "Procesamiento de señales", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ingenieria", "cortex_fase": null },
+        { "id": "algoritmos-bioinspirados", "nombre": "Algoritmos bioinspirados", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null },
+        { "id": "lenguaje-natural", "nombre": "Tecnologías de lenguaje natural", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null }
+      ]
+    },
+    {
+      "n": 6,
+      "creditos": 45.0,
+      "materias": [
+        { "id": "computo-paralelo", "nombre": "Cómputo paralelo", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "programacion", "cortex_fase": null },
+        { "id": "redes-neuronales", "nombre": "Redes neuronales y aprendizaje profundo", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null },
+        { "id": "ingenieria-software-inteligente", "nombre": "Ingeniería de software para sistemas inteligentes", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ingenieria", "cortex_fase": null },
+        { "id": "metodologia-investigacion", "nombre": "Metodología de la investigación y divulgación científica", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "humanidades", "cortex_fase": null },
+        { "id": "optativa-a", "nombre": "Optativa A", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null, "optativa": true },
+        { "id": "optativa-b", "nombre": "Optativa B", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null, "optativa": true }
+      ]
+    },
+    {
+      "n": 7,
+      "creditos": 42.0,
+      "materias": [
+        { "id": "trabajo-terminal-1", "nombre": "Trabajo terminal I", "teoria": 3.0, "practica": 6.0, "th": 9.0, "creditos": 12.0, "track": "proyecto", "cortex_fase": null },
+        { "id": "reconocimiento-voz", "nombre": "Reconocimiento de voz", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null },
+        { "id": "proyectos-informaticos", "nombre": "Formulación y evaluación de proyectos informáticos", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "negocios", "cortex_fase": null },
+        { "id": "optativa-c", "nombre": "Optativa C", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null, "optativa": true },
+        { "id": "optativa-d", "nombre": "Optativa D", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null, "optativa": true }
+      ]
+    },
+    {
+      "n": 8,
+      "creditos": 25.5,
+      "materias": [
+        { "id": "trabajo-terminal-2", "nombre": "Trabajo terminal II", "teoria": 3.0, "practica": 6.0, "th": 9.0, "creditos": 12.0, "track": "proyecto", "cortex_fase": null },
+        { "id": "gestion-empresarial", "nombre": "Gestión empresarial", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "negocios", "cortex_fase": null },
+        { "id": "estancia-profesional", "nombre": "Estancia profesional", "teoria": 0.0, "practica": 3.0, "th": 3.0, "creditos": 3.0, "track": "proyecto", "cortex_fase": null },
+        { "id": "habilidades-alta-direccion", "nombre": "Desarrollo de habilidades sociales para la alta dirección", "teoria": 0.0, "practica": 3.0, "th": 3.0, "creditos": 3.0, "track": "humanidades", "cortex_fase": null }
+      ]
+    }
+  ],
+  "optativas": [
+    { "id": "innovacion-emprendimiento", "nombre": "Innovación y emprendimiento tecnológico" },
+    { "id": "propiedad-intelectual", "nombre": "Propiedad intelectual" },
+    { "id": "aplicaciones-lenguaje-natural", "nombre": "Aplicaciones de lenguaje natural" },
+    { "id": "sistemas-multiagentes", "nombre": "Sistemas multiagentes" },
+    { "id": "aplicaciones-sistemas-multiagentes", "nombre": "Aplicaciones de sistemas multiagentes" },
+    { "id": "mineria-datos", "nombre": "Minería de datos" },
+    { "id": "big-data", "nombre": "Big data" },
+    { "id": "temas-selectos-ia", "nombre": "Temas selectos de inteligencia artificial" },
+    { "id": "computo-nube", "nombre": "Cómputo en la nube" },
+    { "id": "robots-moviles", "nombre": "Técnicas de programación para robots móviles" },
+    { "id": "interaccion-humano-maquina", "nombre": "Interacción humano-máquina" },
+    { "id": "dispositivos-moviles", "nombre": "Programación de dispositivos móviles" },
+    { "id": "ia-sistemas-embebidos", "nombre": "Aplicaciones de inteligencia artificial en sistemas embebidos" },
+    { "id": "topicos-algoritmos-bioinspirados", "nombre": "Tópicos selectos de algoritmos bioinspirados" }
+  ],
+  "optativas_horas": { "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5 },
+  "notas": [
+    "cortex_fase indica en qué fase de Cortex se construye el contenido de la materia (null = backlog posterior a la Fase 8).",
+    "Las horas y créditos vienen del PDF oficial; si el IPN publica una versión nueva del plan, actualiza este archivo y corre scripts/verify_content.py."
+  ]
+}

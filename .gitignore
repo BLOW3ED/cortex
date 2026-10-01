@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+playwright-report/
+test-results/
+.env*
+!.env.example
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+# Respaldos exportados desde la app
+*.cortex-backup.json
+# Programas oficiales en PDF (pueden ser pesados; decide si los versionas)
+# curriculum/programas/*.pdf

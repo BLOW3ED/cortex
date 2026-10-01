@@ -1,0 +1,9 @@
+unidad: materia/NN-nombre-unidad
+nombre: "Nombre épico del jefe"
+vidas: 3
+tiempo_segundos: 600
+aprobado_minimo: 0.8
+preguntas:
+  propias: [pref-NN-001, pref-NN-002, pref-NN-003, pref-NN-004, pref-NN-005, pref-NN-006]   # mínimo 6, al menos una de dificultad >= 4
+  repaso_de: []     # ids de ejercicios de unidades anteriores (25-35% del jefe)
+recompensa: { xp: 250, insignia: "slug-de-la-insignia" }

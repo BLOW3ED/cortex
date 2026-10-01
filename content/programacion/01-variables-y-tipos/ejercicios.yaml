@@ -1,0 +1,174 @@
+unidad: programacion/01-variables-y-tipos
+ejercicios:
+  - id: prog-01-001
+    tipo: predecir_salida
+    dificultad: 1
+    conceptos: [aritmetica-entera, tipos-basicos]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Escribe la salida exacta.'
+    codigo: |
+      a = 7
+      b = 2
+      print(a // b, a % b, a / b)
+    respuesta: "3 1 3.5"
+    pistas: ["`//` es cociente entero, `%` es residuo y `/` es división normal."]
+    explicacion: 'Cociente entero de 7 entre 2 es 3, el residuo es 1 y la división normal da 3.5. `print` separa los valores con un espacio.'
+
+  - id: prog-01-002
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [aritmetica-entera, estructura-programa-c]
+    enunciado: 'En C, ¿qué imprime `printf("%d\n", 7 / 2);`?'
+    opciones: ["3", "3.5", "4", "Error de compilación"]
+    correcta: 0
+    pistas: ["¿De qué tipo son los dos operandos?"]
+    explicacion: 'Ambos operandos son enteros, así que `/` es división entera y trunca: 3. Para obtener 3.5 haría falta que uno fuera decimal (`7 / 2.0`).'
+
+  - id: prog-01-003
+    tipo: codigo
+    dificultad: 1
+    conceptos: [variables-asignacion, tipos-basicos]
+    lenguaje: python
+    enunciado: 'Escribe `celsius_a_fahrenheit(c)` que regrese la temperatura en grados Fahrenheit. Fórmula: $F = C\cdot\frac{9}{5}+32$.'
+    plantilla: |
+      def celsius_a_fahrenheit(c):
+          pass
+    solucion: |
+      def celsius_a_fahrenheit(c):
+          return c * 9 / 5 + 32
+    tests:
+      - { expr: "celsius_a_fahrenheit(0)", esperado: 32, tolerancia: 0 }
+      - { expr: "celsius_a_fahrenheit(100)", esperado: 212, tolerancia: 0 }
+      - { expr: "celsius_a_fahrenheit(-40)", esperado: -40, tolerancia: 0 }
+      - { expr: "celsius_a_fahrenheit(37)", esperado: 98.6, tolerancia: 0.000001 }
+    pistas: ["Usa `return`, no `print`."]
+    explicacion: 'Multiplica por 9, divide entre 5 (con `/` para conservar decimales) y suma 32. A -40 grados ambas escalas coinciden, un buen caso de prueba.'
+
+  - id: prog-01-004
+    tipo: codigo
+    dificultad: 2
+    conceptos: [aritmetica-entera, tipos-basicos]
+    lenguaje: python
+    enunciado: 'Escribe `promedio(a, b, c)` que regrese el promedio de tres números como decimal.'
+    plantilla: |
+      def promedio(a, b, c):
+          pass
+    solucion: |
+      def promedio(a, b, c):
+          return (a + b + c) / 3
+    tests:
+      - { expr: "promedio(1, 2, 3)", esperado: 2, tolerancia: 0 }
+      - { expr: "promedio(10, 0, 5)", esperado: 5, tolerancia: 0 }
+      - { expr: "promedio(1, 1, 2)", esperado: 1.3333333333, tolerancia: 0.000001 }
+    pistas: ["No olvides los paréntesis: la suma va completa antes de dividir."]
+    explicacion: 'Se suman los tres valores entre paréntesis y se divide con `/`, que en Python siempre da decimal.'
+
+  - id: prog-01-005
+    tipo: codigo
+    dificultad: 2
+    conceptos: [entrada-salida, estructura-programa-c]
+    lenguaje: c
+    enunciado: 'Escribe un programa en C que lea dos enteros separados por espacio e imprima su suma seguida de un salto de línea.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int a, b;
+          scanf("%d %d", &a, &b);
+          printf("%d\n", a + b);
+          return 0;
+      }
+    tests:
+      - { entrada: "3 4\n", salida: "7\n" }
+      - { entrada: "-5 5\n", salida: "0\n" }
+      - { entrada: "100 250\n", salida: "350\n" }
+    pistas: ["`scanf` necesita la dirección de cada variable: `&a`."]
+    explicacion: 'Se declaran dos enteros, se leen con `scanf("%d %d", &a, &b)` y se imprime la suma con `printf`.'
+
+  - id: prog-01-006
+    tipo: completar
+    dificultad: 2
+    conceptos: [aritmetica-entera]
+    enunciado: 'Completa con el operador correcto de Python.'
+    texto: 'En Python, `7 ___ 2` da el cociente entero 3 y `7 ___ 2` da el residuo 1.'
+    respuestas: ["//", "%"]
+    explicacion: '`//` es la división entera (cociente) y `%` es el módulo (residuo).'
+
+  - id: prog-01-007
+    tipo: codigo
+    dificultad: 4
+    conceptos: [aritmetica-entera, formato-salida, entrada-salida]
+    lenguaje: c
+    enunciado: 'Lee un entero $n \ge 0$ (segundos) e imprime la duración en formato `HH:MM:SS` con dos dígitos cada campo y un salto de línea. Ejemplo: 3661 → `01:01:01`.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          printf("%02d:%02d:%02d\n", n / 3600, (n % 3600) / 60, n % 60);
+          return 0;
+      }
+    tests:
+      - { entrada: "3661\n", salida: "01:01:01\n" }
+      - { entrada: "59\n", salida: "00:00:59\n" }
+      - { entrada: "86399\n", salida: "23:59:59\n" }
+      - { entrada: "0\n", salida: "00:00:00\n" }
+    pistas: ["Horas: `n / 3600`. Minutos: lo que sobra de las horas, entre 60.", "`%02d` imprime un entero con al menos dos dígitos rellenando con ceros."]
+    explicacion: 'Las horas son `n / 3600` (división entera). Los segundos restantes tras las horas son `n % 3600`; entre 60 dan los minutos. Los segundos finales son `n % 60`. El formato `%02d` rellena con ceros.'
+
+  - id: prog-01-008
+    tipo: predecir_salida
+    dificultad: 3
+    conceptos: [conversion-tipos, tipos-basicos]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son dos líneas.'
+    codigo: |
+      x = "5"
+      y = 3
+      print(x * y)
+      print(int(x) * y)
+    respuesta: "555\n15"
+    pistas: ["¿Qué significa multiplicar un texto por un entero en Python?"]
+    explicacion: 'Un texto multiplicado por 3 se repite tres veces: `"555"`. Con `int(x)` el 5 pasa a ser número, y 5 por 3 es 15.'
+
+  - id: prog-01-009
+    tipo: predecir_salida
+    dificultad: 3
+    conceptos: [precision-flotante]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa?'
+    codigo: |
+      print(0.1 + 0.2 == 0.3)
+    respuesta: "False"
+    pistas: ["Piensa en cómo se guardan 0.1 y 0.2 en binario."]
+    explicacion: 'Los decimales como 0.1 no tienen representación binaria exacta; la suma da 0.30000000000000004, distinta de 0.3. Para comparar decimales se usa una tolerancia (p. ej. `math.isclose`).'
+
+  - id: prog-01-010
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [aritmetica-entera, conversion-tipos]
+    enunciado: 'Explica con tus palabras por qué `7 / 2` da resultados distintos en Python y en C con enteros, y cómo obtendrías 3.5 en C.'
+    rubrica:
+      - "Dice que en C la división entre dos enteros es división entera y trunca."
+      - "Dice que en Python `/` siempre produce un decimal."
+      - "Propone convertir al menos un operando a decimal, por ejemplo `7 / 2.0` o un cast `(double)7 / 2`."
+    respuesta_modelo: 'En C el tipo del resultado depende de los operandos: entero entre entero da entero, así que `7 / 2` es 3. En Python `/` siempre da decimal (3.5) y `//` es la división entera. En C se obtiene 3.5 volviendo decimal un operando: `7 / 2.0` o `(double)7 / 2`.'
+    explicacion: 'Si te faltó mencionar el cast o el literal decimal, repasa la sección de tipos y operaciones.'
+    tarjeta: false

@@ -1,0 +1,24 @@
+materia: calculo
+notacion: "Usamos f'(x) para la derivada y lim sin límites laterales salvo que se indique x→a⁺ o x→a⁻."
+conceptos:
+  - id: limite-intuitivo
+    nombre: "Límite (idea intuitiva)"
+    prerequisitos: []
+  - id: limite-lateral
+    nombre: "Límites laterales"
+    prerequisitos: [limite-intuitivo]
+  - id: limite-polinomio
+    nombre: "Límites por sustitución directa"
+    prerequisitos: [limite-intuitivo]
+  - id: indeterminacion-cero-cero
+    nombre: "Indeterminación 0/0 (factorizar y racionalizar)"
+    prerequisitos: [limite-polinomio]
+  - id: limite-notable-seno
+    nombre: "Límite notable sen(x)/x"
+    prerequisitos: [limite-intuitivo]
+  - id: limite-infinito
+    nombre: "Límites al infinito"
+    prerequisitos: [limite-polinomio]
+  - id: definicion-epsilon-delta
+    nombre: "Definición formal ε–δ"
+    prerequisitos: [limite-intuitivo]
