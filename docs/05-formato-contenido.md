@@ -75,7 +75,16 @@ MDX es código: estas reglas evitan errores que no se ven a simple vista.
 | Texto normal, fuera de `$...$` | `{` y `<` sueltos se leen como código: escríbelos `\{` y `\<` | `el conjunto \{1, 2\}` |
 | Signo de pesos (dinero) | Escríbelo `\$` para que no abra una fórmula | `cuesta \$150` |
 
-Una barra sola dentro de `{[...]}` no da error por sí misma: `\to` se convierte en un tabulador seguido de "o" y la fórmula sale mal. Por eso `pnpm content:check` la rechaza.
+Una barra sola dentro de `{[...]}` no da error por sí misma: `\to` se convierte en un tabulador seguido de "o", `\{` en `{` y `\,` en `,`, y la fórmula sale mal. Por eso `pnpm content:check` la rechaza (solo se aceptan `\\` y las comillas escapadas).
+
+Además, `pnpm content:check` (y `next build`) rechazan:
+- Props que el componente no tiene, props obligatorias que faltan (`pregunta` en `<Predice>`, `pasos` en `<Desvanecido>`, `id` en `<Visual>`), contenido dentro de `<Predice>`, `<Desvanecido>` o `<Visual>`, y un `<Desvanecido>` cuyo número de huecos `___` en `pasos` no coincide con `respuestas`.
+- Código en atributos: solo valores literales (`"texto"` o `{["a", "b"]}`).
+- Un `$` sin cerrar (la fórmula quedaría como texto crudo).
+- HTML dentro de un atributo (`vector<int>` se perdería): escríbelo entre backticks.
+- Comandos de KaTeX que cargan cosas externas (`\href`, `\url`, `\includegraphics`).
+- Etiquetas HTML con atributos; solo se permiten `<br> <sub> <sup> <kbd> <mark> <small> <abbr title> <u> <s>`.
+- Archivos `.mdx` guardados con BOM (guárdalos como UTF-8 sin BOM).
 
 ## `ejercicios.yaml`
 
@@ -111,6 +120,8 @@ ejercicios:
 **Tests de `codigo` en Python:** lista de `{ expr: "f(2)", esperado: 4, tolerancia: 0 }`. `expr` se evalúa después de ejecutar la solución.
 **Tests de `codigo` en C:** lista de `{ entrada: "3 4\n", salida: "7\n" }`; `solucion` es un programa completo con `main`. Se compila con `gcc -Wall -O0` y se compara salida (sin espacios finales).
 
+**Textos exactos van entre comillas.** `opciones`, `elementos`, `respuestas` (de `completar`), la `respuesta` de `predecir_salida` y la `salida` de los tests de C se muestran o se comparan tal cual: escríbelos entre comillas (`respuesta: "3.0"`). Sin comillas, YAML los lee como número y se pierde la forma (`3.0` → 3). Los enteros (`dificultad`, `correcta`, `vidas`, `tiempo_segundos`, `xp`, `duracion_min`) van sin decimales (`4`, no `4.0`).
+
 Campos comunes: `id`, `tipo`, `dificultad`, `conceptos` (al menos uno), `enunciado`, `explicacion` (obligatoria), `pistas` (opcional, máx. 3), `tarjeta` (opcional), `tiempo_estimado_s` (opcional), `verificar` (opcional en general; obligatorio en `numerico` y `simbolico`), `retirado` (opcional). Un campo que no esté en esta lista ni en la de su tipo es error (atrapa errores de dedo como `tolerancai`).
 
 ### Sobre `verificar`
@@ -122,7 +133,8 @@ Campos comunes: `id`, `tipo`, `dificultad`, `conceptos` (al menos uno), `enuncia
 Los `.yaml` se leen como **YAML 1.1** (igual que PyYAML, que usa `verify_content.py`), tanto en Python como en la app. Pon entre comillas cualquier texto que YAML pueda confundir con otra cosa:
 - `yes`, `no`, `on`, `off`, `true`, `false` → booleanos. Escribe `"no"` si quieres el texto.
 - `010` (octal), `1:30` (sexagesimal) → números raros. Escribe `"010"`, `"1:30"`.
-- Notación científica (`1e3`) se lee distinto según el lector: usa el número completo o calcúlalo en `verificar`.
+- Notación científica (`1e3`) y decimales sin cifra entera con signo (`-.5`) son texto en PyYAML: escribe `1000` o `-0.5`.
+- Fechas sin hora: `2026-01-05` (con ceros); `2026-1-5` es texto.
 
 Las letras sueltas `y` y `n` se leen como texto (como en PyYAML), así que `variables: [x, y, n]` funciona.
 

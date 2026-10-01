@@ -122,17 +122,25 @@ describe("buildIndex · fixture válido", () => {
     ]);
   });
 
-  it("CRLF y BOM dan el mismo resultado que LF", () => {
-    const crlf = (t: string) => `﻿${t.replace(/\n/g, "\r\n")}`;
+  it("CRLF en todos los archivos y BOM en los YAML dan el mismo resultado que LF", () => {
+    const crlf = (t: string) => t.replace(/\n/g, "\r\n");
+    const bom = (t: string) => `\uFEFF${crlf(t)}`;
     const r = raw({
       subjects: [
         subject({
-          concepts: { path: "content/calculo/conceptos.yaml", text: crlf(CONCEPTS) },
-          units: [unit("01-limites", { lesson: crlf(LESSON), exercises: crlf(EXERCISES), boss: crlf(BOSS) })],
+          concepts: { path: "content/calculo/conceptos.yaml", text: bom(CONCEPTS) },
+          units: [unit("01-limites", { lesson: crlf(LESSON), exercises: bom(EXERCISES), boss: bom(BOSS) })],
         }),
       ],
     });
     expect(buildIndex(r)).toEqual(buildIndex(raw()));
+  });
+
+  it("una lección con BOM es error (verify_content.py no encuentra su front matter)", () => {
+    const r = raw({ subjects: [subject({ units: [unit("01-limites", { lesson: `\uFEFF${LESSON}` })] })] });
+    const found = buildIndex(r).issues;
+    expect(found.map((i) => i.code)).toEqual(["sin-front-matter"]);
+    expect(found[0]?.message).toContain("BOM");
   });
 });
 
@@ -287,5 +295,80 @@ describe("buildIndex · reglas solo TS (D5)", () => {
 
   it("repaso_de debe venir de una unidad anterior", () => {
     expect(only(u({ boss: BOSS.replace("repaso_de: []", "repaso_de: [calc-01-001]") }))).toEqual(["jefe-repaso-no-previo"]);
+  });
+});
+
+describe("buildIndex · hallazgos de la revisión adversarial", () => {
+  const u = (over: Partial<Record<"lesson" | "exercises" | "boss", string>>) =>
+    raw({ subjects: [subject({ units: [unit("01-limites", over)] })] });
+  const plan = (mutate: (p: Record<string, unknown>) => void) => {
+    const p = JSON.parse(PLAN) as Record<string, unknown>;
+    mutate(p);
+    return raw({ plan: { path: "curriculum/plan-2020.json", text: JSON.stringify(p) } });
+  };
+
+  it("revisa las sumas del plan igual que Python", () => {
+    type P = { semestres: { creditos: number; materias: { th: number }[] }[]; totales: { creditos_tepic: number } };
+    const th = plan((p) => (((p as unknown as P).semestres[0]?.materias[0] ?? { th: 0 }).th = 9));
+    const sem = plan((p) => (((p as unknown as P).semestres[0] ?? { creditos: 0 }).creditos = 99));
+    const tot = plan((p) => ((p as unknown as P).totales.creditos_tepic = 1));
+    expect(buildIndex(th).issues.map((i) => i.message)).toContain("calculo: teoria+practica != th");
+    expect(buildIndex(sem).issues.map((i) => i.message)).toEqual(expect.arrayContaining([expect.stringContaining("semestre 1: créditos suman 15, dice 99")]));
+    expect(only(tot)).toEqual(["plan-inconsistente"]);
+  });
+
+  it("un entero escrito con decimales es error (dificultad 4.0, xp 300.0, duracion_min 20.0)", () => {
+    expect(only(u({ exercises: EXERCISES.replace("dificultad: 4", "dificultad: 4.0") }))).toEqual(["esquema"]);
+    expect(only(u({ boss: BOSS.replace("xp: 100", "xp: 100.0") }))).toEqual(["esquema"]);
+    expect(only(u({ lesson: LESSON.replace("duracion_min: 20", "duracion_min: 20.0") }))).toEqual(["esquema"]);
+  });
+
+  it("una clave desconocida en el encabezado no apaga la revisión de los ejercicios", () => {
+    const ex = EXERCISES.replace("unidad: calculo/01-limites", "unidad: calculo/01-limites\nnotas: borrador").replace("conceptos: [a]", "conceptos: [zeta]");
+    expect(only(u({ exercises: ex })).sort()).toEqual(["clave-desconocida", "concepto-inexistente"]);
+  });
+
+  it("un error de esquema en el jefe no oculta sus reglas cruzadas", () => {
+    const boss = BOSS.replace('insignia: "jefe-uno"', 'insignia: "Jefe Uno"').replace("calc-01-005,", "calc-01-099,");
+    expect(only(u({ boss })).sort()).toEqual(["esquema", "jefe-propia-inexistente"]);
+  });
+
+  it("un concepto con error de esquema no apaga los demás conceptos", () => {
+    const concepts = `${CONCEPTS}  - id: B\n    nombre: "Mal"\n`;
+    const r = raw({
+      subjects: [
+        subject({
+          concepts: { path: "content/calculo/conceptos.yaml", text: concepts },
+          units: [unit("01-limites", { exercises: EXERCISES.replace("conceptos: [a]", "conceptos: [zeta]") })],
+        }),
+      ],
+    });
+    expect(only(r).sort()).toEqual(["concepto-inexistente", "esquema"]);
+  });
+
+  it("un prerrequisito de otra materia cargada que no existe es error", () => {
+    const otherConcepts = { path: "content/fisica/conceptos.yaml", text: "materia: fisica\nconceptos:\n  - id: vector\n    nombre: V\n" };
+    const calc = CONCEPTS.replace("prerequisitos: [a]", "prerequisitos: [a, fisica:fuerza]");
+    const r = raw({
+      subjects: [
+        subject({ concepts: { path: "content/calculo/conceptos.yaml", text: calc } }),
+        { dir: "fisica", concepts: otherConcepts, units: [] },
+      ],
+    });
+    expect(only(r)).toEqual(["prerrequisito-externo-inexistente"]);
+  });
+
+  it("mensajes claros: tipo faltante y retirado que no es booleano", () => {
+    const sinTipo = EXERCISES.replace("    tipo: numerico\n    dificultad: 2\n    conceptos: [a]\n    enunciado: \"Calcula 1.\"", "    dificultad: 2\n    conceptos: [a]\n    enunciado: \"Calcula 1.\"");
+    expect(buildIndex(u({ exercises: sinTipo })).issues.map((i) => i.message)).toContain("tipo: falta 'tipo'");
+    const retirado = EXERCISES.replace("  - id: calc-01-005\n", "  - id: calc-01-005\n    retirado: 1\n");
+    expect(buildIndex(u({ exercises: retirado })).issues.map((i) => i.message)).toContain("retirado: retirado debe ser true (o quítalo)");
+  });
+
+  it("textos que se comparan tal cual deben ir entre comillas", () => {
+    const pred = `  - id: calc-01-007\n    tipo: predecir_salida\n    lenguaje: python\n    dificultad: 1\n    conceptos: [a]\n    enunciado: "¿Qué imprime?"\n    codigo: "print(6/2)"\n    respuesta: 3.0\n    explicacion: "x"\n`;
+    const issues = buildIndex(u({ exercises: `${EXERCISES}${pred}` })).issues;
+    expect(issues.map((i) => i.code)).toEqual(["esquema"]);
+    expect(issues[0]?.message).toContain("entre comillas");
   });
 });

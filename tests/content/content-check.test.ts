@@ -1,9 +1,12 @@
-import { dirname } from "node:path";
-import { describe, expect, it } from "vitest";
-import { contentCheck, edit, makeRoot } from "./helpers";
+import { symlinkSync } from "node:fs";
+import { join } from "node:path";
+import { afterAll, describe, expect, it } from "vitest";
+import { cleanupRoots, contentCheck, edit, emptyDir, makeRoot } from "./helpers";
 
 const CALC = "content/calculo/01-limites";
 const PROG = "content/programacion/01-variables-y-tipos";
+
+afterAll(cleanupRoots);
 
 describe("pnpm content:check", () => {
   it("el contenido real pasa las 4 capas", () => {
@@ -21,12 +24,13 @@ describe("pnpm content:check", () => {
     expect(r.out).toContain("falló en la(s) capa(s): 4");
   });
 
-  it("un componente desconocido falla en la capa 2 con su línea", () => {
+  it("un componente desconocido falla en la capa 2 con su línea exacta", () => {
     const root = makeRoot();
-    edit(root, `${CALC}/leccion.mdx`, (t) => `${t}\n<Desconocido />\n`);
+    const text = edit(root, `${CALC}/leccion.mdx`, (t) => `${t}\n<Desconocido />\n`);
+    const line = text.split("\n").findIndex((l) => l.includes("<Desconocido />")) + 1;
     const r = contentCheck(root);
     expect(r.status).toBe(1);
-    expect(r.out).toMatch(/componente MDX no registrado <Desconocido>/);
+    expect(r.out).toContain(`${CALC}/leccion.mdx: línea ${line}: componente MDX no registrado <Desconocido>`);
     expect(r.out).toContain("falló en la(s) capa(s): 2");
   });
 
@@ -47,11 +51,31 @@ describe("pnpm content:check", () => {
     expect(r.out).toMatch(/falló en la\(s\) capa\(s\): 1, 4/);
   });
 
-  it("con una ruta, solo reporta lo que está bajo ella", () => {
+  it("con una ruta (materia, unidad o archivo) solo reporta lo que está bajo ella", () => {
     const root = makeRoot();
     edit(root, `${PROG}/ejercicios.yaml`, (t) => t.replace("  - id: prog-01-002\n", "  - id: prog-01-001\n"));
     expect(contentCheck(root, ["content/calculo"]).status).toBe(0);
     expect(contentCheck(root, ["content/programacion"]).status).toBe(1);
+    expect(contentCheck(root, [`${PROG}/ejercicios.yaml`]).status).toBe(1);
+  });
+
+  it("una ruta escrita con otras mayúsculas o por un enlace se resuelve a la carpeta real", () => {
+    const root = makeRoot();
+    edit(root, `${CALC}/ejercicios.yaml`, (t) => t.replace("    tolerancia: 0\n", "    tolerancai: 0\n"));
+    symlinkSync(join(root, "content", "calculo"), join(root, "content", "Calculo"));
+    const r = contentCheck(root, ["content/Calculo"]);
+    expect(r.status).toBe(1);
+    expect(r.out).toContain("campo desconocido 'tolerancai'");
+  });
+
+  it.each([".", "curriculum", "content/_plantillas", "content/quimica"])("rechaza la ruta %s", (target) => {
+    const r = contentCheck(makeRoot(), [target]);
+    expect(r.status).toBe(1);
+    expect(r.out).toMatch(/^ERROR/m);
+  });
+
+  it("rechaza más de una ruta", () => {
+    expect(contentCheck(makeRoot(), ["content/calculo", "content/programacion"]).out).toContain("una sola ruta a la vez");
   });
 
   it("un YAML que la app y PyYAML leen distinto falla en la capa 3", () => {
@@ -63,15 +87,17 @@ describe("pnpm content:check", () => {
     expect(r.out).toMatch(/falló en la\(s\) capa\(s\): .*3/);
   });
 
+  it("un plan con tabuladores (JSON válido) no es falso positivo de la capa 3", () => {
+    const root = makeRoot();
+    edit(root, "curriculum/plan-2020.json", (t) => JSON.stringify(JSON.parse(t), null, "\t"));
+    expect(contentCheck(root).status).toBe(0);
+  });
+
   it("sin Python falla y explica qué hacer", () => {
-    const env = { ...process.env, PATH: dirname(process.execPath), CORTEX_PYTHON: "/no/existe" };
+    const env = { ...process.env, PATH: emptyDir(), CORTEX_PYTHON: "/no/existe" };
     const r = contentCheck(makeRoot(), [], env);
     expect(r.status).toBe(1);
     expect(r.out).toContain("no encontré Python 3.11+");
     expect(r.out).toContain("pip install -r scripts/requirements.txt");
-  });
-
-  it("una ruta inexistente es error", () => {
-    expect(contentCheck(makeRoot(), ["content/quimica"]).status).toBe(1);
   });
 });

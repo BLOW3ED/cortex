@@ -9,15 +9,16 @@ function Span(props: ComponentProps<"span">) {
 
 /**
  * Dibuja el texto de un atributo (`pregunta`, `revela`, `pasos`...) con Markdown y KaTeX.
+ * - `inline` (títulos): los párrafos se vuelven `<span>`; el contenedor debe aceptar contenido en línea.
+ * - por defecto (bloque): conserva párrafos y listas; el contenedor debe ser un `<div>`.
  * Las fórmulas ya se validaron al compilar la lección, así que aquí no se espera error.
  */
-export function InlineMarkdown({ text, block = false }: { text: string | number; block?: boolean }) {
-  const source = String(text);
-  let content = cache.get(source);
+export function InlineMarkdown({ text, inline = false }: { text: string; inline?: boolean }) {
+  let content = cache.get(text);
   if (!content) {
-    content = compileMdx({ file: "atributo", source, components: [], format: "md" });
-    cache.set(source, content);
+    content = compileMdx({ file: "atributo", source: text, components: {}, format: "md" });
+    cache.set(text, content);
   }
   // El MDX compilado no usa hooks: se llama como función (no se crea un componente en cada render).
-  return content({ components: block ? {} : { p: Span, wrapper: Fragment } });
+  return content({ components: inline ? { p: Span, wrapper: Fragment } : {} });
 }

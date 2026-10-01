@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { parse } from "yaml";
+import { parseYaml } from "../core/yaml";
 import { describe, expect, it } from "vitest";
 import { bossSchema } from "./boss";
 import { conceptsFileSchema } from "./concepts";
@@ -29,29 +29,30 @@ describe("el contenido real cumple los esquemas", () => {
   });
 
   it.each(subjects)("content/%s/conceptos.yaml", (s) => {
-    const r = conceptsFileSchema.safeParse(parse(read(`content/${s}/conceptos.yaml`), { version: "1.1" }));
+    const r = conceptsFileSchema.safeParse(parseYaml(read(`content/${s}/conceptos.yaml`)));
     expect(r.error?.issues ?? []).toEqual([]);
   });
 
   it.each(units)("%s: ejercicios, jefe y front matter", (u) => {
-    const file = exercisesFileSchema.parse(parse(read(`${u}/ejercicios.yaml`), { version: "1.1" }));
+    const file = exercisesFileSchema.parse(parseYaml(read(`${u}/ejercicios.yaml`)));
     const bad = file.ejercicios.map(parseExercise).filter((r) => !r.ok);
     expect(bad).toEqual([]);
 
-    const boss = bossSchema.safeParse(parse(read(`${u}/jefe.yaml`), { version: "1.1" }));
+    const boss = bossSchema.safeParse(parseYaml(read(`${u}/jefe.yaml`)));
     expect(boss.error?.issues ?? []).toEqual([]);
 
     const fm = /^---\r?\n([\s\S]*?)\r?\n---\r?\n/.exec(read(`${u}/leccion.mdx`));
     expect(fm).not.toBeNull();
-    const lesson = lessonFrontmatterSchema.safeParse(parse(fm?.[1] ?? "", { version: "1.1" }));
+    const lesson = lessonFrontmatterSchema.safeParse(parseYaml(fm?.[1] ?? ""));
     expect(lesson.error?.issues ?? []).toEqual([]);
   });
 
-  it("la plantilla de lección también cumple el front matter", () => {
+  it("la plantilla de lección solo falla por sus marcadores de ejemplo", () => {
     const fm = /^---\r?\n([\s\S]*?)\r?\n---\r?\n/.exec(read("content/_plantillas/leccion.mdx"));
-    const lesson = lessonFrontmatterSchema.safeParse(parse(fm?.[1] ?? "", { version: "1.1" }));
-    // La plantilla trae marcadores ("id-de-materia", "NN-nombre-unidad") que no son ids válidos a propósito.
-    expect(lesson.success).toBe(false);
+    expect(fm).not.toBeNull();
+    const lesson = lessonFrontmatterSchema.safeParse(parseYaml(fm?.[1] ?? ""));
+    // "NN-nombre-unidad" es un marcador a propósito; cualquier otro error significa que la plantilla envejeció.
+    expect(lesson.error?.issues.map((i) => i.path.join("."))).toEqual(["unidad"]);
   });
 });
 

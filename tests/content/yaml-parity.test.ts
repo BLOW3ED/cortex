@@ -11,6 +11,8 @@ describe("paridad YAML con PyYAML real", () => {
       "variables: [x, y, n, Y, N]",
       "a: [yes, no, on, off]",
       "b: [010, 09, 1e3, 1.0e+3, '.', 1:30, .inf]",
+      "c: [-.5, +.5, ._5, -1.5, -.5e+3, 1.5e+3, .5]",
+      "d: [0:30, 01:30, 2026-1-1, '2026-1-1 1:02:03']",
       "fecha: 2026-10-01",
       "texto: 'Calcula $\\lim_{x\\to 2}$'",
     ].map((text, i) => ({ path: `caso-${i}.yaml`, text }));

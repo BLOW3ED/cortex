@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeText, parseYaml } from "./yaml";
+import { integralFloats, normalizeText, parseYaml } from "./yaml";
 
 describe("parseYaml lee como PyYAML (YAML 1.1)", () => {
   it.each([
@@ -9,6 +9,9 @@ describe("parseYaml lee como PyYAML (YAML 1.1)", () => {
     ["[09, 1e3, 1.0e+3, 0.5, .5, '.']", ["09", "1e3", 1000, 0.5, 0.5, "."]],
     ["[1:30, '1:30']", [90, "1:30"]],
     ["[.inf, -.inf]", [Infinity, -Infinity]],
+    ["[-.5, +.5, ._5, -1.5, -.5e+3, 1.5e+3]", ["-.5", "+.5", "._5", -1.5, "-.5e+3", 1500]],
+    ["[0:30, 01:30]", ["0:30", "01:30"]],
+    ["[2026-1-1, '2026-1-1']", ["2026-1-1", "2026-1-1"]],
   ])("%s", (src, expected) => {
     expect(parseYaml(src)).toEqual(expected);
   });
@@ -25,5 +28,20 @@ describe("parseYaml lee como PyYAML (YAML 1.1)", () => {
 describe("normalizeText", () => {
   it("quita el BOM y convierte CRLF y CR en LF", () => {
     expect(normalizeText("﻿a\r\nb\rc\n")).toBe("a\nb\nc\n");
+  });
+});
+
+describe("integralFloats", () => {
+  it("encuentra enteros escritos con decimales en los campos indicados", () => {
+    const src = "dificultad: 4.0\ncorrecta: 0\nx: 1.5\nrecompensa: { xp: 300.0 }\ntolerancia: 0.5\n";
+    expect(integralFloats(src, new Set(["dificultad", "correcta", "xp"]))).toEqual([
+      { field: "dificultad", source: "4.0" },
+      { field: "xp", source: "300.0" },
+    ]);
+  });
+
+  it("no marca enteros bien escritos ni YAML roto", () => {
+    expect(integralFloats("dificultad: 4\n", new Set(["dificultad"]))).toEqual([]);
+    expect(integralFloats("a: [1, 2", new Set(["a"]))).toEqual([]);
   });
 });

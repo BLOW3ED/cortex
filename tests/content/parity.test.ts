@@ -109,6 +109,11 @@ const replace = (path: string, from: string | RegExp, to: string) => (b: Files):
 };
 const combine = (...fs: ((b: Files) => Files)[]) => (b: Files) => fs.reduce((acc, f) => f(acc), b);
 const exercisesWith = (extra: string) => (b: Files): Files => ({ ...b, [`${U}/ejercicios.yaml`]: `${EXERCISES}${extra}` });
+const planWith = (mutate: (p: typeof PLAN) => void) => (b: Files): Files => {
+  const p = structuredClone(PLAN);
+  mutate(p);
+  return { ...b, "curriculum/plan-2020.json": JSON.stringify(p, null, 1) };
+};
 const EX = `${U}/ejercicios.yaml`;
 const BOSS_FILE = `${U}/jefe.yaml`;
 const LESSON_FILE = `${U}/leccion.mdx`;
@@ -196,6 +201,17 @@ const CASES: readonly Case[] = [
   { name: "propia inexistente", rules: ["jefe-propia-inexistente"], python: /pregunta propia 'calc-01-099'/, files: replace(BOSS_FILE, "calc-01-005,", "calc-01-099,") },
   { name: "repaso inexistente", rules: ["jefe-repaso-inexistente"], python: /repaso_de 'calc-00-001' no existe/, files: replace(BOSS_FILE, "repaso_de: []", "repaso_de: [calc-00-001]") },
   { name: "jefe sin pregunta difícil", rules: ["jefe-sin-dificil"], python: /ninguna pregunta de dificultad/, files: replace(EX, "dificultad: 4", "dificultad: 3") },
+  { name: "plan: teoría + práctica ≠ th", rules: ["plan-inconsistente"], python: /teoria\+practica != th/, files: planWith((p) => ((p.semestres[0]?.materias[0] ?? { th: 0 }).th = 9)) },
+  { name: "plan: créditos del semestre", rules: ["plan-inconsistente"], python: /semestre 1: créditos suman/, files: planWith((p) => ((p.semestres[0] ?? { creditos: 0 }).creditos = 99)) },
+  { name: "plan: totales", rules: ["plan-inconsistente"], python: /totales no cuadran/, files: planWith((p) => (p.totales.creditos_tepic = 1)) },
+  { name: "dificultad 4.0", rules: ["esquema"], python: /dificultad debe ser entero/, files: replace(EX, "dificultad: 4", "dificultad: 4.0") },
+  {
+    name: "correcta 0.0",
+    rules: ["esquema"],
+    python: /'correcta' fuera de rango/,
+    files: exercisesWith(`  - id: calc-01-007\n    tipo: opcion_multiple\n    dificultad: 1\n    conceptos: [a]\n    enunciado: "¿?"\n    opciones: ["1", "2"]\n    correcta: 0.0\n    explicacion: "x"\n`),
+  },
+  { name: "lección con BOM", rules: ["sin-front-matter"], python: /sin front matter/, files: (b) => ({ ...b, [LESSON_FILE]: `\uFEFF${LESSON}` }) },
 
   // ---------------------------------------------------------------- reglas solo TS (D5)
   { name: "campo con error de dedo", rules: ["clave-desconocida"], files: replace(EX, "    tolerancia: 0\n", "    tolerancai: 0\n") },
@@ -213,6 +229,16 @@ const CASES: readonly Case[] = [
     files: replace(EX, /  - id: calc-01-005[\s\S]*?explicacion: "Es 5."\n/, `  - id: calc-01-005\n    tipo: autoevaluacion\n    dificultad: 2\n    conceptos: [a]\n    enunciado: "Explica."\n    rubrica: ["Idea"]\n    respuesta_modelo: "Así."\n    explicacion: "Es 5."\n`),
   },
   { name: "jefe con retirado", rules: ["jefe-retirado"], files: replace(EX, /  - id: calc-01-005[\s\S]*?explicacion: "Es 5."\n/, "  - { id: calc-01-005, retirado: true }\n") },
+  { name: "texto comparado sin comillas (respuesta: 3.0)", rules: ["esquema"], files: exercisesWith(`  - id: calc-01-007\n    tipo: predecir_salida\n    lenguaje: python\n    dificultad: 1\n    conceptos: [a]\n    enunciado: "¿Qué imprime?"\n    codigo: "print(6/2)"\n    respuesta: 3.0\n    explicacion: "x"\n`) },
+  { name: "clave desconocida en el encabezado", rules: ["clave-desconocida"], files: replace(EX, "unidad: calculo/01-limites\n", "unidad: calculo/01-limites\nnotas: borrador\n") },
+  {
+    name: "prerrequisito de otra materia inexistente",
+    rules: ["prerrequisito-externo-inexistente"],
+    files: combine(
+      replace("content/calculo/conceptos.yaml", "prerequisitos: [a]", "prerequisitos: [a, fisica:fuerza]"),
+      (b) => ({ ...b, "content/fisica/conceptos.yaml": "materia: fisica\nconceptos:\n  - id: vector\n    nombre: V\n" }),
+    ),
+  },
 ];
 
 /** Reglas que se prueban en otro lado (render de lecciones y paridad YAML de content:check). */

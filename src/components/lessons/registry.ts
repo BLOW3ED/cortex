@@ -1,3 +1,5 @@
+import type { ComponentType } from "react";
+import { LESSON_API, type LessonComponentName } from "@/content/core/lesson-api";
 import {
   ConceptBox,
   Connection,
@@ -10,7 +12,10 @@ import {
   WorkedExample,
 } from "./lesson-blocks";
 
-/** Componentes que una lección puede usar (docs/05). La clave es el nombre en el MDX. */
+/**
+ * Implementación de cada componente de `LESSON_API` (docs/05). La clave es el nombre que se
+ * escribe en el MDX; el `satisfies` obliga a cubrir exactamente la API.
+ */
 export const LESSON_COMPONENTS = {
   Predice: PredictPrompt,
   Concepto: ConceptBox,
@@ -21,6 +26,6 @@ export const LESSON_COMPONENTS = {
   Resumen: Summary,
   Feynman: FeynmanChallenge,
   Visual: VisualPlaceholder,
-} as const;
+} satisfies Record<LessonComponentName, ComponentType<never>>;
 
-export const LESSON_COMPONENT_NAMES: readonly string[] = Object.keys(LESSON_COMPONENTS);
+export { LESSON_API };

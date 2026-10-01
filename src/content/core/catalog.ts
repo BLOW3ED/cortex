@@ -19,12 +19,14 @@ export const RULES = {
   "falta-archivo": { severity: "error", python: true, description: "Una unidad necesita leccion.mdx, ejercicios.yaml y jefe.yaml." },
   "sin-conceptos": { severity: "warning", python: true, description: "La materia no tiene conceptos.yaml." },
   "materia-fuera-del-plan": { severity: "warning", python: true, description: "La carpeta de materia no existe en plan-2020.json." },
+  "plan-inconsistente": { severity: "error", python: true, description: "Las horas o los créditos de plan-2020.json no suman lo que declaran." },
   // Esquemas (campos, tipos y valores de docs/05)
   esquema: { severity: "error", python: true, description: "Campo faltante, de tipo incorrecto o con valor inválido." },
   "clave-desconocida": { severity: "error", python: false, description: "Campo que no existe en docs/05 (errores de dedo como `tolerancai`)." },
   // Conceptos
   "concepto-duplicado": { severity: "error", python: true, description: "Dos conceptos con el mismo id en una materia." },
   "prerrequisito-inexistente": { severity: "error", python: true, description: "Un concepto requiere otro que no existe." },
+  "prerrequisito-externo-inexistente": { severity: "error", python: false, description: "Un concepto requiere `materia:concepto` y esa materia (cargada) no lo tiene." },
   "ciclo-prerrequisitos": { severity: "error", python: true, description: "Los prerrequisitos forman un ciclo." },
   "concepto-inexistente": { severity: "error", python: true, description: "Un ejercicio o lección usa un concepto que no existe." },
   "materia-conceptos-distinta": { severity: "error", python: false, description: "`materia` de conceptos.yaml no coincide con la carpeta." },

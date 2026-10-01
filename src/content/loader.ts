@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { type Dirent, existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { type BuildResult, buildIndex } from "./core/build-index";
 import type { RawContent, RawFile, RawSubject } from "./core/model";
@@ -18,8 +18,10 @@ export function readRawContent(root: string): RawContent {
   const dirs = (rel: string, keep: (name: string) => boolean): string[] => {
     const p = abs(rel);
     if (!existsSync(p)) return [];
+    // Igual que verify_content.py (`is_dir()`), un enlace simbólico a una carpeta cuenta como carpeta.
+    const isDir = (d: Dirent) => d.isDirectory() || (d.isSymbolicLink() && statSync(join(p, d.name)).isDirectory());
     return readdirSync(p, { withFileTypes: true })
-      .filter((d) => d.isDirectory() && keep(d.name))
+      .filter((d) => isDir(d) && keep(d.name))
       .map((d) => d.name)
       .sort();
   };

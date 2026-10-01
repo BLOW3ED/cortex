@@ -9,6 +9,7 @@ import {
   type Plan,
   planSchema,
   type RetiredExercise,
+  UNIT_KEY_RE,
 } from "../schema";
 import { type ContentIssue, fromZod, issue } from "./issues";
 import type {
@@ -22,7 +23,7 @@ import type {
   SubjectSummary,
   UnitEntry,
 } from "./model";
-import { normalizeText, parseYaml } from "./yaml";
+import { integralFloats, normalizeText, parseYaml } from "./yaml";
 
 export interface BuildResult {
   /** `null` solo si `plan-2020.json` falta o es inválido. */
@@ -33,6 +34,14 @@ export interface BuildResult {
 /** Front matter: misma regex que verify_content.py, sobre texto normalizado a LF. */
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n/;
 const PEDAGOGY_TAGS = ["Predice", "Resumen", "Feynman"] as const;
+
+/** Campos enteros: PyYAML lee `4.0` como flotante y verify_content.py lo rechaza; en JS `4.0 === 4`. */
+const INT_FIELDS_EXERCISES = new Set(["dificultad", "correcta"]);
+const INT_FIELDS_BOSS = new Set(["vidas", "tiempo_segundos", "xp"]);
+const INT_FIELDS_LESSON = new Set(["duracion_min"]);
+
+/** Tolerancia de las sumas del plan (igual que verify_content.py). */
+const PLAN_EPS = 1e-9;
 
 export function splitFrontmatter(text: string): { yaml: string; body: string } | null {
   const m = FRONTMATTER_RE.exec(normalizeText(text));
@@ -46,6 +55,12 @@ function idParts(id: string): { prefix: string; unit: number } | null {
   return m ? { prefix: m[1] ?? "", unit: Number(m[2]) } : null;
 }
 
+const asRecord = (v: unknown): Record<string, unknown> | null =>
+  typeof v === "object" && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+const stringArray = (v: unknown): string[] | null =>
+  Array.isArray(v) && v.every((x) => typeof x === "string") ? (v as string[]) : null;
+const firstLine = (e: unknown) => (e instanceof Error ? e.message.split("\n")[0] : String(e));
+
 /** Valida todo el contenido y construye el índice. Función pura: no toca el disco. */
 export function buildIndex(raw: RawContent): BuildResult {
   const issues: ContentIssue[] = [];
@@ -55,8 +70,13 @@ export function buildIndex(raw: RawContent): BuildResult {
     try {
       return { ok: true, data: parseYaml(normalizeText(file.text)) };
     } catch (e) {
-      add(issue("yaml-invalido", file.path, `YAML inválido: ${e instanceof Error ? e.message.split("\n")[0] : String(e)}`));
+      add(issue("yaml-invalido", file.path, `YAML inválido: ${firstLine(e)}`));
       return { ok: false };
+    }
+  };
+  const integerFields = (text: string, fields: ReadonlySet<string>, file: string) => {
+    for (const f of integralFloats(normalizeText(text), fields)) {
+      add(issue("esquema", file, `${f.field}: debe ser un entero sin decimales (escribiste ${f.source})`));
     }
   };
 
@@ -67,22 +87,37 @@ export function buildIndex(raw: RawContent): BuildResult {
   } else {
     try {
       const r = planSchema.safeParse(JSON.parse(raw.plan.text));
-      if (r.success) plan = r.data;
-      else add(fromZod(r.error.issues, raw.plan.path));
+      if (r.success) {
+        plan = r.data;
+        add(checkPlanSums(r.data, raw.plan.path));
+      } else add(fromZod(r.error.issues, raw.plan.path));
     } catch (e) {
-      add(issue("esquema", raw.plan.path, `JSON inválido: ${e instanceof Error ? e.message : String(e)}`));
+      add(issue("esquema", raw.plan.path, `JSON inválido: ${firstLine(e)}`));
     }
   }
   const planIds = new Set(plan?.semestres.flatMap((s) => s.materias.map((m) => m.id)) ?? []);
 
   // ---------------------------------------------------------------- conceptos (todas las materias primero)
-  const conceptsBySubject = new Map<string, { file: ConceptsFile | null; ids: Set<string> | null }>();
+  const conceptsBySubject = new Map<string, ConceptsResult>();
   for (const subject of raw.subjects) {
     const dirPath = `content/${subject.dir}`;
     if (plan && !planIds.has(subject.dir)) {
       add(issue("materia-fuera-del-plan", dirPath, "la materia no existe en curriculum/plan-2020.json"));
     }
     conceptsBySubject.set(subject.dir, checkConcepts(subject, add, readYaml));
+  }
+  // Prerrequisitos de otra materia (`materia:concepto`): solo si esa materia está cargada (regla solo TS).
+  for (const [subjectId, c] of conceptsBySubject) {
+    for (const [id, refs] of c.prereq) {
+      for (const ref of refs) {
+        if (!ref.includes(":")) continue;
+        const [other = "", local = ""] = ref.split(":", 2);
+        const ids = conceptsBySubject.get(other)?.ids;
+        if (ids && !ids.has(local)) {
+          add(issue("prerrequisito-externo-inexistente", `content/${subjectId}/conceptos.yaml`, `'${id}' requiere inexistente '${ref}'`));
+        }
+      }
+    }
   }
 
   // ---------------------------------------------------------------- unidades
@@ -92,7 +127,7 @@ export function buildIndex(raw: RawContent): BuildResult {
   const bossOwn: { file: string; ids: readonly string[] }[] = [];
 
   for (const subject of raw.subjects) {
-    const concepts = conceptsBySubject.get(subject.dir) ?? { file: null, ids: null };
+    const concepts = conceptsBySubject.get(subject.dir) ?? EMPTY_CONCEPTS;
     const units: UnitEntry[] = [];
     const prefixes = new Map<string, string>();
 
@@ -112,6 +147,10 @@ export function buildIndex(raw: RawContent): BuildResult {
       let frontmatter: UnitEntry["frontmatter"] | null = null;
       if (u.lesson) {
         const lessonPath = u.lesson.path;
+        if (u.lesson.text.startsWith("﻿")) {
+          // verify_content.py lee sin quitar el BOM y no encuentra el `---` inicial.
+          add(issue("sin-front-matter", lessonPath, "sin front matter: el archivo empieza con BOM; guárdalo como UTF-8 sin BOM"));
+        }
         const split = splitFrontmatter(u.lesson.text);
         if (!split) {
           add(issue("sin-front-matter", lessonPath, "sin front matter"));
@@ -120,11 +159,11 @@ export function buildIndex(raw: RawContent): BuildResult {
           try {
             fmRaw = parseYaml(split.yaml);
           } catch (e) {
-            add(issue("yaml-invalido", lessonPath, `front matter inválido: ${e instanceof Error ? e.message.split("\n")[0] : String(e)}`));
+            add(issue("yaml-invalido", lessonPath, `front matter inválido: ${firstLine(e)}`));
           }
           if (fmRaw !== undefined) {
-            const fmObj = (typeof fmRaw === "object" && fmRaw !== null ? fmRaw : {}) as Record<string, unknown>;
-            const ref = fmObj.programa_ref;
+            integerFields(split.yaml, INT_FIELDS_LESSON, lessonPath);
+            const ref = asRecord(fmRaw)?.programa_ref;
             if (typeof ref === "string" && ref.trim().toLowerCase() === "pendiente") {
               add(issue("programa-pendiente", lessonPath, "programa_ref pendiente (alinear con el programa oficial)"));
             }
@@ -172,21 +211,27 @@ export function buildIndex(raw: RawContent): BuildResult {
         const file = u.exercises.path;
         const y = readYaml(u.exercises);
         if (y.ok) {
+          integerFields(u.exercises.text, INT_FIELDS_EXERCISES, file);
+          // El encabezado se valida aparte: un error ahí no debe apagar la revisión de cada ejercicio.
           const head = exercisesFileSchema.safeParse(y.data);
-          if (!head.success) {
-            add(fromZod(head.error.issues, file));
-          } else {
+          if (!head.success) add(fromZod(head.error.issues, file));
+          const data = asRecord(y.data);
+          const list = Array.isArray(data?.ejercicios) ? (data.ejercicios as unknown[]) : null;
+          if (list) {
             exercisesOk = true;
-            if (head.data.unidad !== unitKey) {
-              add(issue("ejercicios-fuera-de-lugar", file, `unidad '${head.data.unidad}' pero el archivo está en ${unitKey}`));
+            const declared = data?.unidad;
+            if (typeof declared === "string" && UNIT_KEY_RE.test(declared) && declared !== unitKey) {
+              add(issue("ejercicios-fuera-de-lugar", file, `unidad '${declared}' pero el archivo está en ${unitKey}`));
             }
-            for (const rawEx of head.data.ejercicios) {
-              const rawId = (rawEx as { id?: unknown } | null)?.id;
-              const id = typeof rawId === "string" ? rawId : undefined;
+            for (const rawEx of list) {
+              const rawRec = asRecord(rawEx);
+              const id = typeof rawRec?.id === "string" ? rawRec.id : undefined;
               if (id !== undefined) {
                 const prev = locator.get(id);
                 if (prev) add(issue("id-duplicado", file, `id duplicado '${id}' (también en ${prev.file})`, id));
                 idsInUnit.add(id);
+                // Igual que Python: la dificultad cuenta para el jefe aunque el ejercicio tenga otro error.
+                if (typeof rawRec?.dificultad === "number") difficulty.set(id, rawRec.dificultad);
                 const parts = idParts(id);
                 if (parts) {
                   if (!prefixes.has(parts.prefix)) prefixes.set(parts.prefix, id);
@@ -214,7 +259,6 @@ export function buildIndex(raw: RawContent): BuildResult {
               }
               const ex = parsed.exercise;
               exercises.push(ex);
-              difficulty.set(ex.id, ex.dificultad);
               if (conceptIds) {
                 for (const c of ex.conceptos) {
                   if (!conceptIds.has(c)) add(issue("concepto-inexistente", file, `concepto inexistente '${c}'`, ex.id));
@@ -222,7 +266,7 @@ export function buildIndex(raw: RawContent): BuildResult {
               }
               if ((ex.pistas?.length ?? 0) > 3) add(issue("muchas-pistas", file, "más de 3 pistas", ex.id));
             }
-            if (head.data.ejercicios.length < 6) {
+            if (list.length < 6) {
               add(issue("pocos-ejercicios", unitPath, "menos de 6 ejercicios (la meta es 15–25 por unidad)"));
             }
           }
@@ -235,15 +279,19 @@ export function buildIndex(raw: RawContent): BuildResult {
         const file = u.boss.path;
         const y = readYaml(u.boss);
         if (y.ok) {
+          integerFields(u.boss.text, INT_FIELDS_BOSS, file);
           const r = bossSchema.safeParse(y.data);
-          if (!r.success) {
-            add(fromZod(r.error.issues, file));
-          } else {
-            boss = r.data;
-            const own = r.data.preguntas.propias;
-            if (r.data.unidad !== unitKey) {
-              add(issue("ejercicios-fuera-de-lugar", file, `unidad '${r.data.unidad}' pero el archivo está en ${unitKey}`));
-            }
+          if (r.success) boss = r.data;
+          else add(fromZod(r.error.issues, file));
+          // Las reglas cruzadas corren aunque otro campo del jefe tenga error (igual que Python).
+          const preguntas = asRecord(asRecord(y.data)?.preguntas);
+          const own = r.success ? r.data.preguntas.propias : stringArray(preguntas?.propias);
+          const review = r.success ? (r.data.preguntas.repaso_de ?? []) : (stringArray(preguntas?.repaso_de) ?? []);
+          const declared = asRecord(y.data)?.unidad;
+          if (typeof declared === "string" && UNIT_KEY_RE.test(declared) && declared !== unitKey) {
+            add(issue("ejercicios-fuera-de-lugar", file, `unidad '${declared}' pero el archivo está en ${unitKey}`));
+          }
+          if (own) {
             if (own.length < 6) add(issue("jefe-pocas-propias", file, "menos de 6 preguntas propias"));
             if (exercisesOk) {
               for (const id of own) {
@@ -254,14 +302,8 @@ export function buildIndex(raw: RawContent): BuildResult {
               }
             }
             bossOwn.push({ file, ids: own });
-            bossRefs.push({
-              file,
-              unitKey,
-              subjectId: subj.dir,
-              number: unitNumber,
-              ids: r.data.preguntas.repaso_de ?? [],
-            });
           }
+          bossRefs.push({ file, unitKey, subjectId: subj.dir, number: unitNumber, ids: review });
         }
       }
 
@@ -327,37 +369,77 @@ export function buildIndex(raw: RawContent): BuildResult {
   };
 }
 
+/** Las mismas sumas que `check_plan()` de verify_content.py. */
+function checkPlanSums(plan: Plan, file: string): ContentIssue[] {
+  const out: ContentIssue[] = [];
+  let credits = 0;
+  let theory = 0;
+  let practice = 0;
+  for (const sem of plan.semestres) {
+    let semCredits = 0;
+    for (const m of sem.materias) {
+      semCredits += m.creditos;
+      theory += m.teoria;
+      practice += m.practica;
+      if (Math.abs(m.teoria + m.practica - m.th) > PLAN_EPS) {
+        out.push(issue("plan-inconsistente", file, `${m.id}: teoria+practica != th`));
+      }
+    }
+    if (Math.abs(semCredits - sem.creditos) > PLAN_EPS) {
+      out.push(issue("plan-inconsistente", file, `semestre ${sem.n}: créditos suman ${semCredits}, dice ${sem.creditos}`));
+    }
+    credits += semCredits;
+  }
+  const t = plan.totales;
+  if (Math.abs(credits - t.creditos_tepic) > PLAN_EPS || Math.abs(theory - t.teoria) > PLAN_EPS || Math.abs(practice - t.practica) > PLAN_EPS) {
+    out.push(issue("plan-inconsistente", file, `totales no cuadran: créditos ${credits}, teoría ${theory}, práctica ${practice}`));
+  }
+  return out;
+}
+
+interface ConceptsResult {
+  readonly file: ConceptsFile | null;
+  /** `null` = no hay conceptos que revisar (sin archivo o YAML ilegible), igual que Python. */
+  readonly ids: Set<string> | null;
+  readonly prereq: ReadonlyMap<string, readonly string[]>;
+}
+const EMPTY_CONCEPTS: ConceptsResult = { file: null, ids: null, prereq: new Map() };
+
 function checkConcepts(
   subject: RawSubject,
   add: (i: ContentIssue | ContentIssue[]) => void,
   readYaml: (f: RawFile) => { ok: true; data: unknown } | { ok: false },
-): { file: ConceptsFile | null; ids: Set<string> | null } {
+): ConceptsResult {
   if (!subject.concepts) {
     add(issue("sin-conceptos", `content/${subject.dir}`, "no hay conceptos.yaml"));
-    return { file: null, ids: null };
+    return EMPTY_CONCEPTS;
   }
   const path = subject.concepts.path;
   const y = readYaml(subject.concepts);
-  if (!y.ok) return { file: null, ids: null };
-  const r = conceptsFileSchema.safeParse(y.data);
-  if (!r.success) {
-    add(fromZod(r.error.issues, path));
-    return { file: null, ids: null };
+  if (!y.ok) return EMPTY_CONCEPTS;
+  const data = asRecord(y.data);
+  if (!data) {
+    add(issue("esquema", path, "conceptos.yaml vacío o sin forma de mapa"));
+    return EMPTY_CONCEPTS;
   }
-  const file = r.data;
-  if (file.materia !== subject.dir) {
-    add(issue("materia-conceptos-distinta", path, `materia '${file.materia}' pero la carpeta es '${subject.dir}'`));
+  const r = conceptsFileSchema.safeParse(data);
+  if (!r.success) add(fromZod(r.error.issues, path));
+  if (typeof data.materia === "string" && data.materia !== subject.dir) {
+    add(issue("materia-conceptos-distinta", path, `materia '${data.materia}' pero la carpeta es '${subject.dir}'`));
   }
+  // Como verify_content.py: los ids se toman del YAML aunque algún concepto tenga otro error.
   const ids = new Set<string>();
   const prereq = new Map<string, readonly string[]>();
-  for (const c of file.conceptos) {
-    if (ids.has(c.id)) add(issue("concepto-duplicado", path, `concepto duplicado '${c.id}'`));
-    ids.add(c.id);
-    prereq.set(c.id, c.prerequisitos ?? []);
+  for (const rawC of Array.isArray(data.conceptos) ? data.conceptos : []) {
+    const c = asRecord(rawC);
+    const id = typeof c?.id === "string" ? c.id : "";
+    if (ids.has(id)) add(issue("concepto-duplicado", path, `concepto duplicado '${id}'`));
+    ids.add(id);
+    prereq.set(id, stringArray(c?.prerequisitos) ?? []);
   }
   for (const [id, ps] of prereq) {
     for (const p of ps) {
-      // Igual que verify_content.py: los de otra materia (`materia:concepto`) no se revisan aquí.
+      // Igual que verify_content.py: los de otra materia (`materia:concepto`) se revisan aparte.
       if (!p.includes(":") && !ids.has(p)) add(issue("prerrequisito-inexistente", path, `'${id}' requiere inexistente '${p}'`));
     }
   }
@@ -373,7 +455,7 @@ function checkConcepts(
     state.set(n, 2);
   };
   for (const n of prereq.keys()) if (!state.has(n)) dfs(n, []);
-  return { file, ids };
+  return { file: r.success ? r.data : null, ids, prereq };
 }
 
 function summarize(plan: Plan, content: Record<string, SubjectContent>): SubjectSummary[] {

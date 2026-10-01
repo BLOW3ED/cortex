@@ -13,11 +13,14 @@ export const EXERCISE_TYPES = [
 export type ExerciseType = (typeof EXERCISE_TYPES)[number];
 
 /** Cómo se verifica la respuesta (docs/05, "Sobre `verificar`"). */
-export const verifySchema = z.union([
-  z.strictObject({ sympy: nonEmptyText }),
-  z.strictObject({ python: nonEmptyText }),
-  z.strictObject({ revision: z.literal("manual") }),
-]);
+export const verifySchema = z.union(
+  [
+    z.strictObject({ sympy: nonEmptyText }),
+    z.strictObject({ python: nonEmptyText }),
+    z.strictObject({ revision: z.literal("manual") }),
+  ],
+  { error: "verificar debe ser { sympy: ... }, { python: ... } o { revision: manual }" },
+);
 export type Verify = z.infer<typeof verifySchema>;
 
 /** Campos comunes a todos los tipos. */
@@ -34,14 +37,18 @@ const common = {
   retirado: z.literal(false).optional(),
 };
 
-const textOrNumber = z.union([z.string(), z.number()]);
-const uniqueAsText = (items: readonly (string | number)[]) => new Set(items.map(String)).size === items.length;
+/**
+ * Texto que la app muestra o compara tal cual: va entre comillas en el YAML. Un número sin
+ * comillas perdería su forma (`3.0` → 3) y ya no coincidiría con lo que verificó Python.
+ */
+const displayText = z.string({ error: "escribe este valor entre comillas (texto exacto, p. ej. \"3.0\")" });
+const uniqueAsText = (items: readonly string[]) => new Set(items).size === items.length;
 
 const multipleChoice = z
   .strictObject({
     ...common,
     tipo: z.literal("opcion_multiple"),
-    opciones: z.array(textOrNumber).min(2, "opciones inválidas: se necesitan al menos 2"),
+    opciones: z.array(displayText).min(2, "opciones inválidas: se necesitan al menos 2"),
     correcta: z.number().int().nonnegative(),
     valores: z.array(numberOrExpr).optional(),
   })
@@ -82,7 +89,7 @@ const fillBlanks = z
     ...common,
     tipo: z.literal("completar"),
     texto: nonEmptyText,
-    respuestas: z.array(textOrNumber),
+    respuestas: z.array(displayText),
   })
   .superRefine((ex, ctx) => {
     const blanks = ex.texto.split("___").length - 1;
@@ -99,7 +106,7 @@ const ordering = z
   .strictObject({
     ...common,
     tipo: z.literal("ordenar"),
-    elementos: z.array(textOrNumber),
+    elementos: z.array(displayText),
   })
   .superRefine((ex, ctx) => {
     if (ex.elementos.length < 3 || !uniqueAsText(ex.elementos)) {
@@ -114,7 +121,7 @@ const pythonTest = z.strictObject({
 });
 const cTest = z.strictObject({
   entrada: z.string().optional(),
-  salida: z.union([z.string(), z.number()]),
+  salida: displayText,
 });
 
 const codePython = z.strictObject({
@@ -139,7 +146,7 @@ const predictOutput = z.strictObject({
   tipo: z.literal("predecir_salida"),
   lenguaje: z.literal("python"),
   codigo: nonEmptyText,
-  respuesta: z.union([z.string(), z.number()]),
+  respuesta: displayText,
 });
 
 const selfAssessment = z.strictObject({
@@ -156,7 +163,7 @@ export const exerciseSchemas = {
   simbolico: symbolic,
   completar: fillBlanks,
   ordenar: ordering,
-  codigo: z.discriminatedUnion("lenguaje", [codePython, codeC]),
+  codigo: z.discriminatedUnion("lenguaje", [codePython, codeC], { error: "lenguaje debe ser 'python' o 'c'" }),
   predecir_salida: predictOutput,
   autoevaluacion: selfAssessment,
 } as const satisfies Record<ExerciseType, z.ZodType>;
@@ -201,12 +208,19 @@ export type ParsedExercise =
   | { ok: false; issues: z.core.$ZodIssue[] };
 
 const typeSchema = z.enum(EXERCISE_TYPES, {
-  error: (iss) => `tipo desconocido '${String(iss.input)}'`,
+  error: (iss) => (iss.input === undefined ? "falta 'tipo'" : `tipo desconocido '${String(iss.input)}'`),
 });
 
 /** Valida un ejercicio en dos tiempos (tipo y luego campos) para dar mensajes claros. */
 export function parseExercise(raw: unknown): ParsedExercise {
-  if (typeof raw === "object" && raw !== null && (raw as { retirado?: unknown }).retirado === true) {
+  const retirado = typeof raw === "object" && raw !== null ? (raw as { retirado?: unknown }).retirado : undefined;
+  if (retirado !== undefined && typeof retirado !== "boolean") {
+    return {
+      ok: false,
+      issues: [{ code: "custom", path: ["retirado"], message: "retirado debe ser true (o quítalo)", input: retirado }],
+    };
+  }
+  if (retirado === true) {
     const r = retiredExerciseSchema.safeParse(raw);
     return r.success ? { ok: true, retired: true, exercise: r.data } : { ok: false, issues: r.error.issues };
   }

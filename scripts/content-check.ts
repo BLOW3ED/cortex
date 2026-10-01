@@ -4,12 +4,14 @@
  * Verifica el contenido en 4 capas y sale con 1 si cualquiera falla:
  *   1. Esquemas Zod y reglas cruzadas sobre el índice completo (lo mismo que usa `next build`).
  *   2. Cada lección compila y se dibuja (MDX, componentes, KaTeX, escapes).
- *   3. Paridad YAML: la app y PyYAML leen igual cada archivo.
+ *   3. Paridad YAML: la app y PyYAML leen igual cada archivo YAML.
  *   4. `scripts/verify_content.py` (corrección de respuestas con sympy / ejecución).
- * Con una ruta, las capas 1–3 cargan todo pero solo reportan lo que está bajo esa ruta.
+ * La ruta acota el reporte: `content`, `content/<materia>` o `content/<materia>/<NN-unidad>` (un
+ * archivo dentro de una unidad cuenta como su unidad). Las capas 1–3 siempre cargan todo.
  */
-import { existsSync, readFileSync } from "node:fs";
-import { join, relative, resolve } from "node:path";
+import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LessonBody } from "../src/components/lessons/lesson-body";
@@ -19,36 +21,66 @@ import { readRawContent } from "../src/content/loader";
 import { LessonCompileError } from "../src/content/mdx";
 import { findPython, PYTHON_ENV } from "./lib/find-python";
 import { compareWithPyYaml, type YamlSource } from "./lib/yaml-parity";
-import { spawnSync } from "node:child_process";
 
-function parseArgs(argv: readonly string[]): { root: string; target: string | null } {
+type Scope = { ok: true; scope: string; pythonTarget: string | null } | { ok: false; error: string };
+
+/** Convierte la ruta que escribió Carlo en un alcance canónico (`content/<materia>[/<unidad>]`). */
+export function resolveScope(root: string, target: string | null): Scope {
+  if (!target) return { ok: true, scope: "", pythonTarget: null };
+  const abs = resolve(root, target);
+  if (!existsSync(abs)) return { ok: false, error: `la ruta '${target}' no existe` };
+  // realpath corrige mayúsculas (Windows/macOS) y enlaces, igual que `Path.resolve()` en Python.
+  const realRoot = realpathSync.native(root);
+  let real = realpathSync.native(abs);
+  if (statSync(real).isFile()) real = dirname(real);
+  const rel = relative(realRoot, real).split(sep).join("/");
+  const parts = rel.split("/");
+  const invalid = `'${target}' no es contenido: usa content, content/<materia> o content/<materia>/<NN-unidad>`;
+  if (rel.startsWith("..") || parts[0] !== "content") return { ok: false, error: invalid };
+  if (parts.length === 1) return { ok: true, scope: "", pythonTarget: null };
+  const [, subject, unit] = parts;
+  if (!subject || subject.startsWith("_") || subject.startsWith(".")) return { ok: false, error: invalid };
+  if (parts.length > 3 || (unit !== undefined && !/^\d{2}-/.test(unit))) return { ok: false, error: invalid };
+  const scope = unit ? `content/${subject}/${unit}` : `content/${subject}`;
+  return { ok: true, scope, pythonTarget: join(realRoot, ...scope.split("/")) };
+}
+
+function parseArgs(argv: readonly string[]): { root: string; targets: string[] } {
   let root = process.cwd();
-  let target: string | null = null;
+  const targets: string[] = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--root") root = resolve(argv[++i] ?? ".");
-    else if (a && !a.startsWith("-")) target = a;
+    else if (a && !a.startsWith("-")) targets.push(a);
   }
-  return { root, target };
+  return { root, targets };
 }
 
 function main(): number {
-  const { root, target } = parseArgs(process.argv.slice(2));
-  const failed: string[] = [];
-
-  let scope = "";
-  if (target) {
-    const abs = resolve(root, target);
-    if (!existsSync(abs)) {
-      console.error(`ERROR   la ruta '${target}' no existe`);
-      return 1;
-    }
-    scope = relative(root, abs).split(/[\\/]/).join("/").replace(/\/$/, "");
+  const { root, targets } = parseArgs(process.argv.slice(2));
+  if (targets.length > 1) {
+    console.error(`ERROR   una sola ruta a la vez (recibí ${targets.length}: ${targets.join(", ")})`);
+    return 1;
   }
+  const resolved = resolveScope(root, targets[0] ?? null);
+  if (!resolved.ok) {
+    console.error(`ERROR   ${resolved.error}`);
+    return 1;
+  }
+  const { scope, pythonTarget } = resolved;
   const inScope = (path: string) => !scope || path === scope || path.startsWith(`${scope}/`);
   const show = (list: readonly ContentIssue[]) => list.filter((i) => inScope(i.file)).forEach((i) => console.log(formatIssue(i)));
+  const failed: string[] = [];
 
   const raw = readRawContent(root);
+  const known = [
+    ...raw.subjects.map((s) => `content/${s.dir}`),
+    ...raw.subjects.flatMap((s) => s.units.map((u) => `content/${s.dir}/${u.dir}`)),
+  ];
+  if (scope && !known.includes(scope)) {
+    console.error(`ERROR   '${scope}' no tiene contenido que content:check conozca`);
+    return 1;
+  }
 
   // ---- Capa 1
   const { index, issues } = buildIndex(raw);
@@ -69,8 +101,11 @@ function main(): number {
       renderToStaticMarkup(createElement(LessonBody, { file: lesson.path, source: lesson.text }));
       compiled++;
     } catch (e) {
-      const where = e instanceof LessonCompileError ? e.message : `${lesson.path}: ${e instanceof Error ? e.message : String(e)}`;
-      layer2.push(issue("mdx-invalido", lesson.path, where.replace(`${lesson.path}`, "línea")));
+      const reason =
+        e instanceof LessonCompileError
+          ? `${e.line ? `línea ${e.line}: ` : ""}${e.reason}`
+          : `no se pudo dibujar: ${e instanceof Error ? e.message : String(e)}`;
+      layer2.push(issue("mdx-invalido", lesson.path, reason));
     }
   }
   show(layer2);
@@ -85,9 +120,8 @@ function main(): number {
     console.log("        Instálalo y corre `pip install -r scripts/requirements.txt` (o define CORTEX_PYTHON).");
     failed.push("3", "4");
   } else {
-    // ---- Capa 3
+    // ---- Capa 3 (solo YAML: el plan es JSON y ambos lados lo leen con un parser de JSON)
     const yamlSources: YamlSource[] = [];
-    if (raw.plan) yamlSources.push({ path: raw.plan.path, text: raw.plan.text });
     for (const s of raw.subjects) {
       if (s.concepts) yamlSources.push(s.concepts);
       for (const u of s.units) {
@@ -116,7 +150,7 @@ function main(): number {
     // ---- Capa 4
     console.log(`Capa 4 · verify_content.py (Python ${py.python.version}):`);
     const script = join(root, "scripts", "verify_content.py");
-    const r = spawnSync(py.python.command, [...py.python.args, script, ...(target ? [resolve(root, target)] : [])], {
+    const r = spawnSync(py.python.command, [...py.python.args, script, ...(pythonTarget ? [pythonTarget] : [])], {
       encoding: "utf8",
       env: { ...process.env, ...PYTHON_ENV },
       windowsHide: true,
@@ -130,4 +164,4 @@ function main(): number {
   return failed.length ? 1 : 0;
 }
 
-process.exitCode = main();
+if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) process.exitCode = main();
