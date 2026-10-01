@@ -11,7 +11,7 @@ const GOOGLE_FONTS = {
  * Zonas puras: lógica sin React, sin Next y sin DOM (CLAUDE.md, docs/02).
  * Se permite `import type` para compartir tipos.
  */
-export const PURE_FILES = ["src/engine/**/*.ts", "src/content/schema/**/*.ts", "src/content/rules/**/*.ts"];
+export const PURE_FILES = ["src/engine/**/*.ts", "src/content/schema/**/*.ts", "src/content/core/**/*.ts"];
 
 const PURE_MESSAGE = "Zona pura: sin React, Next, Dexie ni componentes (solo `import type`).";
 
