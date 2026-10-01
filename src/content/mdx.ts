@@ -126,6 +126,9 @@ function textProblems(tree: MdNode, source: string, onProblem: (node: MdNode, re
         onProblem(node, `un \`$\` sin cerrar deja la fórmula como texto crudo (si es dinero, escríbelo \\$): «${raw.trim().slice(0, 60)}»`);
       }
     }
+    if (node.type === "image" || node.type === "imageReference") {
+      onProblem(node, "las imágenes Markdown no se permiten: el navegador las pediría a la red (los visuales irán con <Visual id>)");
+    }
     if (!allowHtml && node.type === "html") {
       onProblem(node, `«${(node.value ?? "").slice(0, 40)}» se perdería: escríbelo entre backticks (\`vector<int>\`) o con &lt;`);
     }
@@ -173,9 +176,13 @@ function remarkCortexGuard(options: { components: Readonly<Record<string, Compon
         const label = `<${name} ${attr.name}>`;
         if (lower) {
           if (!(name === "abbr" && attr.name === "title")) fail(place, `${label}: las etiquetas HTML no llevan atributos aquí`);
+          else if (attr.value !== null && attr.value !== undefined && typeof attr.value !== "string") {
+            fail(place, `${label}: solo se permiten valores literales (textos), no código`);
+          }
           continue;
         }
-        const propSpec = spec?.props[attr.name];
+        // `Object.hasOwn`: `toString`, `constructor` o `__proto__` no son props aunque el objeto las herede.
+        const propSpec = spec && Object.hasOwn(spec.props, attr.name) ? spec.props[attr.name] : undefined;
         if (!propSpec) {
           const valid = Object.keys(spec?.props ?? {});
           fail(place, `<${name}> no tiene la prop '${attr.name}'${valid.length ? ` (usa: ${valid.join(", ")})` : ""}`);

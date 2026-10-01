@@ -79,10 +79,11 @@ Una barra sola dentro de `{[...]}` no da error por sí misma: `\to` se convierte
 
 Además, `pnpm content:check` (y `next build`) rechazan:
 - Props que el componente no tiene, props obligatorias que faltan (`pregunta` en `<Predice>`, `pasos` en `<Desvanecido>`, `id` en `<Visual>`), contenido dentro de `<Predice>`, `<Desvanecido>` o `<Visual>`, y un `<Desvanecido>` cuyo número de huecos `___` en `pasos` no coincide con `respuestas`.
-- Código en atributos: solo valores literales (`"texto"` o `{["a", "b"]}`).
+- Código en atributos: solo valores literales (`"texto"` o `{["a", "b"]}`); en `<abbr title>`, solo `"texto"`.
 - Un `$` sin cerrar (la fórmula quedaría como texto crudo).
 - HTML dentro de un atributo (`vector<int>` se perdería): escríbelo entre backticks.
 - Comandos de KaTeX que cargan cosas externas (`\href`, `\url`, `\includegraphics`).
+- Imágenes Markdown (`![alt](url)` o `![alt][ref]`), en el texto o en un atributo: el navegador las pediría a la red. Los visuales van con `<Visual id>`. Los enlaces `[texto](url)` sí se permiten (no cargan nada solos).
 - Etiquetas HTML con atributos; solo se permiten `<br> <sub> <sup> <kbd> <mark> <small> <abbr title> <u> <s>`.
 - Archivos `.mdx` guardados con BOM (guárdalos como UTF-8 sin BOM).
 

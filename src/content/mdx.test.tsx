@@ -122,6 +122,21 @@ describe("guardia de lecciones · casos de la revisión adversarial", () => {
     expect(fail('Texto <abbr title="Inteligencia artificial">IA</abbr> fin.\n')).toBeNull();
   });
 
+  it("el title de <abbr> solo acepta texto, nunca código", () => {
+    expect(fail("Texto <abbr title={1+1}>IA</abbr> fin.\n")?.message).toMatch(/solo se permiten valores literales/);
+    expect(fail('Texto <abbr title={"literal en llaves"}>IA</abbr> fin.\n')?.message).toMatch(/solo se permiten valores literales/);
+    expect(fail('Texto <abbr title={process.getBuiltinModule("node:fs").readFileSync("/etc/hostname", "utf8")}>x</abbr> fin.\n')?.message).toMatch(
+      /solo se permiten valores literales/,
+    );
+  });
+
+  it("las imágenes Markdown son error (cargarían algo de la red)", () => {
+    expect(fail("Mira ![grafica](https://example.com/g.png) aquí.\n")?.message).toMatch(/imágenes Markdown no se permiten/);
+    expect(fail("Mira ![grafica][g] aquí.\n\n[g]: https://example.com/g.png\n")?.message).toMatch(/imágenes Markdown no se permiten/);
+    expect(fail('<Predice pregunta="x" revela="![img](https://example.com/z.png)" />\n')?.message).toMatch(/imágenes Markdown no se permiten/);
+    expect(fail("Un [enlace](https://example.com) no carga nada solo.\n")).toBeNull();
+  });
+
   it("un $ sin cerrar es error (en el texto y en un atributo)", () => {
     expect(fail("Calcula $x^2 y sigue.\n")?.message).toMatch(/\$` sin cerrar/);
     expect(fail('<Predice pregunta="Calcula $x^2 y sigue." />\n')?.message).toMatch(/\$` sin cerrar/);
@@ -139,6 +154,10 @@ describe("guardia de lecciones · casos de la revisión adversarial", () => {
     expect(fail('<Desvanecido pasos="un texto" />\n')?.message).toMatch(/debe ser una lista de textos/);
     expect(fail('<Predice pregunta="x">\nTexto adentro.\n</Predice>\n')?.message).toMatch(/no lleva contenido adentro/);
     expect(fail('<Visual />\n')?.message).toMatch(/necesita la prop 'id'/);
+  });
+
+  it.each(["toString", "constructor", "valueOf", "hasOwnProperty", "__proto__"])("'%s' no es una prop aunque el objeto la herede", (prop) => {
+    expect(fail(`<Visual id="a" ${prop}={["x"]} />\n`)?.message).toMatch(new RegExp(`no tiene la prop '${prop}'`));
   });
 
   it("<Desvanecido>: los huecos ___ deben coincidir con las respuestas", () => {
