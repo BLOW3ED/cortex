@@ -49,7 +49,10 @@ describe("findPython con un Python real sin sympy", () => {
   afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
   it("descarta un entorno virtual vacío y sigue con el siguiente", () => {
-    const made = spawnSync("python3", ["-m", "venv", "--without-pip", dir], { encoding: "utf8" });
+    // Con el mismo Python que encuentra la app (en Windows suele no haber `python3`).
+    const real = findPython();
+    if (!real.ok) throw new Error(`no hay Python para crear el entorno: ${real.tried.join(", ")}`);
+    const made = spawnSync(real.python.command, [...real.python.args, "-m", "venv", "--without-pip", dir], { encoding: "utf8" });
     expect(made.status, made.stderr).toBe(0);
     const venvPython = process.platform === "win32" ? join(dir, "Scripts", "python.exe") : join(dir, "bin", "python");
     const r = findPython({ CORTEX_PYTHON: venvPython, PATH: process.env.PATH });

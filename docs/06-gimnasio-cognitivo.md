@@ -10,7 +10,7 @@ La evidencia de que los "juegos cerebrales" mejoran la inteligencia general es d
 - **Amplitud de dígitos / Corsi (espacial):** secuencias crecientes; dificultad adaptativa.
 - **N-back (visual y dual):** N sube o baja según desempeño.
 - **Palacio de la memoria guiado:** asistente que te hace construir un recorrido y asociar 10 ítems (fórmulas, conceptos) a ubicaciones; luego prueba de recuerdo.
-- **Blitz de fórmulas:** tarjetas de alta velocidad con material de tus materias (se alimenta de `tarjetas`).
+- **Blitz de fórmulas:** tarjetas de alta velocidad con material de tus materias (se alimenta de la tabla `cards`, las tarjetas de repaso).
 
 ### Razonamiento lógico
 - **Secuencias:** numéricas y de figuras con regla oculta.

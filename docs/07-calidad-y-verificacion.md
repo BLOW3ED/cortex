@@ -29,7 +29,7 @@ Comando `/revisar-contenido <ruta>`. Un subagente que **no ve las respuestas** r
 - [ ] ¿Se puede leer sin tropiezos en 15–25 min?
 
 ## Capa 5 · Reporte de errores desde la app
-Botón "Reportar problema" en cada ejercicio y lección: guarda un registro en la tabla `reportes`. Carlo puede exportarlos y pasárselos a Claude Code ("corrige estos reportes"). Cada corrección conserva el mismo `id` del ejercicio.
+Botón "Reportar problema" en cada ejercicio y lección: guarda un registro en la tabla `reports` (reportes). Carlo puede exportarlos y pasárselos a Claude Code ("corrige estos reportes"). Cada corrección conserva el mismo `id` del ejercicio.
 
 ## Política de datos reales
 Cifras económicas, estadísticas, fechas históricas o datos de APIs: solo con fuente y fecha en el enunciado o la explicación. Si no se puede verificar, se usa un caso hipotético etiquetado ("Supón que...").

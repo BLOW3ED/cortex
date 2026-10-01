@@ -1,4 +1,4 @@
-import { symlinkSync } from "node:fs";
+import { existsSync, symlinkSync } from "node:fs";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { cleanupRoots, contentCheck, edit, emptyDir, makeRoot } from "./helpers";
@@ -59,11 +59,24 @@ describe("pnpm content:check", () => {
     expect(contentCheck(root, [`${PROG}/ejercicios.yaml`]).status).toBe(1);
   });
 
-  it("una ruta escrita con otras mayúsculas o por un enlace se resuelve a la carpeta real", () => {
+  it("una ruta escrita con otras mayúsculas se resuelve a la carpeta real", () => {
     const root = makeRoot();
     edit(root, `${CALC}/ejercicios.yaml`, (t) => t.replace("    tolerancia: 0\n", "    tolerancai: 0\n"));
-    symlinkSync(join(root, "content", "calculo"), join(root, "content", "Calculo"));
+    // En macOS/Windows (sin distinción de mayúsculas) `Calculo` ya es `calculo`; en Linux se simula con un enlace.
+    if (!existsSync(join(root, "content", "CALCULO"))) {
+      symlinkSync(join(root, "content", "calculo"), join(root, "content", "Calculo"), "dir");
+    }
     const r = contentCheck(root, ["content/Calculo"]);
+    expect(r.status).toBe(1);
+    expect(r.out).toContain("campo desconocido 'tolerancai'");
+  });
+
+  it("una ruta que llega por un enlace se resuelve a la carpeta real", () => {
+    const root = makeRoot();
+    edit(root, `${CALC}/ejercicios.yaml`, (t) => t.replace("    tolerancia: 0\n", "    tolerancai: 0\n"));
+    // En Windows un enlace de carpeta pide permisos; una "junction" no.
+    symlinkSync(join(root, "content", "calculo"), join(root, "content", "enlace-calculo"), process.platform === "win32" ? "junction" : "dir");
+    const r = contentCheck(root, ["content/enlace-calculo"]);
     expect(r.status).toBe(1);
     expect(r.out).toContain("campo desconocido 'tolerancai'");
   });

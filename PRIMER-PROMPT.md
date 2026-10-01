@@ -1,9 +1,11 @@
 # Primer prompt · cómo arrancar con Claude Code
 
+> **Histórico.** Así arrancó el proyecto (Fase 0, ya implementada). Para **retomar** hoy: `pnpm install --frozen-lockfile`, `pnpm dev` (http://localhost:3000) y, en Claude Code, `/fase`. Los requisitos al día están en el `README.md`.
+
 ## 0. Requisitos (una sola vez)
 - Node **22.12 o más nuevo** (recomendado: Node 24 LTS; Node 20 ya no sirve) y `pnpm` 10.28 (`npm i -g pnpm@10.28.0`)
 - Python 3.11+ y `pip install -r scripts/requirements.txt`
-- `gcc` (en Windows: WSL2, MSYS2 o MinGW; en macOS: `xcode-select --install`)
+- `gcc`, solo para los ejercicios en C (Fase 2; en Windows: WSL2, MSYS2 o MinGW; en macOS: `xcode-select --install`)
 - git y Claude Code instalado
 
 ## 1. Prepara el repo
