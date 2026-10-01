@@ -15,3 +15,6 @@ __pycache__/
 *.cortex-backup.json
 # Programas oficiales en PDF (pueden ser pesados; decide si los versionas)
 # curriculum/programas/*.pdf
+# Next.js y TypeScript
+next-env.d.ts
+*.tsbuildinfo

@@ -1,0 +1,12 @@
+# Configuración de pnpm (ADR-009). Vive aquí y no en .npmrc.
+engineStrict: true
+saveExact: true
+# Permite el prefijo VAR=valor en los scripts también en cmd/PowerShell de Windows.
+shellEmulator: true
+# Solo estos paquetes pueden correr scripts de instalación.
+onlyBuiltDependencies:
+  - esbuild
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
+  - fsevents
