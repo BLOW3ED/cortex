@@ -41,22 +41,25 @@ cortex/
 
 ## Modelo de datos (Dexie)
 
-| Tabla | Clave | Contenido |
-|---|---|---|
-| `perfil` | `id=1` | xp_total, nivel, racha_actual, racha_max, congelamientos, preferencias |
-| `progreso_unidad` | `materia/unidad` | estado (nueva, vista, practicada, dominada, maestría), mejor_jefe, intentos_jefe |
-| `intentos` | autoincrement | ejercicio_id, fecha, correcto, tiempo_ms, confianza (1–3), respuesta, sesion_id |
-| `tarjetas` | `ejercicio_id` | estado FSRS (due, stability, difficulty, reps, lapses, last_review) |
-| `sesiones` | autoincrement | inicio, fin, xp_ganado, tipo (diaria, libre, jefe, examen, gym) |
-| `misiones` | `fecha/slot` | tipo, objetivo, progreso, completada |
-| `records` | `clave` | mejor valor y fecha (precisión, velocidad, racha de aciertos, por unidad) |
-| `ghosts` | `contexto` | serie de eventos del mejor intento para comparar en vivo |
-| `logros` | `id` | fecha de desbloqueo |
-| `gym_resultados` | autoincrement | juego, dominio, nivel, puntaje, fecha |
-| `errores` | `ejercicio_id` | veces falladas, última respuesta, nota propia |
-| `reportes` | autoincrement | ejercicio_id, comentario de Carlo (para corregir contenido) |
+Los nombres de tablas y campos van **en inglés** porque son identificadores de código (regla de `CLAUDE.md`; decisión D1 de Carlo, 2026-10-01). La columna "Concepto" da la equivalencia en español. Las claves del contenido (`content/**/*.yaml` y front matter) siguen en español: son el formato de contenido de `05-formato-contenido.md`.
 
-Cada escritura relevante guarda `schema_version`. Migraciones de Dexie obligatorias y probadas.
+| Tabla | Concepto | Clave | Contenido |
+|---|---|---|---|
+| `meta` | metadatos | `key` | `schemaVersion` de la base (guarda contra bases de una versión más nueva) |
+| `profile` | perfil | `id=1` | xpTotal, level, currentStreak, maxStreak, streakFreezes, preferences |
+| `unitProgress` | progreso de unidad | `unitKey` (`materia/unidad`) | status (new, seen, practiced, mastered, expert), bestBoss, bossAttempts |
+| `attempts` | intentos | autoincrement | exerciseId, at, correct, timeMs, confidence (1–3), answer, sessionId |
+| `cards` | tarjetas | `exerciseId` | estado FSRS (due, stability, difficulty, reps, lapses, lastReview) |
+| `sessions` | sesiones | autoincrement | startedAt, endedAt, xpEarned, kind (daily, free, boss, exam, gym) |
+| `missions` | misiones | `key` (`fecha/slot`) | kind, target, progress, completed |
+| `records` | récords | `key` | mejor valor y fecha (precisión, velocidad, racha de aciertos, por unidad) |
+| `ghosts` | fantasmas | `context` | serie de eventos del mejor intento para comparar en vivo |
+| `achievements` | logros | `id` | fecha de desbloqueo |
+| `gymResults` | resultados del gimnasio | autoincrement | game, domain, level, score, at |
+| `mistakes` | cuaderno de errores | `exerciseId` | veces falladas, última respuesta, nota propia |
+| `reports` | reportes | autoincrement | exerciseId, comentario de Carlo (para corregir contenido) |
+
+Fechas en milisegundos desde epoch; días como `AAAA-MM-DD` en hora local. Cada registro guarda `schemaVersion`. Migraciones de Dexie obligatorias y probadas; la versión 1 del esquema no se edita nunca (una versión nueva se agrega encima).
 
 ## Decisiones (ADR resumidos)
 

@@ -1,7 +1,7 @@
 # Primer prompt · cómo arrancar con Claude Code
 
 ## 0. Requisitos (una sola vez)
-- Node 20 o 22 y `pnpm` (`npm i -g pnpm`)
+- Node **22.12 o más nuevo** (recomendado: Node 24 LTS; Node 20 ya no sirve) y `pnpm` 10.28 (`npm i -g pnpm@10.28.0`)
 - Python 3.11+ y `pip install -r scripts/requirements.txt`
 - `gcc` (en Windows: WSL2, MSYS2 o MinGW; en macOS: `xcode-select --install`)
 - git y Claude Code instalado

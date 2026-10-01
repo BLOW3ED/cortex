@@ -41,7 +41,7 @@ Escalera **2 aciertos → sube / 1 error → baja** por dominio (converge a ~70%
 
 ## Entregas por fase
 - **Fase 1:** n-back, aritmética adaptativa, secuencias lógicas.
-- **Fase 9:** el resto, perfil semanal y logros.
+- **Fase 10:** el resto, perfil semanal y logros.
 
 ## Requisitos técnicos
 - Cada minijuego es un módulo en `src/components/gym/` con interfaz común (`iniciar(nivel) → resultado`) y su lógica de generación/puntuación en `src/engine/gym/` con pruebas.

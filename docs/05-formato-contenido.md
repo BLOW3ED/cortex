@@ -48,21 +48,34 @@ programa_ref: "Cálculo, Unidad I"  # sección del programa oficial; "pendiente"
 ---
 ```
 
-Componentes MDX disponibles (se implementan en la Fase 1; hasta entonces el contenido se escribe usándolos tal cual):
+Componentes MDX disponibles. Desde la Fase 0 existen versiones **provisionales** (muestran el contenido, sin interactividad) para que las lecciones carguen; las interactivas llegan en la Fase 1. Usar un componente que no esté en esta tabla rompe `pnpm content:check` y el build:
 
 | Componente | Uso |
 |---|---|
 | `<Predice pregunta="..." revela="...">` | Pregunta antes de la teoría; el usuario escribe/elige y luego ve la idea |
 | `<Concepto titulo="...">` | Definición o idea central |
 | `<Ejemplo titulo="...">` | Ejemplo resuelto completo |
-| `<Desvanecido titulo="..." pasos={[...]}>` | Ejemplo con pasos a completar |
+| `<Desvanecido titulo="..." pasos={[...]} respuestas={[...]}>` | Ejemplo con pasos a completar; `respuestas` lleva lo que va en cada `___`, en orden |
 | `<Ojo>` | Error común |
 | `<Conexion materia="...">` | Vínculo con otra materia o con IA |
 | `<Resumen>` | Tres líneas finales |
 | `<Feynman>` | Reto de explicar con tus palabras |
 | `<Visual id="...">` | Visual interactivo registrado en el código (Mafs, simulaciones) |
 
-Matemáticas con `$...$` y `$$...$$` (KaTeX).
+Matemáticas con `$...$` y `$$...$$` (KaTeX). Una fórmula que KaTeX no puede dibujar es error (no se muestra roja en silencio).
+
+### Cómo escribir dentro de MDX (escapes)
+
+MDX es código: estas reglas evitan errores que no se ven a simple vista.
+
+| Dónde | Regla | Ejemplo |
+|---|---|---|
+| Atributo entre comillas (`pregunta="..."`, `revela="..."`, `titulo="..."`) | El texto va tal cual: LaTeX con **una** barra | `pregunta="¿Cuánto vale $\dfrac{1}{2}$?"` |
+| Expresión entre llaves (`pasos={[...]}`, `respuestas={[...]}`) | Son strings de JavaScript: cada barra va **doble** | `pasos={["Calcula $\\lim_{x\\to 1} f(x)$."]}` |
+| Texto normal, fuera de `$...$` | `{` y `<` sueltos se leen como código: escríbelos `\{` y `\<` | `el conjunto \{1, 2\}` |
+| Signo de pesos (dinero) | Escríbelo `\$` para que no abra una fórmula | `cuesta \$150` |
+
+Una barra sola dentro de `{[...]}` no da error por sí misma: `\to` se convierte en un tabulador seguido de "o" y la fórmula sale mal. Por eso `pnpm content:check` la rechaza.
 
 ## `ejercicios.yaml`
 
@@ -86,7 +99,7 @@ ejercicios:
 
 | tipo | Campos específicos | Cómo lo verifica `verify_content.py` |
 |---|---|---|
-| `opcion_multiple` | `opciones` (lista), `correcta` (índice), `valores` (opcional, lista numérica paralela a `opciones`) | Si hay `verificar.sympy` y `valores`, comprueba que `valores[correcta]` coincida con el resultado |
+| `opcion_multiple` | `opciones` (lista), `correcta` (índice), `valores` (opcional, lista paralela a `opciones` con números o textos que sympy evalúe, como `"1/3"`) | Si hay `verificar.sympy` y `valores`, comprueba que `valores[correcta]` coincida con el resultado |
 | `numerico` | `respuesta`, `tolerancia` | Evalúa `verificar.sympy` o `verificar.python` y compara |
 | `simbolico` | `respuesta` (expresión), `variables` (opcional) | Comprueba equivalencia con sympy entre `respuesta` y `verificar.sympy` |
 | `completar` | `texto` con `___` por hueco, `respuestas` (lista) | Número de huecos = número de respuestas |
@@ -98,12 +111,20 @@ ejercicios:
 **Tests de `codigo` en Python:** lista de `{ expr: "f(2)", esperado: 4, tolerancia: 0 }`. `expr` se evalúa después de ejecutar la solución.
 **Tests de `codigo` en C:** lista de `{ entrada: "3 4\n", salida: "7\n" }`; `solucion` es un programa completo con `main`. Se compila con `gcc -Wall -O0` y se compara salida (sin espacios finales).
 
-Campos comunes: `id`, `tipo`, `dificultad`, `conceptos` (al menos uno), `enunciado`, `explicacion` (obligatoria), `pistas` (opcional, máx. 3), `tarjeta` (opcional), `tiempo_estimado_s` (opcional).
+Campos comunes: `id`, `tipo`, `dificultad`, `conceptos` (al menos uno), `enunciado`, `explicacion` (obligatoria), `pistas` (opcional, máx. 3), `tarjeta` (opcional), `tiempo_estimado_s` (opcional), `verificar` (opcional en general; obligatorio en `numerico` y `simbolico`), `retirado` (opcional). Un campo que no esté en esta lista ni en la de su tipo es error (atrapa errores de dedo como `tolerancai`).
 
 ### Sobre `verificar`
 - `sympy`: expresión que se evalúa con `from sympy import *` y símbolos `x, y, z, t, n, k` predefinidos. Debe producir el valor correcto **por una vía independiente** a la que usaste para escribir la respuesta (no copies el valor: calcúlalo con la función de sympy).
 - `python`: expresión de Python puro que produce el valor (para estadística, finanzas, etc.).
 - Si un ejercicio no se puede verificar por código (conceptual), se marca `verificar: { revision: "manual" }` y entra a la lista de revisión humana/adversarial (ver `07-calidad-y-verificacion.md`).
+
+### YAML: cómo se lee
+Los `.yaml` se leen como **YAML 1.1** (igual que PyYAML, que usa `verify_content.py`), tanto en Python como en la app. Pon entre comillas cualquier texto que YAML pueda confundir con otra cosa:
+- `yes`, `no`, `on`, `off`, `true`, `false` → booleanos. Escribe `"no"` si quieres el texto.
+- `010` (octal), `1:30` (sexagesimal) → números raros. Escribe `"010"`, `"1:30"`.
+- Notación científica (`1e3`) se lee distinto según el lector: usa el número completo o calcúlalo en `verificar`.
+
+Las letras sueltas `y` y `n` se leen como texto (como en PyYAML), así que `variables: [x, y, n]` funciona.
 
 ## `jefe.yaml`
 

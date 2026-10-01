@@ -23,8 +23,8 @@
         { "id": "programacion", "nombre": "Fundamentos de programación", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "programacion", "cortex_fase": 2 },
         { "id": "matematicas-discretas", "nombre": "Matemáticas discretas", "teoria": 4.5, "practica": 1.5, "th": 6.0, "creditos": 10.5, "track": "matematicas", "cortex_fase": 3 },
         { "id": "calculo", "nombre": "Cálculo", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "matematicas", "cortex_fase": 3 },
-        { "id": "mecanica-electromagnetismo", "nombre": "Mecánica y electromagnetismo", "teoria": 4.5, "practica": 1.5, "th": 6.0, "creditos": 10.5, "track": "ciencias", "cortex_fase": null },
-        { "id": "fundamentos-economicos", "nombre": "Fundamentos económicos", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "negocios", "cortex_fase": 4 },
+        { "id": "mecanica-electromagnetismo", "nombre": "Mecánica y electromagnetismo", "teoria": 4.5, "practica": 1.5, "th": 6.0, "creditos": 10.5, "track": "ciencias", "cortex_fase": 4 },
+        { "id": "fundamentos-economicos", "nombre": "Fundamentos económicos", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "negocios", "cortex_fase": 5 },
         { "id": "comunicacion-oral-escrita", "nombre": "Comunicación oral y escrita", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "humanidades", "cortex_fase": null }
       ]
     },
@@ -33,8 +33,8 @@
       "creditos": 48.0,
       "materias": [
         { "id": "algoritmos-estructuras-datos", "nombre": "Algoritmos y estructuras de datos", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "programacion", "cortex_fase": null },
-        { "id": "algebra-lineal", "nombre": "Álgebra lineal", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "matematicas", "cortex_fase": 5 },
-        { "id": "calculo-multivariable", "nombre": "Cálculo multivariable", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "matematicas", "cortex_fase": 6 },
+        { "id": "algebra-lineal", "nombre": "Álgebra lineal", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "matematicas", "cortex_fase": 6 },
+        { "id": "calculo-multivariable", "nombre": "Cálculo multivariable", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "matematicas", "cortex_fase": 7 },
         { "id": "diseno-digital", "nombre": "Fundamentos de diseño digital", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ingenieria", "cortex_fase": null },
         { "id": "etica-sociedad", "nombre": "Ingeniería, ética y sociedad", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "humanidades", "cortex_fase": null },
         { "id": "finanzas-empresariales", "nombre": "Finanzas empresariales", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "negocios", "cortex_fase": null }
@@ -46,7 +46,7 @@
       "materias": [
         { "id": "analisis-diseno-algoritmos", "nombre": "Análisis y diseño de algoritmos", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "programacion", "cortex_fase": null },
         { "id": "paradigmas-programacion", "nombre": "Paradigmas de programación", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "programacion", "cortex_fase": null },
-        { "id": "ecuaciones-diferenciales", "nombre": "Ecuaciones diferenciales", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "matematicas", "cortex_fase": 7 },
+        { "id": "ecuaciones-diferenciales", "nombre": "Ecuaciones diferenciales", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "matematicas", "cortex_fase": 8 },
         { "id": "bases-datos", "nombre": "Bases de datos", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ingenieria", "cortex_fase": null },
         { "id": "sistemas-digitales", "nombre": "Diseño de sistemas digitales", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ingenieria", "cortex_fase": null },
         { "id": "liderazgo-personal", "nombre": "Liderazgo personal", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "humanidades", "cortex_fase": null }
@@ -57,8 +57,8 @@
       "creditos": 48.0,
       "materias": [
         { "id": "fundamentos-ia", "nombre": "Fundamentos de inteligencia artificial", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null },
-        { "id": "probabilidad-estadistica", "nombre": "Probabilidad y estadística", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "matematicas", "cortex_fase": 8 },
-        { "id": "matematicas-avanzadas", "nombre": "Matemáticas avanzadas para la ingeniería", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "matematicas", "cortex_fase": 8 },
+        { "id": "probabilidad-estadistica", "nombre": "Probabilidad y estadística", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "matematicas", "cortex_fase": 9 },
+        { "id": "matematicas-avanzadas", "nombre": "Matemáticas avanzadas para la ingeniería", "teoria": 4.5, "practica": 0.0, "th": 4.5, "creditos": 9.0, "track": "matematicas", "cortex_fase": 9 },
         { "id": "desarrollo-web", "nombre": "Tecnologías para el desarrollo de aplicaciones web", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ingenieria", "cortex_fase": null },
         { "id": "analisis-diseno-sistemas", "nombre": "Análisis y diseño de sistemas", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ingenieria", "cortex_fase": null },
         { "id": "procesamiento-imagenes", "nombre": "Procesamiento digital de imágenes", "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5, "track": "ia", "cortex_fase": null }
@@ -128,7 +128,7 @@
   ],
   "optativas_horas": { "teoria": 3.0, "practica": 1.5, "th": 4.5, "creditos": 7.5 },
   "notas": [
-    "cortex_fase indica en qué fase de Cortex se construye el contenido de la materia (null = backlog posterior a la Fase 8).",
+    "cortex_fase indica en qué fase de Cortex se construye el contenido de la materia (null = backlog posterior a la Fase 9; ver docs/01).",
     "Las horas y créditos vienen del PDF oficial; si el IPN publica una versión nueva del plan, actualiza este archivo y corre scripts/verify_content.py."
   ]
 }

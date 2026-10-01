@@ -20,7 +20,7 @@ Estado: **repo base listo para Claude Code**. Todavía no hay app; la construye 
 
 ## Arranque rápido
 
-1. Instala: Node 20+ (o 22), pnpm, Python 3.11+, gcc, git.
+1. Instala: Node 22.12+ (recomendado Node 24 LTS), pnpm 10.28 (`npm i -g pnpm@10.28.0`), Python 3.11+, gcc, git.
 2. `pip install -r scripts/requirements.txt`
 3. `python scripts/verify_content.py` (debe terminar en verde).
 4. `git init && git add -A && git commit -m "Repo base de Cortex"`

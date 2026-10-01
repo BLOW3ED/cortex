@@ -21,15 +21,16 @@ Carlo pidió empezar por **bases duras, fundamentos económicos y fundamentos de
 | 1 | Motor de aprendizaje + gamificación + unidad piloto | Sin enganche no hay hábito |
 | 2 | Fundamentos de programación (Python + C) | Retroalimentación rápida, ancla la identidad de builder, y se reutiliza en las demás fases |
 | 3 | Cálculo + Matemáticas discretas | Primeras bases duras |
-| 4 | Fundamentos económicos | Respiro conceptual y casos reales entre materias pesadas |
-| 5 | Álgebra lineal | Base de ML |
-| 6 | Cálculo multivariable | Gradientes y optimización |
-| 7 | Ecuaciones diferenciales | Modelado y simulación |
-| 8 | Probabilidad y estadística + Matemáticas avanzadas para la ingeniería | Cierra las bases duras |
-| 9 | Gimnasio cognitivo completo | Expande lo mínimo entregado en la fase 1 |
-| 10+ | Resto del plan, semestre por semestre | Backlog guiado por datos |
+| 4 | Mecánica y electromagnetismo | Es de 1er semestre y cuesta; necesita Cálculo (va justo después) |
+| 5 | Fundamentos económicos | Respiro conceptual y casos reales entre materias pesadas |
+| 6 | Álgebra lineal | Base de ML |
+| 7 | Cálculo multivariable | Gradientes y optimización |
+| 8 | Ecuaciones diferenciales | Modelado y simulación |
+| 9 | Probabilidad y estadística + Matemáticas avanzadas para la ingeniería | Cierra las bases duras |
+| 10 | Gimnasio cognitivo completo | Expande lo mínimo entregado en la fase 1 |
+| 11+ | Resto del plan, semestre por semestre | Backlog guiado por datos |
 
-"Bases duras" se interpreta como: Matemáticas discretas, Cálculo, Álgebra lineal, Cálculo multivariable, Ecuaciones diferenciales, Probabilidad y estadística y Matemáticas avanzadas. Mecánica y electromagnetismo queda en backlog. **Decisión pendiente de Carlo:** confirmar esta interpretación (ver `ESTADO.md`).
+"Bases duras" = Matemáticas discretas, Cálculo, **Mecánica y electromagnetismo**, Álgebra lineal, Cálculo multivariable, Ecuaciones diferenciales, Probabilidad y estadística y Matemáticas avanzadas. Decisión de Carlo (2026-10-01): Mecánica y electromagnetismo entra pronto, como Fase 4; el resto conserva el orden propuesto.
 
 ---
 
@@ -83,29 +84,37 @@ Carlo pidió empezar por **bases duras, fundamentos económicos y fundamentos de
 - Plataforma nueva: visualizaciones interactivas con Mafs (pendiente, secante→tangente, área bajo curva); simulador de tablas de verdad.
 - **DoH:** ambas materias jugables con jefe por unidad y un jefe final cada una; simulacro de examen disponible.
 
-## Fase 4 · Fundamentos económicos
+## Fase 4 · Mecánica y electromagnetismo
+
+- Temario **según el programa sintético oficial** (`curriculum/programas/mecanica-electromagnetismo.pdf`, todavía pendiente). Típicamente: cinemática, leyes de Newton, trabajo y energía, momento, electrostática, campo y potencial eléctrico, circuitos de corriente directa y magnetismo; no asumir sin verificar.
+- Se apoya en Cálculo (Fase 3): derivadas para cinemática, integrales para trabajo y campos.
+- Plataforma nueva (propuesta, se confirma al planear la fase): visuales de vectores, diagramas de cuerpo libre y simulaciones simples (proyectil, carga en un campo).
+- Regla de unidades: toda respuesta numérica declara sus unidades y se verifica con código.
+- **DoH:** materia jugable con jefe por unidad y jefe final; ejercicios cuantitativos verificados con código.
+
+## Fase 5 · Fundamentos económicos
 
 - Escasez y costo de oportunidad, oferta y demanda, elasticidad, equilibrio, excedentes, estructuras de mercado, costos e ingresos marginales, PIB, inflación, desempleo, política monetaria y fiscal, comercio internacional.
 - Simuladores: curvas de oferta/demanda arrastrables, calculadora de elasticidad, tablero macro con series de ejemplo.
 - Regla de datos reales: cualquier cifra de México o del mundo lleva fuente y fecha en el ejercicio; si no se puede verificar, se usa un caso hipotético y se marca como tal.
 - **DoH:** materia jugable; todos los ejercicios cuantitativos verificados con código.
 
-## Fase 5 · Álgebra lineal
+## Fase 6 · Álgebra lineal
 Sistemas de ecuaciones, matrices y determinantes, espacios vectoriales, transformaciones lineales, valores y vectores propios, ortogonalidad y mínimos cuadrados, descomposiciones (con SVD como puente a ML). Visual interactivo de transformaciones 2D (arrastrar la base). Ejercicios con NumPy vía Pyodide.
 
-## Fase 6 · Cálculo multivariable
+## Fase 7 · Cálculo multivariable
 Funciones de varias variables, derivadas parciales, gradiente (y su conexión directa con descenso de gradiente), regla de la cadena multivariable, optimización con y sin restricciones, integrales múltiples, campos vectoriales y teoremas integrales según programa.
 
-## Fase 7 · Ecuaciones diferenciales
+## Fase 8 · Ecuaciones diferenciales
 Primer orden (separables, lineales, exactas), modelado, segundo orden, transformada de Laplace, sistemas lineales, métodos numéricos (Euler, RK4) con simulaciones en Python.
 
-## Fase 8 · Probabilidad y estadística + Matemáticas avanzadas para la ingeniería
+## Fase 9 · Probabilidad y estadística + Matemáticas avanzadas para la ingeniería
 Probabilidad, variables aleatorias, distribuciones, esperanza y varianza, inferencia, regresión. Matemáticas avanzadas **según programa sintético oficial** (típicamente análisis de Fourier, variable compleja o similares; no asumir sin verificar).
 
-## Fase 9 · Gimnasio cognitivo completo
+## Fase 10 · Gimnasio cognitivo completo
 Ver `06-gimnasio-cognitivo.md`: memoria, lógica, cálculo mental, pensamiento sistémico/creativo; dificultad adaptativa; perfil cognitivo semanal.
 
-## Fase 10+ · Resto del plan
+## Fase 11+ · Resto del plan
 Una materia = datos + contenido, sin cambios de plataforma salvo mecánicas nuevas. Orden sugerido: Algoritmos y estructuras de datos → Análisis y diseño de algoritmos → Fundamentos de IA → Aprendizaje de máquina → Redes neuronales → Visión artificial / Lenguaje natural → el resto por semestre. Proponer el orden con Carlo antes de arrancar.
 
 ## Transversales (se entregan cuando su fase los necesite)

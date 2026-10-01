@@ -42,4 +42,6 @@ Que abrir Cortex se sienta como abrir un videojuego que además te vuelve mejor 
 
 ## Nombre
 
-"Cortex" es provisional. Cambiarlo es un solo `grep` + renombrar la carpeta.
+"Cortex" es el nombre definitivo (decisión de Carlo, 2026-10-01).
+
+Si algún día cambia, se cambia solo el nombre visible (`APP_NAME`). El identificador interno `APP_ID = 'cortex'` **nunca cambia**: es el nombre de la base de datos local y la marca de los respaldos. Cambiarlo haría que la app ya no encuentre tus datos ni acepte tus respaldos.
