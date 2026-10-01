@@ -1,16 +1,15 @@
 "use client";
 
-import { useLiveQuery } from "dexie-react-hooks";
 import { useId } from "react";
 import { Switch } from "@/components/ui/switch";
-import { useCortexDb } from "@/db/use-profile";
+import { useCortexDb, useProfileRecord } from "@/db/use-profile";
 
 /** Preferencia de sonido. Apagado por defecto; en la Fase 0 solo se guarda (los sonidos llegan en la Fase 1). */
 export function SoundToggle() {
   const id = useId();
   const db = useCortexDb();
   const ready = db.status === "ready" ? db.db : null;
-  const profile = useLiveQuery(() => ready?.profile.get(1), [ready]);
+  const profile = useProfileRecord(ready);
   const sound = profile?.preferences.sound ?? false;
   return (
     <div className="flex items-start justify-between gap-6">

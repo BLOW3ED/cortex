@@ -7,7 +7,9 @@ export const BACKUP_FORMAT = 1;
 
 const version = z.number().int().positive();
 const stringKey = z.string().min(1);
-const autoKey = z.number().int().positive();
+// Muy por encima de cualquier id real. Sin tope, un id cercano a 2^53 agotaría para siempre el
+// generador de claves de la tabla (`clear()` no lo reinicia) y no se podría agregar nada más.
+const autoKey = z.number().int().positive().max(2 ** 31 - 1);
 
 export const profileRecordSchema = z.strictObject({
   id: z.literal(1),

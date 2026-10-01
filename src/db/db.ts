@@ -1,5 +1,5 @@
 import Dexie, { type DexieOptions, type EntityTable } from "dexie";
-import { APP_ID } from "@/lib/app";
+import { APP_ID, APP_NAME } from "@/lib/app";
 import { defaultProfile } from "./defaults";
 import { SCHEMA_HISTORY, SCHEMA_VERSION, type SchemaStep, TABLE_NAMES } from "./schema";
 import type {
@@ -25,10 +25,21 @@ export class FutureSchemaError extends Error {
     readonly supported: number,
   ) {
     super(
-      `Tus datos son de una versión más nueva de ${APP_ID} (esquema ${found}; esta app entiende hasta el ${supported}). ` +
+      `Tus datos son de una versión más nueva de ${APP_NAME} (esquema ${found}; esta app entiende hasta el ${supported}). ` +
         "Actualiza la app; tus datos no se tocaron.",
     );
     this.name = "FutureSchemaError";
+  }
+}
+
+/** Otra pestaña actualizó o borró la base mientras esta la tenía abierta: esta conexión ya no sirve. */
+export class DbClosedElsewhereError extends Error {
+  constructor() {
+    super(
+      `Otra pestaña de ${APP_NAME} actualizó o borró tus datos, así que esta se desconectó para no tocarlos. ` +
+        "Recarga la página para seguir.",
+    );
+    this.name = "DbClosedElsewhereError";
   }
 }
 
@@ -47,13 +58,26 @@ export class CortexDb extends Dexie {
   mistakes!: EntityTable<MistakeRecord, "exerciseId">;
   reports!: EntityTable<ReportRecord, "id">;
 
+  /** `true` si se cerró porque otra pestaña pidió actualizar o borrar la base. */
+  closedElsewhere = false;
+
   constructor(options: DexieOptions = {}, history: readonly SchemaStep[] = SCHEMA_HISTORY) {
-    super(APP_ID, options);
+    // Sin `autoOpen`: Dexie reabre solo tras un cierre y esa reapertura se salta la guarda (podría
+    // abrir y parchar una base más nueva). Solo se abre con `open()` explícito, vía `openCortexDb`.
+    super(APP_ID, { ...options, autoOpen: false });
     for (const step of history) {
       const v = this.version(step.version).stores({ ...step.stores });
       if (step.upgrade) v.upgrade(step.upgrade);
     }
     const current = history[history.length - 1]?.version ?? SCHEMA_VERSION;
+
+    // Otra pestaña quiere subir la versión o borrar la base: se cierra para no bloquearla y queda
+    // cerrada (`false` evita el manejador de Dexie, que la dejaría lista para reabrirse sola).
+    this.on("versionchange", () => {
+      this.closedElsewhere = true;
+      this.close();
+      return false;
+    });
 
     // Solo corre al crear la base por primera vez.
     this.on("populate", (tx) => {
@@ -117,19 +141,43 @@ export async function openCortexDb(
   if (found > supported) throw new FutureSchemaError(found, supported);
   const db = new CortexDb(options, history);
   await db.open();
+  // Entre la sonda y `open()` otra pestaña pudo subir la versión: se revisa de nuevo ya abierta.
+  const native = Math.floor(db.backendDB().version / 10);
+  const metaValue = (await db.meta.get("schemaVersion"))?.value;
+  const opened = Math.max(native, typeof metaValue === "number" ? metaValue : 0);
+  if (opened > supported) {
+    db.close();
+    throw new FutureSchemaError(opened, supported);
+  }
   return db;
 }
 
 let shared: Promise<CortexDb> | null = null;
 
-/** Base compartida del navegador (perezosa: importar este módulo en el servidor no toca nada). */
+/**
+ * Base compartida del navegador (perezosa: importar este módulo en el servidor no toca nada).
+ * Si la conexión se cierra, la siguiente llamada vuelve a pasar por la guarda.
+ */
 export function getDb(): Promise<CortexDb> {
   if (typeof indexedDB === "undefined") {
     return Promise.reject(new Error("La base local solo existe en el navegador."));
   }
-  shared ??= openCortexDb().catch((e: unknown) => {
-    shared = null;
-    throw e;
-  });
+  // Dexie cierra la base al ocultar la página (bfcache) y, sin `autoOpen`, no la reabriría al volver.
+  Dexie.disableBfCache = true;
+  if (!shared) {
+    const opening = openCortexDb().then(
+      (db) => {
+        db.on("close", () => {
+          if (shared === opening) shared = null;
+        });
+        return db;
+      },
+      (e: unknown) => {
+        shared = null;
+        throw e;
+      },
+    );
+    shared = opening;
+  }
   return shared;
 }

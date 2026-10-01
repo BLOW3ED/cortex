@@ -1,6 +1,7 @@
 import Dexie from "dexie";
 import { describe, expect, it } from "vitest";
-import { CortexDb, FutureSchemaError, openCortexDb, probeDb } from "./db";
+import { exportBackup, importBackup } from "./backup";
+import { CortexDb, DbClosedElsewhereError, FutureSchemaError, openCortexDb, probeDb } from "./db";
 import { defaultProfile } from "./defaults";
 import { SCHEMA_HISTORY, SCHEMA_VERSION, type SchemaStep, STORES_V1, TABLE_NAMES } from "./schema";
 import { freshIdb, nativeSnapshot } from "./test-utils";
@@ -112,6 +113,51 @@ describe("guarda de versión (ADR-014)", () => {
     const naive = new CortexDb(opts);
     await expect(naive.open()).resolves.toBeDefined();
     naive.close();
+  });
+
+  it("si otra pestaña sube la versión, la conexión abierta se cierra y ya no escribe ni se reabre sola", async () => {
+    const opts = freshIdb();
+    const old = await openCortexDb(opts);
+    const backup = await exportBackup(old, "0.0.0");
+    let closes = 0;
+    old.on("close", () => closes++);
+
+    // "Otra pestaña" con la app v2: sin un índice de la v1 (Dexie lo parcharía) y con una tabla nueva.
+    const newer = await openCortexDb(opts, futureHistory({ attempts: "++id, exerciseId, at", nuevaTabla: "id" }));
+    await newer.meta.put({ key: "schemaVersion", value: 2 });
+    await newer.profile.update(1, { xpTotal: 777 });
+    newer.close();
+    const before = await nativeSnapshot(opts);
+    expect(before.version).toBe(20);
+
+    expect(old.closedElsewhere).toBe(true);
+    expect(old.isOpen()).toBe(false);
+    expect(closes).toBe(1);
+    await expect(old.profile.update(1, { preferences: { sound: true } })).rejects.toBeInstanceOf(Dexie.DatabaseClosedError);
+    await expect(old.profile.get(1)).rejects.toBeInstanceOf(Dexie.DatabaseClosedError);
+    await expect(importBackup(old, backup)).rejects.toBeInstanceOf(Dexie.DatabaseClosedError);
+
+    expect(await nativeSnapshot(opts)).toEqual(before);
+    expect(before.stores.attempts?.indexes).not.toContain("sessionId");
+    await expect(openCortexDb(opts)).rejects.toBeInstanceOf(FutureSchemaError);
+  });
+
+  it("si otra pestaña borra la base, la conexión abierta se cierra y no la vuelve a crear", async () => {
+    const opts = freshIdb();
+    const old = await openCortexDb(opts);
+    await new Promise<void>((resolve, reject) => {
+      const req = opts.indexedDB.deleteDatabase("cortex");
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(new Error("no se borró"));
+    });
+    expect(old.closedElsewhere).toBe(true);
+    await expect(old.profile.get(1)).rejects.toBeInstanceOf(Dexie.DatabaseClosedError);
+    expect(await opts.indexedDB.databases()).toEqual([]);
+  });
+
+  it("el error de base cerrada explica qué hacer", () => {
+    expect(new DbClosedElsewhereError().message).toMatch(/Otra pestaña de Cortex .*Recarga la página/);
+    expect(new FutureSchemaError(2, 1).message).toMatch(/más nueva de Cortex \(esquema 2/);
   });
 });
 

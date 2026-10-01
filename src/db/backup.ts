@@ -3,8 +3,33 @@ import { type Backup, BACKUP_FORMAT, backupSchema, type BackupTables, PRIMARY_KE
 import type { CortexDb } from "./db";
 import { DATA_TABLES, type DataTableName, SCHEMA_VERSION } from "./schema";
 
-/** Tamaño máximo por defecto de un respaldo a importar (50 MB). */
-export const DEFAULT_MAX_BACKUP_BYTES = 50 * 1024 * 1024;
+/** Tamaño máximo por defecto de un respaldo a importar (100 MB). */
+export const DEFAULT_MAX_BACKUP_BYTES = 100 * 1024 * 1024;
+
+/** Bytes que ocupa un texto en UTF-8, sin copiarlo. */
+export function utf8ByteLength(text: string): number {
+  let bytes = 0;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    if (c < 0x80) bytes += 1;
+    else if (c < 0x800) bytes += 2;
+    else if (c >= 0xd800 && c <= 0xdbff && i + 1 < text.length) {
+      const next = text.charCodeAt(i + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        bytes += 4;
+        i++;
+      } else bytes += 3;
+    } else bytes += 3;
+  }
+  return bytes;
+}
+
+const megabytes = (bytes: number) => `${(bytes / 1048576).toFixed(1)} MB`;
+
+/** Mensaje si un respaldo de `bytes` pasa del máximo que se puede importar; `null` si cabe. */
+export function backupSizeError(bytes: number, maxBytes: number = DEFAULT_MAX_BACKUP_BYTES): string | null {
+  return bytes > maxBytes ? `El archivo pesa ${megabytes(bytes)}; el máximo es ${megabytes(maxBytes)}.` : null;
+}
 
 export type ParseResult = { ok: true; backup: Backup } | { ok: false; errors: string[] };
 
@@ -23,18 +48,17 @@ export async function exportBackup(db: CortexDb, appVersion: string, now: Date =
   return { app: APP_ID, format: BACKUP_FORMAT, schemaVersion: SCHEMA_VERSION, exportedAt: now.toISOString(), appVersion, tables };
 }
 
+/** JSON compacto: con sangría pesaría ~65 % más y se acercaría antes al máximo de importación. */
 export function serializeBackup(backup: Backup): string {
-  return `${JSON.stringify(backup, null, 2)}\n`;
+  return `${JSON.stringify(backup)}\n`;
 }
 
 /**
  * Valida un respaldo completo ANTES de tocar la base. Nunca lanza: devuelve los errores en español.
  */
 export function parseBackup(text: string, maxBytes: number = DEFAULT_MAX_BACKUP_BYTES): ParseResult {
-  const bytes = new TextEncoder().encode(text).length;
-  if (bytes > maxBytes) {
-    return { ok: false, errors: [`El archivo pesa ${(bytes / 1048576).toFixed(1)} MB; el máximo es ${(maxBytes / 1048576).toFixed(1)} MB.`] };
-  }
+  const tooBig = backupSizeError(utf8ByteLength(text), maxBytes);
+  if (tooBig) return { ok: false, errors: [tooBig] };
   let data: unknown;
   try {
     data = JSON.parse(text);

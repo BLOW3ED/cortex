@@ -1,6 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { type Backup } from "./backup-schema";
-import { backupFileName, exportBackup, importBackup, parseBackup, serializeBackup, summarizeBackup, summarizeDb } from "./backup";
+import {
+  backupFileName,
+  backupSizeError,
+  exportBackup,
+  importBackup,
+  parseBackup,
+  serializeBackup,
+  summarizeBackup,
+  summarizeDb,
+  utf8ByteLength,
+} from "./backup";
 import { type CortexDb, openCortexDb } from "./db";
 import { DATA_TABLES } from "./schema";
 import { freshIdb } from "./test-utils";
@@ -109,6 +119,7 @@ describe("respaldos inválidos se rechazan sin tocar la base", () => {
     ["sin perfil", () => mutate((b) => ((b.tables as Record<string, unknown>).profile = [])), /exactamente un perfil/],
     ["clave repetida", () => mutate((b) => { const t = b.tables as { achievements: unknown[] }; t.achievements = [{ id: "a", unlockedAt: 1, schemaVersion: 1 }, { id: "a", unlockedAt: 2, schemaVersion: 1 }]; }), /achievements: la clave "a" se repite/],
     ["registro sin clave", () => mutate((b) => ((b.tables as Record<string, unknown>).reports = [{ comment: "x", schemaVersion: 1 }])), /tables\.reports\.0\.id/],
+    ["id autoincremental gigante", () => mutate((b) => ((b.tables as Record<string, unknown>).attempts = [{ id: Number.MAX_SAFE_INTEGER, schemaVersion: 1 }])), /tables\.attempts\.0\.id/],
   ])("%s", async (_name, make, expected) => {
     const db = await filledDb();
     valid = await exportBackup(db, "0.0.0", NOW);
@@ -124,5 +135,25 @@ describe("respaldos inválidos se rechazan sin tocar la base", () => {
     const r = parseBackup("x".repeat(2048), 1024);
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.errors[0]).toMatch(/el máximo es/);
+  });
+});
+
+describe("tamaño del respaldo", () => {
+  it("cuenta los bytes UTF-8 igual que TextEncoder (acentos, emoji, sustitutos sueltos)", () => {
+    for (const text of ["", "hola", "límite ñ €", "racha 🔥 x", "\ud800 suelto", "fin \udc00"]) {
+      expect(utf8ByteLength(text)).toBe(new TextEncoder().encode(text).length);
+    }
+  });
+
+  it("se exporta compacto y un respaldo justo en el límite se puede importar", async () => {
+    const db = await filledDb();
+    const text = serializeBackup(await exportBackup(db, "0.0.0", NOW));
+    expect(text).not.toMatch(/\n {2}/);
+    const bytes = utf8ByteLength(text);
+    expect(parseBackup(text, bytes).ok).toBe(true);
+    expect(parseBackup(text, bytes - 1).ok).toBe(false);
+    expect(backupSizeError(bytes, bytes)).toBeNull();
+    expect(backupSizeError(bytes, bytes - 1)).toMatch(/el máximo es/);
+    db.close();
   });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { TriangleAlert } from "lucide-react";
-import { FutureSchemaError } from "@/db/db";
+import { DbClosedElsewhereError, FutureSchemaError } from "@/db/db";
 import { useProfile } from "@/db/use-profile";
 import { HudBar } from "./hud-bar";
 
@@ -12,7 +12,12 @@ import { HudBar } from "./hud-bar";
 export function ProfileHud() {
   const state = useProfile();
   if (state.status === "error") {
-    const future = state.error instanceof FutureSchemaError;
+    const label =
+      state.error instanceof FutureSchemaError
+        ? "Datos de una versión más nueva"
+        : state.error instanceof DbClosedElsewhereError
+          ? "Recarga la página"
+          : "No pude abrir tus datos";
     return (
       <span
         role="status"
@@ -20,7 +25,7 @@ export function ProfileHud() {
         className="inline-flex items-center gap-1.5 rounded-sm border border-warning px-2 py-1 font-mono text-xs text-warning"
       >
         <TriangleAlert aria-hidden className="size-3.5" />
-        {future ? "Datos de una versión más nueva" : "No pude abrir tus datos"}
+        {label}
       </span>
     );
   }
