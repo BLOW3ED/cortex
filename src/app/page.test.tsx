@@ -23,6 +23,6 @@ describe("inicio", () => {
   });
 
   it("muestra la fase de cada materia (Mecánica y EM en Fase 4)", () => {
-    expect(html).toMatch(/Mecánica y electromagnetismo<\/h3><span[^>]*>Fase 4</);
+    expect(html).toMatch(/Mecánica y electromagnetismo<\/h4><span[^>]*>Fase 4</);
   });
 });

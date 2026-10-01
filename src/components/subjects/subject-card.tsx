@@ -12,9 +12,9 @@ export function SubjectCard({ subject, trackName }: { subject: SubjectSummary; t
   const body = (
     <>
       <div className="flex items-start justify-between gap-3">
-        <h3 className={cn("text-[0.95rem] leading-snug font-semibold text-balance", !subject.hasContent && "text-ink-2")}>
+        <h4 className={cn("text-[0.95rem] leading-snug font-semibold text-balance", !subject.hasContent && "text-ink-2")}>
           {subject.name}
-        </h3>
+        </h4>
         <Badge variant={subject.hasContent ? "brand" : "outline"} className="mt-0.5">
           {subject.electiveSlot ? "Optativa" : phaseLabel(subject)}
         </Badge>

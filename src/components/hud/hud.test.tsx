@@ -41,13 +41,19 @@ describe("XpBar", () => {
 
 describe("StreakChip", () => {
   it.each([
-    [0, "Empieza hoy", "Racha: empieza hoy"],
-    [1, "1 día", "Racha: 1 día"],
-    [4, "4 días", "Racha: 4 días"],
-  ])("%s días", (days, text, label) => {
+    [0, "Empieza hoy", "Racha: empieza hoy", null],
+    [1, "1 día", "Racha: 1 día", "1"],
+    [4, "4 días", "Racha: 4 días", "4"],
+    [1240, "1,240 días", "Racha: 1,240 días", "1,240"],
+  ])("%s días", (days, text, label, short) => {
     const m = html(<StreakChip days={days} />);
     expect(m).toContain(text);
-    expect(m).toContain(`aria-label="${label}"`);
+    // role="img": un aria-label en un span sin rol no lo anuncian los lectores de pantalla.
+    expect(m).toContain(`role="img" aria-label="${label}"`);
+    // En pantallas chicas solo el número (en 0, solo la llama), sin partirse en dos renglones.
+    expect(m).toContain("whitespace-nowrap");
+    if (short === null) expect(m).not.toContain("sm:hidden");
+    else expect(m).toContain(`sm:hidden">${short}</span>`);
   });
 });
 
@@ -69,7 +75,7 @@ describe("Lives", () => {
 describe("LevelBadge y HudBar", () => {
   it("muestra el nivel y la XP con separador de miles", () => {
     const m = html(<HudBar data={{ xpTotal: 1240, level: 5, currentStreak: 3, levelProgress: 0.5 }} />);
-    expect(m).toContain('aria-label="Nivel 5"');
+    expect(m).toContain('role="img" aria-label="Nivel 5"');
     expect(m).toContain("1,240 XP");
     expect(m).toContain("3 días");
   });

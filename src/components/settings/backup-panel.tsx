@@ -224,13 +224,13 @@ export function BackupPanel() {
             Respaldo del {formatDate(pending.summary.exportedAt)} · nivel {pending.summary.level} · {pending.summary.xpTotal} XP
           </p>
           <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[18rem] text-sm">
+          <table className="w-full text-sm">
             <caption className="sr-only">Registros por tabla: ahora y en el respaldo</caption>
             <thead>
               <tr className="text-left font-mono text-[0.6875rem] tracking-[0.12em] text-muted-foreground uppercase">
                 <th scope="col" className="py-1 font-medium">Tabla</th>
-                <th scope="col" className="py-1 text-right font-medium">Ahora</th>
-                <th scope="col" className="py-1 text-right font-medium">Respaldo</th>
+                <th scope="col" className="py-1 pl-3 text-right font-medium">Ahora</th>
+                <th scope="col" className="py-1 pl-3 text-right font-medium">Respaldo</th>
               </tr>
             </thead>
             <tbody className="font-mono tabular-nums">
@@ -239,8 +239,8 @@ export function BackupPanel() {
                   <th scope="row" className="py-1 text-left font-sans font-normal">
                     {TABLE_LABELS[t]}
                   </th>
-                  <td className="py-1 text-right">{pending.current[t]}</td>
-                  <td className="py-1 text-right">{pending.summary.counts[t]}</td>
+                  <td className="py-1 pl-3 text-right">{pending.current[t]}</td>
+                  <td className="py-1 pl-3 text-right">{pending.summary.counts[t]}</td>
                 </tr>
               ))}
             </tbody>

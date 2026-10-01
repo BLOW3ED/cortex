@@ -61,6 +61,8 @@ const PAIRS: [fg: string, bg: string, min: number][] = [
   ["warning", "surface", TEXT],
   ["info", "surface", TEXT],
   ["streak", "surface", TEXT],
+  ["xp-text", "surface", TEXT],
+  ["xp-text", "bg", TEXT],
   ["life", "surface", UI],
   ["xp", "surface", UI],
   ["xp", "bg", UI],

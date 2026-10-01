@@ -27,6 +27,7 @@
   --brand-ink: oklch(1.0000 0.0000 0.00); /* #FFFFFF */
   --xp: oklch(0.6078 0.1247 84.52); /* #A57B00 */
   --xp-ink: oklch(0.2170 0.0451 99.52); /* #1F1A00 */
+  --xp-text: oklch(0.5305 0.1090 83.33); /* #8A6500 · XP como texto pequeño (AA) */
   --streak: oklch(0.5626 0.1500 49.43); /* #B85400 */
   --streak-ink: oklch(1.0000 0.0000 0.00); /* #FFFFFF */
   --life: oklch(0.5426 0.1965 18.95); /* #C8243F */
@@ -56,6 +57,7 @@
   --brand-ink: oklch(0.2335 0.0423 168.42); /* #04241A */
   --xp: oklch(0.8849 0.1805 94.78); /* #FFD60A */
   --xp-ink: oklch(0.2170 0.0451 99.52); /* #1F1A00 */
+  --xp-text: oklch(0.8849 0.1805 94.78); /* #FFD60A */
   --streak: oklch(0.7851 0.1540 60.69); /* #FF9F43 */
   --streak-ink: oklch(0.2183 0.0499 62.75); /* #2A1400 */
   --life: oklch(0.7162 0.1805 13.83); /* #FF6B81 */
@@ -136,6 +138,8 @@
   html {
     background-color: var(--bg);
     color: var(--ink);
+    /* El header fijo mide 56 px: al enfocar o saltar a un ancla, el elemento queda debajo de él. */
+    scroll-padding-top: 4.5rem;
   }
 
   body {
@@ -170,7 +174,7 @@
     color: var(--muted);
   }
   .console-label::before {
-    content: "// ";
+    content: "// " / ""; /* decorativo: sin texto alternativo, no entra en el nombre accesible */
     opacity: 0.6;
   }
 
@@ -315,7 +319,7 @@
     color: var(--block);
   }
   .lesson-block-label::before {
-    content: "// ";
+    content: "// " / "";
     opacity: 0.7;
   }
   .lesson-block-title {
@@ -342,7 +346,7 @@
     --block: var(--info);
   }
   .lesson-block[data-kind="desvanecido"] {
-    --block: var(--xp);
+    --block: var(--xp-text);
   }
   .lesson-block[data-kind="ojo"] {
     --block: var(--warning);

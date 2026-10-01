@@ -1,6 +1,6 @@
 /** Plural en español para conteos ("1 día", "4 días"). */
 export function plural(n: number, one: string, many: string): string {
-  return `${n} ${n === 1 ? one : many}`;
+  return `${formatNumber(n)} ${n === 1 ? one : many}`;
 }
 
 /** Número con separador de miles de México (1,240). */

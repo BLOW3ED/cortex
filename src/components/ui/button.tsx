@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 // Base: shadcn/ui (new-york v4), adaptado al sistema "consola arcade" (ADR-016).
 const buttonVariants = cva(
-  "inline-flex shrink-0 select-none items-center justify-center gap-2 rounded-md text-sm font-semibold whitespace-nowrap outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 select-none items-center justify-center gap-2 rounded-md text-sm font-semibold whitespace-nowrap disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
