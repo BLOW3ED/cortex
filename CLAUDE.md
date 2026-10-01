@@ -19,7 +19,7 @@ Cortex es una app web **local-first** de un solo usuario (Carlo) para estudiar t
 - **Contenido original.** No copies ejercicios, texto ni estructura de libros, exámenes o apuntes.
 - **Datos reales con fuente y fecha**, o claramente hipotéticos ("Supón que..."). Nunca inventes cifras.
 - Sigue `docs/05-formato-contenido.md` y las plantillas de `content/_plantillas/`. Los ids de ejercicio no se reutilizan ni se renumeran; los retirados llevan `retirado: true`.
-- Después de escribir una unidad: corre `python scripts/verify_content.py` y luego `/revisar-contenido` (resolución a ciegas por un subagente) antes de darla por buena.
+- Después de escribir una unidad: corre `pnpm content:check content/<materia>` (incluye `verify_content.py`, esquemas Zod, compilación MDX/KaTeX y paridad YAML) y luego `/revisar-contenido` (resolución a ciegas por un subagente) antes de darla por buena.
 - Una unidad completa = lección + 15–25 ejercicios en escalera de dificultad 1–5 con **variedad de tipos** + jefe de ≥ 6 preguntas (incluye entrelazado de unidades previas).
 
 ## Reglas de código
@@ -40,11 +40,12 @@ Se premia **aprender** (recuperar, espaciar, esforzarse), no el tiempo en pantal
 ## Qué NO hacer
 - No inventes respuestas, fórmulas, cifras ni fuentes. Si dudas, verifica con código o pregunta.
 - No tomes decisiones de producto grandes sin consultarlas (anótalas en "Decisiones pendientes" de `ESTADO.md`).
-- No toques `content/` ya verificado sin volver a correr `verify_content.py`.
+- No toques `content/` ya verificado sin volver a correr `pnpm content:check`.
 - No agregues tutor/IA en tiempo de ejecución: está fuera de alcance (ver `docs/00`).
 - No hagas cambios destructivos (borrar datos de usuario, reescribir historia de git) sin pedir confirmación.
 
 ## Comandos útiles
-- `python scripts/verify_content.py [ruta]` · verificar contenido
+- `pnpm content:check [ruta]` · verificar contenido completo (Zod + MDX/KaTeX + paridad YAML + `verify_content.py`)
+- `python scripts/verify_content.py [ruta]` · solo la corrección de respuestas
 - Slash commands en `.claude/commands/`: `/fase`, `/nueva-unidad`, `/verificar`, `/revisar-contenido`, `/cerrar-fase`
-- Una vez creado el proyecto Next.js (Fase 0): `pnpm dev`, `pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm content:check`
+- Proyecto Next.js: `pnpm dev`, `pnpm check` (lint + typecheck + test + test:content), `pnpm test:e2e` (Playwright), `pnpm build`

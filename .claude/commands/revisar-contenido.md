@@ -5,7 +5,7 @@ argument-hint: <ruta>   (p. ej. content/calculo/01-limites)
 
 Revisa el contenido en `$ARGUMENTS` en tres pasos.
 
-**1. Verificación automática.** Corre `python scripts/verify_content.py $ARGUMENTS` y repórtame los resultados.
+**1. Verificación automática.** Corre `pnpm content:check $ARGUMENTS` (incluye `verify_content.py`) y repórtame los resultados.
 
 **2. Resolución a ciegas.** Lanza un subagente (Agent) **que no lea las respuestas**. Debe recibir únicamente, por cada ejercicio de `ejercicios.yaml` con tipo `numerico`, `simbolico`, `opcion_multiple`, `completar`, `ordenar` o `predecir_salida`: el `id`, el `enunciado` y las `opciones` o `texto` si los hay. Nada de `respuesta`, `correcta`, `valores`, `respuestas`, `explicacion`, `pistas` ni `verificar`. El subagente resuelve cada uno por su cuenta (puede usar Python/sympy) y devuelve una tabla `id → respuesta`. Después tú compara con las respuestas oficiales y lista **toda discrepancia**, investigando si es un error del enunciado, una ambigüedad o una respuesta mal escrita. Para los ejercicios `codigo`, el subagente escribe su propia solución desde el enunciado y se ejecuta contra los tests.
 

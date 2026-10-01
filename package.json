@@ -2,6 +2,7 @@
   "name": "cortex",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "description": "App local-first para estudiar Ingeniería en IA (IPN, plan 2020).",
   "packageManager": "pnpm@10.28.0",
   "engines": {
@@ -15,10 +16,12 @@
     "telemetry:check": "NEXT_TELEMETRY_DISABLED=1 next telemetry status",
     "start:e2e": "NEXT_TELEMETRY_DISABLED=1 next start -p 3100",
     "lint": "eslint --max-warnings=0 .",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest run --project unit",
+    "test:watch": "vitest --project unit",
     "test:e2e": "playwright test",
-    "check": "pnpm lint && pnpm typecheck && pnpm test"
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:content",
+    "content:check": "tsx scripts/content-check.ts",
+    "test:content": "vitest run --project content"
   },
   "dependencies": {
     "@mdx-js/mdx": "3.1.1",

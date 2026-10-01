@@ -1,6 +1,6 @@
 # ESTADO · Tablero vivo de Cortex
 
-**Fase actual:** 0 · Fundaciones (en curso, paso 6 de 14)
+**Fase actual:** 0 · Fundaciones (en curso, paso 7 de 14)
 **Última actualización:** 2026-10-01 · plan de la Fase 0 aprobado; decisiones registradas
 
 ## Decisiones tomadas (Carlo, 2026-10-01)
@@ -56,7 +56,7 @@
 - [ ] Capa Dexie + exportar/importar respaldo
 - [ ] Sistema visual base y componentes de HUD
 - [ ] Inicio con materias desde `plan-2020.json`
-- [ ] `pnpm content:check`
+- [x] `pnpm content:check`
 
 ### Fase 1 · Motor de aprendizaje
 - [ ] Reproductor de sesión (lección → práctica → jefe)
@@ -103,6 +103,7 @@ Complementan los ADR-001 a 008 de `docs/02`. Cada uno se escribe en el commit de
 **ADR-013 · Nomenclatura** (paso 1, decisión D1). Código, tablas y campos de IndexedDB en inglés, con equivalencias en `docs/02`. Las claves de YAML y del front matter siguen en español (son el formato de contenido). Los componentes MDX conservan su nombre en español porque son la API del contenido (`Predice` se implementa como `PredictPrompt`). Las URL van en español porque son interfaz. `APP_ID = 'cortex'` es inmutable (nombre de la base y marca de los respaldos); renombrar la app solo cambia `APP_NAME`. *Descartado:* todo en español (contradice `CLAUDE.md`) o una capa de traducción.
 
 ## Bitácora
+- 2026-10-01 · Paso 7: `pnpm content:check [ruta]` en 4 capas (esquemas y reglas sobre el índice completo, render de cada lección, paridad YAML contra PyYAML real, `verify_content.py`); buscador de Python multiplataforma (`CORTEX_PYTHON`, `python3`, `python`, `py -3`, con timeout y exigiendo 3.11+ con sympy y PyYAML, salida en UTF-8). Paquete en `"type": "module"` (las dependencias de MDX son solo ESM). Pruebas separadas: `pnpm test` (rápidas) y `pnpm test:content` (con Python); `pnpm check` corre ambas. D3 aplicado: `CLAUDE.md`, `/verificar`, `/nueva-unidad`, `/revisar-contenido` y `docs/07` usan `pnpm content:check`. Evidencia: `pnpm content:check` en verde (capa 1: 0 errores; capa 2: 3 lecciones; capa 3: 9 YAML sin diferencias; capa 4: verde); `pnpm test:content` 17/17 sobre copias temporales del repo: real → 0; respuesta alterada → 1 en capa 4; `<Desconocido />` → 1 en capa 2 con la línea; LaTeX roto en `pregunta=` → 1 en capa 2; id duplicado → 1 en capas 1 y 4; ruta acotada solo reporta lo suyo; YAML leído distinto → 1 en capa 3; sin Python → 1 con instrucciones.
 - 2026-10-01 · Paso 6: lecciones MDX con KaTeX estricto, tablas GFM, guardia de contenido y 9 componentes provisionales; ruta `/materias/[materia]/[unidad]` estática con `dynamicParams = false` (ADR-012). Evidencia: `pnpm check` en verde (100 pruebas): las 2 lecciones y la plantilla compilan, con `.katex`, 0 `.katex-error` y 1 tabla cada una, sin `$` crudos en atributos; 6 fixtures rotos fallan con la **línea exacta** del archivo (KaTeX en el cuerpo y en un atributo, componente desconocido, barra simple en `{[...]}`, `{…}` en el texto, `import`); los escapes de docs/05 (`\{`, `\$`, `\<`) funcionan. `pnpm build`: ● `/materias/calculo/01-limites` y ● `/materias/programacion/01-variables-y-tipos`. Smoke 2/2: la lección muestra > 10 fórmulas, la fuente `KaTeX_Main` carga y no hay respuestas HTTP ≥ 400.
 - 2026-10-01 · Paso 5: loader (`src/content/loader.ts`), `buildIndex` puro con todas las reglas cruzadas (ids únicos globales, conceptos, ciclos, referencias de jefes, y las "solo TS": carpeta, NN del id, prefijo, `repaso_de` previo, jefe sin autoevaluación ni retirados), lector YAML compatible con PyYAML y `server.ts` (ADR-011). El inicio ya lee el índice. Evidencia: `pnpm check` en verde (88 pruebas: 23 de reglas con fixtures en memoria, CRLF/BOM = LF, contenido real con 0 errores y exactamente los 2 avisos de `programa_ref`); el lector YAML da lo mismo que PyYAML en `[x, y, n, Y, N]`, `09`, `1e3`, `1:30`, `.inf`; `pnpm build` genera `/` estático; con `CORTEX_CONTENT_ROOT` apuntando a una copia con un id duplicado, `pnpm build` **falla** con `ContentValidationError` y los 2 errores.
 - 2026-10-01 · Paso 4: esquemas Zod 4.6.5 de docs/05 en `src/content/schema/` (plan, conceptos, front matter, ejercicios con despacho por `tipo` y por `lenguaje` en `codigo`, jefe), objetos estrictos y mensajes en español; catálogo de reglas con código estable y la severidad de `verify_content.py` (`src/content/rules/catalog.ts`). Evidencia: `pnpm test` 51/51, incluidos casos válidos/inválidos por regla y el contenido real (24 ejercicios, 2 jefes, 2 `conceptos.yaml`, 2 front matter y `plan-2020.json`) sin errores.

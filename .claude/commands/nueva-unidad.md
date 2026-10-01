@@ -12,7 +12,7 @@ Pasos:
 4. Escribe `leccion.mdx` desde `content/_plantillas/leccion.mdx` (anatomía completa: gancho, Predice, concepto, ejemplo resuelto, ejemplo desvanecido, errores comunes, conexiones, resumen, Feynman). Contenido **original**, 15–25 min de lectura.
 5. Escribe `ejercicios.yaml` con 15–25 ejercicios en escalera de dificultad 1–5 y **variedad de tipos**. Cada respuesta numérica o simbólica debe llevar `verificar` con una vía independiente (sympy o Python). Usa ids `<prefijo>-<NN>-<NNN>` y registra el prefijo en `ESTADO.md` si es nuevo.
 6. Escribe `jefe.yaml`: ≥ 6 preguntas propias (al menos una de dificultad ≥ 4) y 25–35% de `repaso_de` si ya hay unidades previas.
-7. Corre `python scripts/verify_content.py content/<materia>` y corrige hasta que quede en verde.
+7. Corre `pnpm content:check content/<materia>` (incluye `verify_content.py`) y corrige hasta que quede en verde.
 8. Termina con un resumen corto: número de ejercicios por tipo y dificultad, y qué ejercicios quedaron en revisión manual. Sugiéreme correr `/revisar-contenido content/$ARGUMENTS`.
 
 No inventes cifras ni datos reales; si hacen falta, cita fuente y fecha o usa un caso hipotético.
