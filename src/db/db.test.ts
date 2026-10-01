@@ -107,12 +107,28 @@ describe("guarda de versión (ADR-014)", () => {
     await expect(openCortexDb(opts)).rejects.toThrow(/esquema 3/);
   });
 
-  it("sin la guarda, Dexie abriría en silencio la base del futuro (por eso existe)", async () => {
+  it("sin la guarda, Dexie abriría en silencio la base del futuro y hasta la parcharía (por eso existe)", async () => {
     const opts = freshIdb();
-    (await openCortexDb(opts, futureHistory({ nuevaTabla: "id" }))).close();
-    const naive = new CortexDb(opts);
+    (await openCortexDb(opts, futureHistory({ attempts: "++id, exerciseId, at" }))).close();
+    const naive = new Dexie("cortex", opts);
+    naive.version(1).stores({ ...STORES_V1 });
     await expect(naive.open()).resolves.toBeDefined();
     naive.close();
+    const after = await nativeSnapshot(opts);
+    expect(after.version).toBe(21);
+    expect(after.stores.attempts?.indexes).toContain("sessionId");
+  });
+
+  it.each([
+    ["con una tabla nueva", { nuevaTabla: "id" }],
+    ["sin un índice de la v1", { attempts: "++id, exerciseId, at" }],
+  ])("CortexDb solo abre su propia versión: aun sin la sonda, una base del futuro %s queda intacta", async (_label, extra) => {
+    const opts = freshIdb();
+    (await openCortexDb(opts, futureHistory(extra))).close();
+    const before = await nativeSnapshot(opts);
+    // Simula la carrera: otra pestaña subió la versión justo después de que la sonda dijera "v1".
+    await expect(new CortexDb(opts).open()).rejects.toThrow();
+    expect(await nativeSnapshot(opts)).toEqual(before);
   });
 
   it("si otra pestaña sube la versión, la conexión abierta se cierra y ya no escribe ni se reabre sola", async () => {

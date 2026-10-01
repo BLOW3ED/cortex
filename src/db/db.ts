@@ -43,6 +43,38 @@ export class DbClosedElsewhereError extends Error {
   }
 }
 
+/** `CortexDb` intentó abrir la base en otra versión que la suya (ver `lockVersion`). */
+class VersionLockError extends Error {
+  constructor(version: number | undefined) {
+    super(`Esta app solo abre su versión de la base (se pidió ${version ?? "la que haya"}).`);
+    this.name = "VersionLockError";
+  }
+}
+
+const isVersionLock = (e: unknown): boolean =>
+  e instanceof VersionLockError || (e instanceof Error && "inner" in e && e.inner instanceof VersionLockError);
+
+/**
+ * Fábrica de IndexedDB que solo deja abrir `name` en la versión nativa exacta de esta app. Ante una
+ * base más nueva, Dexie reintenta sin versión y, si al esquema le falta algo, la parcha a la versión
+ * siguiente; con esto ese intento falla antes de tocar nada, aunque otra pestaña haya subido la versión
+ * justo después de la sonda.
+ */
+function lockVersion(factory: IDBFactory, name: string, nativeVersion: number): IDBFactory {
+  return new Proxy(factory, {
+    get(target, prop) {
+      if (prop === "open") {
+        return (dbName: string, version?: number) => {
+          if (dbName === name && version !== nativeVersion) throw new VersionLockError(version);
+          return target.open(dbName, version);
+        };
+      }
+      const value: unknown = Reflect.get(target, prop, target);
+      return typeof value === "function" ? (value as (...args: unknown[]) => unknown).bind(target) : value;
+    },
+  });
+}
+
 export class CortexDb extends Dexie {
   meta!: EntityTable<MetaRecord, "key">;
   profile!: EntityTable<ProfileRecord, "id">;
@@ -62,14 +94,20 @@ export class CortexDb extends Dexie {
   closedElsewhere = false;
 
   constructor(options: DexieOptions = {}, history: readonly SchemaStep[] = SCHEMA_HISTORY) {
-    // Sin `autoOpen`: Dexie reabre solo tras un cierre y esa reapertura se salta la guarda (podría
-    // abrir y parchar una base más nueva). Solo se abre con `open()` explícito, vía `openCortexDb`.
-    super(APP_ID, { ...options, autoOpen: false });
+    const current = history[history.length - 1]?.version ?? SCHEMA_VERSION;
+    // `DexieOptions` tipa la fábrica como `{ open: Function }`; en la práctica es un `IDBFactory`.
+    const factory = (options.indexedDB as IDBFactory | undefined) ?? (typeof indexedDB === "undefined" ? undefined : indexedDB);
+    // Sin `autoOpen`: Dexie reabre solo tras un cierre y esa reapertura se salta la guarda. Solo se
+    // abre con `open()` explícito (vía `openCortexDb`) y únicamente en la versión de esta app.
+    super(APP_ID, {
+      ...options,
+      autoOpen: false,
+      ...(factory ? { indexedDB: lockVersion(factory, APP_ID, Math.round(current * 10)) } : {}),
+    });
     for (const step of history) {
       const v = this.version(step.version).stores({ ...step.stores });
       if (step.upgrade) v.upgrade(step.upgrade);
     }
-    const current = history[history.length - 1]?.version ?? SCHEMA_VERSION;
 
     // Otra pestaña quiere subir la versión o borrar la base: se cierra para no bloquearla y queda
     // cerrada (`false` evita el manejador de Dexie, que la dejaría lista para reabrirse sola).
@@ -140,14 +178,16 @@ export async function openCortexDb(
   const found = Math.max(probe.version, probe.metaVersion ?? 0);
   if (found > supported) throw new FutureSchemaError(found, supported);
   const db = new CortexDb(options, history);
-  await db.open();
-  // Entre la sonda y `open()` otra pestaña pudo subir la versión: se revisa de nuevo ya abierta.
-  const native = Math.floor(db.backendDB().version / 10);
-  const metaValue = (await db.meta.get("schemaVersion"))?.value;
-  const opened = Math.max(native, typeof metaValue === "number" ? metaValue : 0);
-  if (opened > supported) {
-    db.close();
-    throw new FutureSchemaError(opened, supported);
+  try {
+    await db.open();
+  } catch (e) {
+    if (!isVersionLock(e)) throw e;
+    // Otra pestaña subió la versión entre la sonda y `open()` (o al esquema le falta algo y Dexie
+    // quiso parcharlo): no se tocó nada.
+    const now = await probeDb(options);
+    const found = Math.max(now.version, now.metaVersion ?? 0);
+    if (found > supported) throw new FutureSchemaError(found, supported);
+    throw new Error("Tus datos no tienen la forma que espera esta versión de la app; no se tocaron.", { cause: e });
   }
   return db;
 }
