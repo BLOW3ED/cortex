@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { HudBar } from "@/components/hud/hud-bar";
+import { Lives } from "@/components/hud/lives";
+import { StreakChip } from "@/components/hud/streak-chip";
+import { XpBar } from "@/components/hud/xp-bar";
 import { InlineMarkdown } from "@/components/lessons/inline-markdown";
 import { ConceptBox, FadedExample, Pitfall, PredictPrompt } from "@/components/lessons/lesson-blocks";
 import { Badge } from "@/components/ui/badge";
@@ -118,6 +122,32 @@ export default function StylePage() {
 
       <Section id="controles" title="Controles">
         <Controls />
+      </Section>
+
+      <Section id="hud" title="HUD · estados límite (los números los calcula la Fase 1)">
+        <div className="grid gap-4">
+          {(
+            [
+              ["Cargando", null],
+              ["Recién creado", { xpTotal: 0, level: 1, currentStreak: 0, levelProgress: 0 }],
+              ["A media semana", { xpTotal: 1240, level: 5, currentStreak: 4, levelProgress: 0.45 }],
+              ["Nivel casi lleno", { xpTotal: 98_760, level: 38, currentStreak: 120, levelProgress: 0.97 }],
+            ] as const
+          ).map(([label, data]) => (
+            <div key={label} className="flex flex-wrap items-center gap-6 rounded-lg border bg-surface px-4 py-3">
+              <span className="w-36 text-sm text-ink-2">{label}</span>
+              <HudBar data={data} />
+            </div>
+          ))}
+          <div className="flex flex-wrap items-center gap-6 rounded-lg border bg-surface px-4 py-3">
+            <span className="w-36 text-sm text-ink-2">Barra de XP</span>
+            <XpBar progress={0.62} className="h-4" />
+            <StreakChip days={1} />
+            <Lives current={3} max={3} />
+            <Lives current={1} max={3} />
+            <Lives current={0} max={3} />
+          </div>
+        </div>
       </Section>
 
       <Section id="tarjetas" title="Tarjetas">
