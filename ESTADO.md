@@ -1,6 +1,6 @@
 # ESTADO · Tablero vivo de Cortex
 
-**Fase actual:** 0 · Fundaciones (en curso, paso 5 de 14)
+**Fase actual:** 0 · Fundaciones (en curso, paso 6 de 14)
 **Última actualización:** 2026-10-01 · plan de la Fase 0 aprobado; decisiones registradas
 
 ## Decisiones tomadas (Carlo, 2026-10-01)
@@ -51,8 +51,8 @@
 ### Fase 0 · Fundaciones
 - [ ] Next.js + TS estricto + Tailwind + shadcn/ui + pnpm
 - [x] ESLint, Vitest, Playwright (smoke)
-- [ ] Loader de contenido con Zod + índice en build
-- [ ] MDX con KaTeX
+- [x] Loader de contenido con Zod + índice en build
+- [x] MDX con KaTeX
 - [ ] Capa Dexie + exportar/importar respaldo
 - [ ] Sistema visual base y componentes de HUD
 - [ ] Inicio con materias desde `plan-2020.json`
@@ -98,9 +98,12 @@ Complementan los ADR-001 a 008 de `docs/02`. Cada uno se escribe en el commit de
 
 **ADR-011 · Loader único e índice en build** (paso 5). `buildIndex` (puro, `src/content/core/`) valida y arma el índice desde textos crudos; `readRawContent` (fs) es una capa delgada; `server.ts` (`server-only` + `cache` de React) lo expone a las páginas y lanza `ContentValidationError` si hay errores, así que **el build falla con contenido inválido**. `content:check` usará el mismo loader. YAML con la librería `yaml` en modo 1.1, ajustada a PyYAML (`y`/`n` como texto, `09` y `1e3` como texto, `.` como texto); si la librería cambia sus regex, falla en voz alta. `CORTEX_CONTENT_ROOT` permite apuntar a otra raíz (pruebas). `verify_content.py` no se modifica. *Descartado:* un JSON generado en prebuild (otro artefacto que envejece), gray-matter/js-yaml, reescribir sympy en TS.
 
+**ADR-012 · MDX y matemáticas** (paso 6). `@mdx-js/mdx` 3.1.1 con `compileSync` + `runSync` (síncrono, en el servidor), `remark-gfm` (sin él las tablas de las lecciones salen como texto), `remark-math` y `rehype-katex` con `strict: "error"`; `katex` fijo en 0.16.47 (la versión de la que depende `rehype-katex` 7.0.1: una sola versión, CSS y HTML coinciden). `rehype-katex` nunca lanza: sus mensajes se elevan a error con la línea del archivo (el front matter se cambia por líneas vacías). Una guardia propia rechaza componentes no registrados, `import`/`export`, expresiones `{…}` en el texto, `{...spread}` y barras simples dentro de `{[...]}`, y valida con KaTeX las fórmulas de los atributos. Componentes provisionales sin estado (D6) con `<details>` nativo. *Descartado:* next-mdx-remote 6 (su `blockJS` borra `pasos={[...]}` en silencio), `@next/mdx` (`content/` está fuera de `app/` y Turbopack exige plugins serializables), `evaluate` asíncrono, katex 0.18.
+
 **ADR-013 · Nomenclatura** (paso 1, decisión D1). Código, tablas y campos de IndexedDB en inglés, con equivalencias en `docs/02`. Las claves de YAML y del front matter siguen en español (son el formato de contenido). Los componentes MDX conservan su nombre en español porque son la API del contenido (`Predice` se implementa como `PredictPrompt`). Las URL van en español porque son interfaz. `APP_ID = 'cortex'` es inmutable (nombre de la base y marca de los respaldos); renombrar la app solo cambia `APP_NAME`. *Descartado:* todo en español (contradice `CLAUDE.md`) o una capa de traducción.
 
 ## Bitácora
+- 2026-10-01 · Paso 6: lecciones MDX con KaTeX estricto, tablas GFM, guardia de contenido y 9 componentes provisionales; ruta `/materias/[materia]/[unidad]` estática con `dynamicParams = false` (ADR-012). Evidencia: `pnpm check` en verde (100 pruebas): las 2 lecciones y la plantilla compilan, con `.katex`, 0 `.katex-error` y 1 tabla cada una, sin `$` crudos en atributos; 6 fixtures rotos fallan con la **línea exacta** del archivo (KaTeX en el cuerpo y en un atributo, componente desconocido, barra simple en `{[...]}`, `{…}` en el texto, `import`); los escapes de docs/05 (`\{`, `\$`, `\<`) funcionan. `pnpm build`: ● `/materias/calculo/01-limites` y ● `/materias/programacion/01-variables-y-tipos`. Smoke 2/2: la lección muestra > 10 fórmulas, la fuente `KaTeX_Main` carga y no hay respuestas HTTP ≥ 400.
 - 2026-10-01 · Paso 5: loader (`src/content/loader.ts`), `buildIndex` puro con todas las reglas cruzadas (ids únicos globales, conceptos, ciclos, referencias de jefes, y las "solo TS": carpeta, NN del id, prefijo, `repaso_de` previo, jefe sin autoevaluación ni retirados), lector YAML compatible con PyYAML y `server.ts` (ADR-011). El inicio ya lee el índice. Evidencia: `pnpm check` en verde (88 pruebas: 23 de reglas con fixtures en memoria, CRLF/BOM = LF, contenido real con 0 errores y exactamente los 2 avisos de `programa_ref`); el lector YAML da lo mismo que PyYAML en `[x, y, n, Y, N]`, `09`, `1e3`, `1:30`, `.inf`; `pnpm build` genera `/` estático; con `CORTEX_CONTENT_ROOT` apuntando a una copia con un id duplicado, `pnpm build` **falla** con `ContentValidationError` y los 2 errores.
 - 2026-10-01 · Paso 4: esquemas Zod 4.6.5 de docs/05 en `src/content/schema/` (plan, conceptos, front matter, ejercicios con despacho por `tipo` y por `lenguaje` en `codigo`, jefe), objetos estrictos y mensajes en español; catálogo de reglas con código estable y la severidad de `verify_content.py` (`src/content/rules/catalog.ts`). Evidencia: `pnpm test` 51/51, incluidos casos válidos/inválidos por regla y el contenido real (24 ejercicios, 2 jefes, 2 `conceptos.yaml`, 2 front matter y `plan-2020.json`) sin errores.
 - 2026-10-01 · Paso 3: ESLint 9.39.5 (config de Next + `no-explicit-any`, `consistent-type-imports`, `next/font/google` prohibido, zonas puras sin React/Next/Dexie/DOM salvo `import type`), Vitest 5.0.3 (+ vite 8.3.2; JSX sin plugin) y Playwright 1.63.0 con un smoke contra `next start -p 3100`. Evidencia: `pnpm lint` 0 problemas; `pnpm test` 10/10; al vaciar las zonas puras fallan 4 pruebas de fronteras (la prueba sí detecta); `pnpm test:e2e` 1/1 con `CORTEX_CHROMIUM_PATH` apuntando al Chromium 1194 del contenedor (el CDN de Playwright no responde aquí). El smoke detectó un 404 real (`/favicon.ico`): se agregó `src/app/icon.svg`.
