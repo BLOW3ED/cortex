@@ -1,0 +1,162 @@
+---
+titulo: "Apuntadores y memoria"
+materia: programacion
+unidad: 06-apuntadores-y-memoria
+duracion_min: 25
+prerrequisitos: [estructura-programa-c, funciones-definicion, paso-por-valor, arreglos-c, cadenas-c]
+conceptos: [direcciones-memoria, apuntadores, aritmetica-apuntadores, paso-por-referencia, memoria-dinamica, pila-heap]
+programa_ref: "pendiente"
+---
+
+## El problema
+
+En la unidad 4 viste que `intercambia(x, y)` no puede intercambiar las variables de `main`: recibe copias. En la unidad 5, que un arreglo de C tiene un tamaño fijo desde que lo declaras. Entonces, ¿cómo hace `scanf` para guardar un número en tu variable? ¿Y cómo guarda un programa una lista de datos cuyo tamaño solo conoce cuando ya está corriendo? Las dos preguntas tienen la misma respuesta: trabajar con **direcciones de memoria**.
+
+<Predice pregunta="En `scanf` escribes `&x` y no solo `x`. Con lo que sabes del paso por valor, ¿por qué crees que hace falta ese `&`?" revela="Si `scanf` recibiera el valor de `x`, tendría una copia y no podría cambiar tu variable. Con `&x` recibe la dirección de `x`: sabe dónde vive y puede escribir ahí." />
+
+## Direcciones
+
+<Concepto titulo="Dirección de memoria">
+La memoria es una fila enorme de bytes numerados. Cada variable ocupa algunos de esos bytes, y el número del primero es su **dirección**. El operador `&` da la dirección de una variable: `&x` se lee "la dirección de x".
+</Concepto>
+
+Las direcciones son números grandes que cambian de una ejecución a otra, así que en Cortex no las imprimimos: las dibujamos como flechas. Si `p` guarda la dirección de `x`, escribimos `p → x`.
+
+## Apuntadores
+
+<Concepto titulo="Apuntador">
+Una variable que guarda una dirección. `int *p;` declara un apuntador a `int`. Con `p = &x;` apunta a `x`, y `*p` (desreferenciar) es "la variable a la que apunta `p`": leer `*p` lee `x`, y asignar a `*p` cambia `x`.
+</Concepto>
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    int x = 5;
+    int *p = &x;                 /* p → x */
+    *p = 8;                      /* cambia x a través de p */
+    printf("%d %d\n", x, *p);    /* 8 8 */
+    return 0;
+}
+```
+
+El asterisco tiene dos papeles: en una **declaración** (`int *p`) dice "p es un apuntador"; en una **expresión** (`*p = 8`) significa "lo apuntado por p". Un apuntador que todavía no apunta a nada válido se inicializa con `NULL`, y desreferenciar `NULL` hace que el programa truene.
+
+## Paso por referencia
+
+<Concepto titulo="Paso por referencia (con apuntadores)">
+C siempre pasa copias, pero si la copia es una **dirección**, la función puede usarla para modificar la variable original. Así se logra en C el paso por referencia: el parámetro es un apuntador y en la llamada se manda `&variable`.
+</Concepto>
+
+```c
+void intercambia(int *a, int *b) {
+    int t = *a;
+    *a = *b;
+    *b = t;
+}
+/* en main: intercambia(&x, &y); ahora sí se intercambian */
+```
+
+Por eso `scanf("%d", &x)` lleva `&`. También es la forma de "regresar" varios resultados: `void divide(int a, int b, int *cociente, int *residuo)` escribe en las dos variables cuyas direcciones le pases.
+
+## Aritmética de apuntadores y arreglos
+
+El nombre de un arreglo, usado en una expresión, se convierte en la dirección de su primer elemento. Sumarle 1 a un apuntador no avanza un byte: avanza **un elemento** completo. Por eso `v[i]` y `*(v + i)` son exactamente lo mismo.
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    int v[4] = {10, 20, 30, 40};
+    int *p = v;                      /* p → v[0] */
+    p = p + 2;                       /* p → v[2] */
+    printf("%d %d\n", *p, p[1]);     /* 30 40 */
+    printf("%d\n", (int)(p - v));    /* 2: elementos de distancia */
+    return 0;
+}
+```
+
+Esto explica lo que viste en la unidad 5: una función que recibe `int v[]` en realidad recibe un apuntador al primer elemento. Por eso puede modificar el arreglo original y por eso no puede saber su tamaño por sí sola.
+
+## Pila y heap
+
+<Concepto titulo="Pila y heap">
+La **pila** guarda las variables locales: al llamar una función se apila su "marco" con sus parámetros y variables locales, y cuando termina se quita completo. El **heap** es otra zona, donde tú pides bloques con `malloc` y decides cuándo devolverlos con `free`; un bloque del heap sobrevive a la función que lo pidió.
+</Concepto>
+
+| | Pila | Heap |
+|---|---|---|
+| Quién la administra | El compilador, solo | Tú, con `malloc` y `free` |
+| Cuánto vive un dato | Hasta que termina su función | Hasta que llamas `free` |
+| Tamaño | Se conoce al escribir el código | Se decide mientras corre el programa |
+
+## Memoria dinámica
+
+`malloc(bytes)` (de `stdlib.h`) pide un bloque en el heap y regresa su dirección, o `NULL` si no hay memoria. Para no calcular bytes a mano se usa `sizeof`: un arreglo de `n` enteros mide `n * sizeof(int)`. El bloque llega **sin inicializar**, con basura. Si después necesitas más lugar, `realloc(p, bytes)` cambia el tamaño del bloque: regresa la dirección del bloque ajustado (puede ser otra) o `NULL` si falla, y en ese caso el bloque viejo sigue siendo tuyo y hay que liberarlo.
+
+<Ejemplo titulo="Un arreglo del tamaño que pida el usuario">
+Problema: leer `n` y luego `n` enteros, sin conocer `n` al escribir el programa.
+
+1. **Pide el bloque.** `int *v = malloc(n * sizeof(int));` reserva lugar para `n` enteros en el heap; `v`, que vive en la pila, apunta a ese bloque.
+2. **Revisa `NULL`.** Si `malloc` falló, `v` vale `NULL`: avisa y termina en lugar de escribir en la nada.
+3. **Úsalo como arreglo.** `v[i]` funciona igual que con un arreglo normal, porque `v[i]` es `*(v + i)`.
+4. **Devuélvelo.** `free(v);` regresa el bloque. Después, `v = NULL;` para no usar por error la dirección vieja.
+</Ejemplo>
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+    int n;
+    scanf("%d", &n);
+    int *v = malloc(n * sizeof(int));
+    if (v == NULL) {
+        printf("sin memoria\n");
+        return 1;
+    }
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &v[i]);
+    }
+    int suma = 0;
+    for (int i = 0; i < n; i++) {
+        suma += v[i];
+    }
+    printf("%d\n", suma);
+    free(v);
+    v = NULL;
+    return 0;
+}
+```
+
+<Desvanecido titulo="Sigue las flechas" pasos={[
+  "Empieza con `int a = 4; int b = 20; int *p = &a;`.",
+  "Tras `*p = *p * 2;`, `a` vale ___ .",
+  "Tras `p = &b;` y luego `*p = a + 1;`, `b` vale ___ .",
+  "Y `a` sigue valiendo ___ ."
+]} respuestas={["8", "9", "8"]} />
+
+## Errores que debes reconocer
+
+<Ojo>
+- **Fuga de memoria.** Pedir con `malloc` y nunca hacer `free`, o perder la única dirección del bloque (por ejemplo, reasignando el apuntador). Ese bloque queda ocupado hasta que termina el programa; en un ciclo, o en un programa que corre días, la memoria se agota.
+- **No revisar `NULL`.** `malloc` puede fallar. Escribir en `*p` cuando `p` es `NULL` hace que el programa truene.
+- **Apuntador colgante.** Un apuntador que conserva una dirección que ya no es válida: después de `free(p)`, o cuando apunta a una variable local de una función que ya terminó (`return &x;`). Usarlo es comportamiento indefinido: a veces "funciona", a veces da basura y a veces truena. Tras `free`, asígnale `NULL`.
+- **Apuntador sin inicializar.** `int *p; *p = 3;` escribe en una dirección basura. Inicializa siempre: con `&algo`, con `malloc` o con `NULL`.
+- **Liberar dos veces, o liberar lo que no vino de `malloc`.** `free` solo recibe direcciones que regresó `malloc` (o `realloc`), y una sola vez.
+- **Confundir `p` con `*p`.** `p = &v[i]` mueve la flecha; `*p = v[i]` cambia el valor apuntado.
+</Ojo>
+
+<Conexion materia="Inteligencia artificial">
+El intérprete más usado de Python (CPython) está escrito en C: por dentro, cada lista de Python es un arreglo de apuntadores en el heap que pide más memoria cuando se llena. En PyTorch, la memoria de un tensor se libera cuando ya nada lo referencia; si sin querer guardas referencias en cada iteración del entrenamiento, la memoria crece igual que con una fuga.
+</Conexion>
+
+<Resumen>
+- `&x` es la dirección de `x`; un apuntador guarda una dirección y `*p` es la variable apuntada. `v[i]` equivale a `*(v + i)`.
+- Pasar `&x` a una función le permite modificar `x`: así se logra el paso por referencia en C.
+- Las variables locales viven en la pila y mueren con su función; lo que pides con `malloc` vive en el heap hasta tu `free` (revisa `NULL`, evita fugas y apuntadores colgantes).
+</Resumen>
+
+<Feynman>
+Explícale a alguien por qué `int *crea(void) { int x = 42; return &x; }` es un error aunque compile, y cómo lo arreglarías usando el heap. Usa las palabras pila, heap y apuntador colgante.
+</Feynman>

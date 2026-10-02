@@ -1,0 +1,896 @@
+unidad: programacion/06-apuntadores-y-memoria
+ejercicios:
+  - id: prog-06-001
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [direcciones-memoria]
+    enunciado: 'Declaras `int x = 7;`. ¿Qué representa `&x`?'
+    opciones:
+      - "La dirección de memoria donde vive `x`"
+      - "El valor 7"
+      - "Una copia de `x`"
+      - "El número de bytes que ocupa `x`"
+    correcta: 0
+    explicacion: '`&` es el operador "dirección de": `&x` es el lugar de la memoria donde está guardada `x`, no su valor. El tamaño en bytes se obtiene con `sizeof(x)`.'
+
+  - id: prog-06-002
+    tipo: completar
+    dificultad: 1
+    conceptos: [apuntadores, direcciones-memoria]
+    enunciado: 'Completa para que `p` apunte a `n` y luego leas el valor de `n` a través de `p`.'
+    texto: 'La declaración es `int ___ p = ___ n;` y el valor de `n` a través de `p` se escribe ___ .'
+    respuestas: ["*", "&", "*p"]
+    explicacion: 'En la declaración, `*` dice que `p` es un apuntador a `int`; `&n` es la dirección de `n`. Después, `*p` (desreferenciar) es la variable apuntada, o sea `n`.'
+
+  - id: prog-06-003
+    tipo: rastreo_memoria
+    dificultad: 2
+    conceptos: [apuntadores, direcciones-memoria]
+    lenguaje: c
+    enunciado: 'Sigue el programa línea por línea. Las flechas indican a qué variable apunta `p`. Contesta lo que se pregunta en cada paso.'
+    codigo: |
+      #include <stdio.h>
+
+      int main(void) {
+          int a = 3;
+          int b = 10;
+          int *p = &a;
+          *p = *p + 4;
+          p = &b;
+          *p = a * 2;
+          printf("%d %d\n", a, b);
+          return 0;
+      }
+    pasos:
+      - linea: 5
+        pila:
+          - { nombre: "a", valor: "3", expr: "a", formato: "%d" }
+          - { nombre: "b", valor: "10", expr: "b", formato: "%d" }
+      - linea: 6
+        nota: '`p` guarda la dirección de `a`: la dibujamos como una flecha.'
+        pila:
+          - { nombre: "a", valor: "3" }
+          - { nombre: "b", valor: "10" }
+          - { nombre: "p", valor: "→ a" }
+        pregunta: '¿Cuánto vale `*p`?'
+        respuesta: "3"
+        expr: "*p"
+        formato: "%d"
+      - linea: 7
+        nota: 'Escribir en `*p` es escribir en `a`.'
+        pila:
+          - { nombre: "a", valor: "7" }
+          - { nombre: "b", valor: "10" }
+          - { nombre: "p", valor: "→ a" }
+        pregunta: '¿Cuánto vale `a` ahora?'
+        respuesta: "7"
+        expr: "a"
+        formato: "%d"
+      - linea: 8
+        nota: 'Asignar a `p` (sin asterisco) mueve la flecha; no cambia ningún entero.'
+        pila:
+          - { nombre: "a", valor: "7" }
+          - { nombre: "b", valor: "10" }
+          - { nombre: "p", valor: "→ b" }
+        pregunta: '¿Cuánto vale `*p`?'
+        respuesta: "10"
+        expr: "*p"
+        formato: "%d"
+      - linea: 9
+        pila:
+          - { nombre: "a", valor: "7", expr: "a", formato: "%d" }
+          - { nombre: "b", valor: "14" }
+          - { nombre: "p", valor: "→ b" }
+        pregunta: '¿Cuánto vale `b`?'
+        respuesta: "14"
+        expr: "b"
+        formato: "%d"
+    pistas: ["`*p` es la variable a la que apunta `p` en ese momento.", "`p = &b` cambia a quién apunta `p`, no el valor de `a`."]
+    explicacion: 'Primero `p → a`, así que `*p = *p + 4` deja `a` en 7. Luego `p = &b` mueve la flecha hacia `b`, y `*p = a * 2` escribe 14 en `b`. El programa imprime `7 14`.'
+
+  - id: prog-06-004
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [apuntadores]
+    enunciado: |
+      ¿Qué imprime este programa?
+
+      ```c
+      #include <stdio.h>
+
+      int main(void) {
+          int x = 5;
+          int *p = &x;
+          int *q = p;
+          *q = 9;
+          printf("%d %d\n", x, *p);
+          return 0;
+      }
+      ```
+    opciones: ["`9 9`", "`5 9`", "`5 5`", "`9 5`"]
+    correcta: 0
+    pistas: ["`q = p` copia la dirección: ¿a quién apunta ahora `q`?"]
+    explicacion: '`q = p` copia la dirección que guarda `p`, así que los dos apuntan a `x`. Escribir en `*q` cambia `x` a 9, y `*p` también lee `x`: se imprime `9 9`.'
+
+  - id: prog-06-005
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [aritmetica-apuntadores, direcciones-memoria]
+    enunciado: |
+      ¿Qué imprime este programa?
+
+      ```c
+      #include <stdio.h>
+
+      int main(void) {
+          int v[5] = {10, 20, 30, 40, 50};
+          int *p = v + 1;
+          printf("%d %d\n", *(p + 2), p[1]);
+          return 0;
+      }
+      ```
+    opciones: ["`40 30`", "`30 20`", "`30 40`", "`40 20`"]
+    correcta: 0
+    pistas: ["`v + 1` es la dirección de `v[1]`.", "`p[1]` es lo mismo que `*(p + 1)`."]
+    explicacion: '`p` apunta a `v[1]`. Sumar 2 avanza dos elementos: `*(p + 2)` es `v[3]`, que vale 40. `p[1]` es `*(p + 1)`, o sea `v[2]`: 30.'
+
+  - id: prog-06-006
+    tipo: codigo
+    dificultad: 2
+    conceptos: [paso-por-referencia, apuntadores]
+    lenguaje: c
+    enunciado: 'Completa `intercambia(a, b)` para que intercambie los valores de las dos variables cuyas direcciones recibe. El `main` ya lee dos enteros, llama a tu función y los imprime.'
+    plantilla: |
+      #include <stdio.h>
+
+      void intercambia(int *a, int *b) {
+          /* tu código aquí */
+      }
+
+      int main(void) {
+          int x, y;
+          scanf("%d %d", &x, &y);
+          intercambia(&x, &y);
+          printf("%d %d\n", x, y);
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      void intercambia(int *a, int *b) {
+          int t = *a;
+          *a = *b;
+          *b = t;
+      }
+
+      int main(void) {
+          int x, y;
+          scanf("%d %d", &x, &y);
+          intercambia(&x, &y);
+          printf("%d %d\n", x, y);
+          return 0;
+      }
+    tests:
+      - { entrada: "3 8\n", salida: "8 3\n" }
+      - { entrada: "-1 4\n", salida: "4 -1\n" }
+      - { entrada: "5 5\n", salida: "5 5\n", oculto: true }
+    pistas: ["Necesitas una variable auxiliar `int t`.", "Trabaja con `*a` y `*b` (los valores), no con `a` y `b` (las direcciones)."]
+    explicacion: 'La función recibe copias de las direcciones de `x` y `y`; con `*a` y `*b` lee y escribe en las variables originales. Se guarda `*a` en `t`, se copia `*b` en `*a` y `t` en `*b`. Intercambiar `a` y `b` (sin asterisco) solo movería las flechas locales.'
+
+  - id: prog-06-007
+    tipo: parsons
+    dificultad: 2
+    conceptos: [paso-por-referencia]
+    lenguaje: c
+    enunciado: 'Ordena las líneas para armar un programa que lea un entero `x`, lo duplique con la función `duplica` (que recibe la dirección de `x`) e imprima el resultado. Sobran dos líneas.'
+    lineas:
+      - "#include <stdio.h>"
+      - "void duplica(int *n) {"
+      - "    *n = *n * 2;"
+      - "}"
+      - "int main(void) {"
+      - "    int x;"
+      - '    scanf("%d", &x);'
+      - "    duplica(&x);"
+      - '    printf("%d\n", x);'
+      - "    return 0;"
+      - "}"
+    distractores: ["    n = n * 2;", "    duplica(x);"]
+    tests:
+      - { entrada: "4\n", salida: "8\n" }
+      - { entrada: "-3\n", salida: "-6\n" }
+      - { entrada: "0\n", salida: "0\n", oculto: true }
+    explicacion: 'La función recibe un apuntador, así que escribe en `*n` (la variable de `main`); `n = n * 2` operaría sobre la dirección. La llamada debe mandar la dirección, `duplica(&x)`; `duplica(x)` mandaría el valor. La función se define antes de `main` para poder usarla sin prototipo.'
+
+  - id: prog-06-008
+    tipo: ordenar
+    dificultad: 2
+    conceptos: [memoria-dinamica, pila-heap]
+    enunciado: 'Ordena el ciclo de vida correcto de un bloque de memoria dinámica.'
+    elementos:
+      - "Pedir el bloque con `malloc`"
+      - "Revisar que el apuntador no sea `NULL`"
+      - "Usar el bloque a través del apuntador"
+      - "Liberar el bloque con `free`"
+      - "Asignar `NULL` al apuntador"
+    explicacion: 'Primero se pide la memoria y se revisa que `malloc` no haya fallado. Solo entonces se usa. Al terminar se libera con `free` (si no, hay fuga), y se pone el apuntador en `NULL` para que no quede colgante apuntando a un bloque que ya no es tuyo.'
+
+  - id: prog-06-009
+    tipo: rastreo_memoria
+    dificultad: 3
+    conceptos: [paso-por-referencia, pila-heap]
+    lenguaje: c
+    enunciado: 'Sigue la pila de llamadas. Cada celda dice a qué función pertenece (`main: a` es la `a` de `main`). Contesta en cada paso.'
+    codigo: |
+      #include <stdio.h>
+
+      void por_valor(int n) {
+          n = n * 10;
+      }
+
+      void por_referencia(int *n) {
+          *n = *n * 10;
+      }
+
+      int main(void) {
+          int a = 2;
+          por_valor(a);
+          por_referencia(&a);
+          printf("%d\n", a);
+          return 0;
+      }
+    pasos:
+      - linea: 12
+        pila:
+          - { nombre: "main: a", valor: "2", expr: "a", formato: "%d" }
+      - linea: 4
+        nota: 'Se apiló el marco de `por_valor`. Su `n` es una copia de `a`.'
+        pila:
+          - { nombre: "main: a", valor: "2" }
+          - { nombre: "por_valor: n", valor: "20" }
+        pregunta: 'Dentro de `por_valor`, tras la línea 4, ¿cuánto vale `n`?'
+        respuesta: "20"
+        expr: "n"
+        formato: "%d"
+      - linea: 13
+        nota: 'El marco de `por_valor` se quitó de la pila, y con él la copia.'
+        pila:
+          - { nombre: "main: a", valor: "2" }
+        pregunta: 'De regreso en `main`, ¿cuánto vale `a`?'
+        respuesta: "2"
+        expr: "a"
+        formato: "%d"
+      - linea: 8
+        nota: 'Ahora el parámetro es una copia de la dirección de `a`: apunta a la `a` de `main`.'
+        pila:
+          - { nombre: "main: a", valor: "20" }
+          - { nombre: "por_referencia: n", valor: "→ main: a" }
+        pregunta: 'Dentro de `por_referencia`, tras la línea 8, ¿cuánto vale `*n`?'
+        respuesta: "20"
+        expr: "*n"
+        formato: "%d"
+      - linea: 14
+        pila:
+          - { nombre: "main: a", valor: "20" }
+        pregunta: '¿Y ahora cuánto vale `a` en `main`?'
+        respuesta: "20"
+        expr: "a"
+        formato: "%d"
+    pistas: ["Cada llamada apila un marco nuevo; al terminar, el marco desaparece completo."]
+    explicacion: '`por_valor` multiplica su copia y la copia muere con su marco: `a` sigue en 2. `por_referencia` recibe la dirección de `a`, y `*n = *n * 10` escribe directamente en la `a` de `main`, que queda en 20. El programa imprime 20.'
+
+  - id: prog-06-010
+    tipo: rastreo_memoria
+    dificultad: 3
+    conceptos: [memoria-dinamica, pila-heap]
+    lenguaje: c
+    enunciado: 'Sigue el programa y observa qué vive en la pila y qué en el heap. Contesta en cada paso.'
+    codigo: |
+      #include <stdio.h>
+      #include <stdlib.h>
+
+      int main(void) {
+          int n = 3;
+          int *v = malloc(n * sizeof(int));
+          if (v == NULL) {
+              return 1;
+          }
+          for (int i = 0; i < n; i++) {
+              v[i] = (i + 1) * (i + 1);
+          }
+          int total = v[0] + v[2];
+          free(v);
+          v = NULL;
+          printf("%d\n", total);
+          return 0;
+      }
+    pasos:
+      - linea: 6
+        nota: '`malloc` reservó lugar para 3 enteros en el heap y no los inicializó: tienen basura. `v` vive en la pila y apunta al bloque.'
+        pila:
+          - { nombre: "n", valor: "3", expr: "n", formato: "%d" }
+          - { nombre: "v", valor: "→ bloque[0]" }
+        heap:
+          - { nombre: "bloque[0]", valor: "basura" }
+          - { nombre: "bloque[1]", valor: "basura" }
+          - { nombre: "bloque[2]", valor: "basura" }
+        pregunta: 'En esta computadora `sizeof(int)` es 4. ¿Cuántos bytes pidió `malloc`?'
+        respuesta: "12"
+        expr: "n * sizeof(int)"
+        formato: "%zu"
+      - linea: 11
+        vez: 2
+        nota: 'Segunda vuelta del ciclo (`i` vale 1).'
+        pila:
+          - { nombre: "n", valor: "3" }
+          - { nombre: "v", valor: "→ bloque[0]" }
+          - { nombre: "i", valor: "1", expr: "i", formato: "%d" }
+        heap:
+          - { nombre: "bloque[0]", valor: "1", expr: "v[0]", formato: "%d" }
+          - { nombre: "bloque[1]", valor: "4" }
+          - { nombre: "bloque[2]", valor: "basura" }
+        pregunta: '¿Qué valor quedó en `v[1]`?'
+        respuesta: "4"
+        expr: "v[1]"
+        formato: "%d"
+      - linea: 13
+        pila:
+          - { nombre: "n", valor: "3" }
+          - { nombre: "v", valor: "→ bloque[0]" }
+          - { nombre: "total", valor: "10" }
+        heap:
+          - { nombre: "bloque[0]", valor: "1" }
+          - { nombre: "bloque[1]", valor: "4" }
+          - { nombre: "bloque[2]", valor: "9", expr: "v[2]", formato: "%d" }
+        pregunta: '¿Cuánto vale `total`?'
+        respuesta: "10"
+        expr: "total"
+        formato: "%d"
+      - linea: 15
+        nota: '`free` devolvió el bloque: el heap queda vacío. `v = NULL` evita que `v` quede colgante.'
+        pila:
+          - { nombre: "n", valor: "3" }
+          - { nombre: "v", valor: "NULL" }
+          - { nombre: "total", valor: "10", expr: "total", formato: "%d" }
+        heap: []
+        pregunta: '¿La expresión `v == NULL` es verdadera (1) o falsa (0)?'
+        respuesta: "1"
+        expr: "v == NULL"
+        formato: "%d"
+    pistas: ["`n * sizeof(int)` son los bytes de n enteros.", "En la vuelta `i`, se guarda `(i + 1) * (i + 1)` en `v[i]`."]
+    explicacion: '`malloc(3 * 4)` pide 12 bytes en el heap. El ciclo llena el bloque con 1, 4 y 9; tras la segunda vuelta `v[2]` todavía tiene basura. `total` es 1 + 9 = 10 y vive en la pila, así que sigue disponible después de `free(v)`. Asignar `NULL` a `v` evita usar por error el bloque devuelto.'
+
+  - id: prog-06-011
+    tipo: depurar
+    dificultad: 3
+    conceptos: [paso-por-referencia, apuntadores]
+    lenguaje: c
+    enunciado: '`min_max` debería guardar el menor y el mayor de un arreglo en las variables cuyas direcciones recibe. El mayor sale bien, pero con `3 1 4 1 5` el menor sale 3 en vez de 1. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      #include <stdio.h>
+
+      void min_max(int v[], int n, int *min, int *max) {
+          *min = v[0];
+          *max = v[0];
+          for (int i = 1; i < n; i++) {
+              if (v[i] < *min) {
+                  min = &v[i];
+              }
+              if (v[i] > *max) {
+                  *max = v[i];
+              }
+          }
+      }
+
+      int main(void) {
+          int n;
+          int v[100];
+          int menor, mayor;
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &v[i]);
+          }
+          min_max(v, n, &menor, &mayor);
+          printf("%d %d\n", menor, mayor);
+          return 0;
+      }
+    linea_bug: 8
+    solucion: |
+      #include <stdio.h>
+
+      void min_max(int v[], int n, int *min, int *max) {
+          *min = v[0];
+          *max = v[0];
+          for (int i = 1; i < n; i++) {
+              if (v[i] < *min) {
+                  *min = v[i];
+              }
+              if (v[i] > *max) {
+                  *max = v[i];
+              }
+          }
+      }
+
+      int main(void) {
+          int n;
+          int v[100];
+          int menor, mayor;
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &v[i]);
+          }
+          min_max(v, n, &menor, &mayor);
+          printf("%d %d\n", menor, mayor);
+          return 0;
+      }
+    tests:
+      - { entrada: "3\n2 7 9\n", salida: "2 9\n" }
+      - { entrada: "5\n3 1 4 1 5\n", salida: "1 5\n" }
+      - { entrada: "4\n-2 -8 0 -5\n", salida: "-8 0\n", oculto: true }
+    pistas: ["Compara la línea que actualiza el menor con la que actualiza el mayor.", "¿Esa línea cambia el valor apuntado o a quién apunta el parámetro?"]
+    explicacion: '`min = &v[i]` mueve la flecha local `min` hacia `v[i]`, pero no escribe nada en `menor`, que se queda con `v[0]`. Lo correcto es `*min = v[i]`: escribir el valor en la variable apuntada, igual que se hace con `*max`.'
+
+  - id: prog-06-012
+    tipo: codigo
+    dificultad: 3
+    conceptos: [paso-por-referencia]
+    lenguaje: c
+    enunciado: 'Completa `divide(a, b, cociente, residuo)` para que guarde el cociente entero de `a / b` en la variable apuntada por `cociente` y el residuo en la apuntada por `residuo`. Los números son enteros, $a \ge 0$ y $b > 0$.'
+    plantilla: |
+      #include <stdio.h>
+
+      void divide(int a, int b, int *cociente, int *residuo) {
+          /* tu código aquí */
+      }
+
+      int main(void) {
+          int a, b;
+          int c = 0, r = 0;
+          scanf("%d %d", &a, &b);
+          divide(a, b, &c, &r);
+          printf("%d %d\n", c, r);
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      void divide(int a, int b, int *cociente, int *residuo) {
+          *cociente = a / b;
+          *residuo = a % b;
+      }
+
+      int main(void) {
+          int a, b;
+          int c = 0, r = 0;
+          scanf("%d %d", &a, &b);
+          divide(a, b, &c, &r);
+          printf("%d %d\n", c, r);
+          return 0;
+      }
+    tests:
+      - { entrada: "17 5\n", salida: "3 2\n" }
+      - { entrada: "20 4\n", salida: "5 0\n" }
+      - { entrada: "3 7\n", salida: "0 3\n", oculto: true }
+    pistas: ["Una función regresa un solo valor con `return`; para entregar dos, escribe en `*cociente` y `*residuo`."]
+    explicacion: 'Con los apuntadores la función "regresa" dos resultados: escribe `a / b` en `*cociente` y `a % b` en `*residuo`, que son la `c` y la `r` de `main`. Con 3 entre 7 el cociente es 0 y el residuo es 3.'
+
+  - id: prog-06-013
+    tipo: codigo
+    dificultad: 3
+    conceptos: [memoria-dinamica]
+    lenguaje: c
+    enunciado: 'Lee `n` (1 ≤ n ≤ 1000) y luego `n` enteros. Guárdalos en un arreglo que pidas con `malloc` (revisa que no regrese `NULL`), imprímelos en orden inverso separados por un espacio y libera la memoria con `free` antes de terminar.'
+    plantilla: |
+      #include <stdio.h>
+      #include <stdlib.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          /* 1. pide con malloc un arreglo de n enteros y revisa NULL */
+          /* 2. lee los n números */
+          /* 3. imprímelos en orden inverso, separados por un espacio */
+          /* 4. libera la memoria */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+      #include <stdlib.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          int *v = malloc(n * sizeof(int));
+          if (v == NULL) {
+              return 1;
+          }
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &v[i]);
+          }
+          for (int i = n - 1; i >= 0; i--) {
+              printf("%d", v[i]);
+              if (i > 0) {
+                  printf(" ");
+              }
+          }
+          printf("\n");
+          free(v);
+          v = NULL;
+          return 0;
+      }
+    tests:
+      - { entrada: "4\n1 2 3 4\n", salida: "4 3 2 1\n" }
+      - { entrada: "1\n9\n", salida: "9\n" }
+      - { entrada: "6\n5 -1 0 7 7 2\n", salida: "2 7 7 0 -1 5\n", oculto: true }
+    pistas: ["`int *v = malloc(n * sizeof(int));` y después úsalo como `v[i]`.", "Para no dejar un espacio al final, imprime el espacio solo entre números."]
+    explicacion: 'El tamaño solo se conoce al correr, así que el arreglo se pide en el heap con `malloc(n * sizeof(int))`. Se revisa `NULL`, se usa como cualquier arreglo y se libera con `free`; olvidar el `free` sería una fuga de memoria. Las pruebas no pueden ver si liberaste, pero es parte del ejercicio.'
+
+  - id: prog-06-014
+    tipo: opcion_multiple
+    dificultad: 3
+    conceptos: [memoria-dinamica]
+    enunciado: |
+      ¿Qué problema tiene este fragmento?
+
+      ```c
+      for (int i = 0; i < 1000; i++) {
+          int *datos = malloc(100 * sizeof(int));
+          if (datos == NULL) {
+              return 1;
+          }
+          datos[0] = i;
+      }
+      ```
+    opciones:
+      - "Fuga de memoria: cada vuelta pide un bloque nuevo y pierde la dirección del anterior sin liberarlo"
+      - "Ninguno: al terminar cada vuelta, `datos` y su bloque se liberan solos"
+      - "Apuntador colgante: `datos` apunta a una variable local que ya terminó"
+      - "Desbordamiento: `datos[0]` está fuera del bloque"
+    correcta: 0
+    pistas: ["`datos` vive en la pila y desaparece al terminar cada vuelta. ¿Y el bloque al que apuntaba?"]
+    explicacion: 'El apuntador `datos` es local a la vuelta y desaparece, pero el bloque del heap no: sigue reservado y ya nadie tiene su dirección. Tras 1000 vueltas quedan 1000 bloques perdidos. Hace falta `free(datos)` al final de cada vuelta. `datos[0]` sí está dentro del bloque.'
+
+  - id: prog-06-015
+    tipo: rastreo_memoria
+    dificultad: 3
+    conceptos: [aritmetica-apuntadores, direcciones-memoria]
+    lenguaje: c
+    enunciado: 'Un apuntador recorre el arreglo dando saltos. Sigue el programa y contesta en cada paso.'
+    codigo: |
+      #include <stdio.h>
+
+      int main(void) {
+          int v[4] = {5, 8, 2, 6};
+          int *p = v;
+          int suma = 0;
+          while (p < v + 4) {
+              suma += *p;
+              p += 2;
+          }
+          printf("%d\n", suma);
+          return 0;
+      }
+    pasos:
+      - linea: 5
+        nota: 'El nombre del arreglo se convierte en la dirección de su primer elemento.'
+        pila:
+          - { nombre: "v", valor: "{5, 8, 2, 6}" }
+          - { nombre: "p", valor: "→ v[0]" }
+        pregunta: '¿Cuánto vale `*p`?'
+        respuesta: "5"
+        expr: "*p"
+        formato: "%d"
+      - linea: 9
+        vez: 1
+        nota: 'Sumar 2 a un apuntador a `int` avanza dos elementos, no dos bytes.'
+        pila:
+          - { nombre: "v", valor: "{5, 8, 2, 6}" }
+          - { nombre: "p", valor: "→ v[2]" }
+          - { nombre: "suma", valor: "5", expr: "suma", formato: "%d" }
+        pregunta: 'Después de la primera vuelta, ¿cuánto vale `*p`?'
+        respuesta: "2"
+        expr: "*p"
+        formato: "%d"
+      - linea: 9
+        vez: 2
+        nota: '`p` quedó justo después del último elemento: se puede comparar, pero no desreferenciar.'
+        pila:
+          - { nombre: "v", valor: "{5, 8, 2, 6}" }
+          - { nombre: "p", valor: "→ después de v[3]" }
+          - { nombre: "suma", valor: "7", expr: "suma", formato: "%d" }
+        pregunta: '¿Cuántos elementos hay de `v` a `p`? Es decir, ¿cuánto vale `p - v`?'
+        respuesta: "4"
+        expr: "(int)(p - v)"
+        formato: "%d"
+      - linea: 11
+        pila:
+          - { nombre: "v", valor: "{5, 8, 2, 6}" }
+          - { nombre: "p", valor: "→ después de v[3]" }
+          - { nombre: "suma", valor: "7" }
+        pregunta: '¿Qué número imprimió el programa?'
+        respuesta: "7"
+        expr: "suma"
+        formato: "%d"
+    pistas: ["`p += 2` salta de `v[0]` a `v[2]` y luego a `v + 4`.", "Restar dos apuntadores al mismo arreglo da cuántos elementos los separan."]
+    explicacion: 'El ciclo suma `v[0]` y `v[2]` (5 + 2 = 7) porque `p` avanza de dos en dos elementos. Tras la segunda vuelta `p` vale `v + 4`: la condición `p < v + 4` es falsa y el ciclo termina. `p - v` da 4 elementos de distancia, no 16 bytes.'
+
+  - id: prog-06-016
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [pila-heap, memoria-dinamica]
+    enunciado: 'Explica con tus palabras la diferencia entre la pila y el heap. Después define **fuga de memoria** y **apuntador colgante**, con un ejemplo corto en C de cada uno y cómo lo evitarías.'
+    rubrica:
+      - "Dice que la pila guarda las variables locales y que se liberan solas al terminar la función."
+      - "Dice que el heap se pide con `malloc`, dura hasta `free` y se usa cuando el tamaño se conoce al correr o el dato debe sobrevivir a la función."
+      - "Da un ejemplo de fuga (un `malloc` sin `free`, o perder la dirección) y cómo evitarla."
+      - "Da un ejemplo de apuntador colgante (usar tras `free` o regresar la dirección de una local) y cómo evitarlo."
+    respuesta_modelo: 'La pila guarda los marcos de las funciones: parámetros y variables locales, que desaparecen solos cuando la función termina. El heap es memoria que pido con `malloc` y que dura hasta que llamo `free`; la uso cuando el tamaño se conoce hasta que corre el programa o cuando un dato debe sobrevivir a la función que lo creó. Una fuga es un bloque del heap que ya no puedo liberar porque perdí su dirección, por ejemplo `p = malloc(100); p = malloc(200);`: el primer bloque queda perdido. Se evita con un `free` por cada `malloc`. Un apuntador colgante guarda una dirección que ya no es válida, como `free(p);` seguido de `*p = 3;`, o una función que hace `return &x;` con `x` local. Se evita asignando `NULL` después de `free` y regresando memoria del heap (o recibiendo un apuntador del que llama) en lugar de la dirección de una local.'
+    explicacion: 'Si mezclaste fuga (memoria que nadie libera) con apuntador colgante (dirección que ya no es válida), repasa la sección "Errores que debes reconocer".'
+    tarjeta: false
+
+  - id: prog-06-017
+    tipo: opcion_multiple
+    dificultad: 4
+    conceptos: [pila-heap, apuntadores]
+    enunciado: |
+      ¿Qué problema tiene esta función?
+
+      ```c
+      int *crea(void) {
+          int x = 42;
+          return &x;
+      }
+      ```
+    opciones:
+      - "Regresa la dirección de una variable local: al terminar `crea`, `x` deja de existir y el apuntador queda colgante"
+      - "Ninguno: `x` vive hasta que termina el programa"
+      - "Una fuga de memoria: faltó `free(&x)`"
+      - "No compila: una función no puede regresar un apuntador"
+    correcta: 0
+    pistas: ["¿En qué zona de la memoria vive `x`, y qué pasa con esa zona cuando `crea` termina?"]
+    explicacion: '`x` vive en el marco de `crea`, en la pila, y ese marco se quita al regresar. La dirección regresada apunta a memoria que ya no es de nadie: usarla es comportamiento indefinido (los compiladores suelen avisar). `free(&x)` sería otro error, porque `x` no vino de `malloc`. La solución es pedir el entero con `malloc` y que quien llama lo libere, o recibir un apuntador donde escribir.'
+
+  - id: prog-06-018
+    tipo: codigo
+    dificultad: 4
+    conceptos: [aritmetica-apuntadores, paso-por-referencia]
+    lenguaje: c
+    enunciado: 'Completa `invierte(inicio, fin)` para que invierta, en su lugar, los elementos que van desde `*inicio` hasta `*fin` (inclusive). Usa dos apuntadores que se acercan: intercambia lo apuntado, avanza `inicio`, retrocede `fin` y repite mientras `inicio < fin`. El `main` ya lee el arreglo, llama `invierte(v, v + n - 1)` e imprime el resultado.'
+    plantilla: |
+      #include <stdio.h>
+
+      void invierte(int *inicio, int *fin) {
+          /* tu código aquí */
+      }
+
+      int main(void) {
+          int n;
+          int v[100];
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &v[i]);
+          }
+          invierte(v, v + n - 1);
+          for (int i = 0; i < n; i++) {
+              printf("%d", v[i]);
+              if (i < n - 1) {
+                  printf(" ");
+              }
+          }
+          printf("\n");
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      void invierte(int *inicio, int *fin) {
+          while (inicio < fin) {
+              int t = *inicio;
+              *inicio = *fin;
+              *fin = t;
+              inicio++;
+              fin--;
+          }
+      }
+
+      int main(void) {
+          int n;
+          int v[100];
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &v[i]);
+          }
+          invierte(v, v + n - 1);
+          for (int i = 0; i < n; i++) {
+              printf("%d", v[i]);
+              if (i < n - 1) {
+                  printf(" ");
+              }
+          }
+          printf("\n");
+          return 0;
+      }
+    tests:
+      - { entrada: "5\n1 2 3 4 5\n", salida: "5 4 3 2 1\n" }
+      - { entrada: "4\n1 2 3 4\n", salida: "4 3 2 1\n" }
+      - { entrada: "2\n7 8\n", salida: "8 7\n" }
+      - { entrada: "1\n4\n", salida: "4\n", oculto: true }
+      - { entrada: "6\n9 -1 0 3 3 2\n", salida: "2 3 3 0 -1 9\n", oculto: true }
+    pistas: ["`inicio++` avanza un elemento y `fin--` retrocede uno.", "Con un número impar de elementos, el del centro se queda en su lugar: el ciclo para cuando `inicio` y `fin` se encuentran."]
+    explicacion: 'En cada vuelta se intercambian `*inicio` y `*fin` y los apuntadores se acercan un elemento cada uno. La condición `inicio < fin` compara posiciones dentro del mismo arreglo: con 5 elementos se hacen 2 intercambios y el centro no se mueve; con 1 elemento no se hace ninguno. Como la función recibe direcciones, modifica el arreglo de `main`.'
+
+  - id: prog-06-019
+    tipo: rastreo_memoria
+    dificultad: 4
+    conceptos: [pila-heap, memoria-dinamica]
+    lenguaje: c
+    enunciado: 'Una función crea un contador en el heap y otra lo avanza. Sigue la pila (cada celda dice a qué función pertenece) y el heap, y contesta en cada paso.'
+    codigo: |
+      #include <stdio.h>
+      #include <stdlib.h>
+
+      int *crea_contador(int inicio) {
+          int *c = malloc(sizeof(int));
+          if (c != NULL) {
+              *c = inicio;
+          }
+          return c;
+      }
+
+      void avanza(int *c, int paso) {
+          *c = *c + paso;
+      }
+
+      int main(void) {
+          int *cont = crea_contador(10);
+          if (cont == NULL) {
+              return 1;
+          }
+          avanza(cont, 5);
+          avanza(cont, 5);
+          printf("%d\n", *cont);
+          free(cont);
+          cont = NULL;
+          return 0;
+      }
+    pasos:
+      - linea: 5
+        nota: 'Mientras corre `crea_contador`, su marco está encima del de `main`. `cont` todavía no recibe valor, y el bloque nuevo del heap tiene basura.'
+        pila:
+          - { nombre: "main: cont", valor: "basura" }
+          - { nombre: "crea_contador: inicio", valor: "10", expr: "inicio", formato: "%d" }
+          - { nombre: "crea_contador: c", valor: "→ bloque" }
+        heap:
+          - { nombre: "bloque", valor: "basura" }
+      - linea: 7
+        pila:
+          - { nombre: "main: cont", valor: "basura" }
+          - { nombre: "crea_contador: inicio", valor: "10" }
+          - { nombre: "crea_contador: c", valor: "→ bloque" }
+        heap:
+          - { nombre: "bloque", valor: "10" }
+        pregunta: '¿Cuánto vale `*c`?'
+        respuesta: "10"
+        expr: "*c"
+        formato: "%d"
+      - linea: 17
+        nota: 'El marco de `crea_contador` (con `inicio` y `c`) ya no existe, pero el bloque del heap sigue vivo y `cont` guarda su dirección.'
+        pila:
+          - { nombre: "main: cont", valor: "→ bloque" }
+        heap:
+          - { nombre: "bloque", valor: "10" }
+        pregunta: '¿Cuánto vale `*cont`?'
+        respuesta: "10"
+        expr: "*cont"
+        formato: "%d"
+      - linea: 13
+        vez: 2
+        nota: 'Segunda llamada a `avanza`: su `c` es una copia de la dirección que guarda `cont`.'
+        pila:
+          - { nombre: "main: cont", valor: "→ bloque" }
+          - { nombre: "avanza: c", valor: "→ bloque" }
+          - { nombre: "avanza: paso", valor: "5", expr: "paso", formato: "%d" }
+        heap:
+          - { nombre: "bloque", valor: "20" }
+        pregunta: 'Tras la línea 13 en la segunda llamada, ¿cuánto vale `*c`?'
+        respuesta: "20"
+        expr: "*c"
+        formato: "%d"
+      - linea: 25
+        nota: 'El bloque se liberó con `free` y `cont` quedó en `NULL`: no hay fuga ni apuntador colgante.'
+        pila:
+          - { nombre: "main: cont", valor: "NULL" }
+        heap: []
+        pregunta: '¿La expresión `cont == NULL` es verdadera (1) o falsa (0)?'
+        respuesta: "1"
+        expr: "cont == NULL"
+        formato: "%d"
+    pistas: ["Lo que se pide con `malloc` no desaparece cuando termina la función que lo pidió.", "Cada `avanza` suma 5 al mismo bloque."]
+    explicacion: 'A diferencia de `return &x` con una local, aquí `crea_contador` regresa la dirección de un bloque del heap, que sobrevive a su marco. `main` guarda esa dirección; cada `avanza` recibe una copia de ella y escribe en el mismo bloque: 10, 15, 20. Al final, `free` devuelve el bloque y `cont = NULL` evita usarlo después.'
+
+  - id: prog-06-020
+    tipo: codigo
+    dificultad: 5
+    conceptos: [memoria-dinamica, pila-heap]
+    lenguaje: c
+    enunciado: 'Lee enteros hasta que se acabe la entrada (no sabes cuántos son). Guárdalos en un arreglo dinámico que empieza con capacidad 2 y, cada vez que se llena, duplica su capacidad con `realloc`. Al final imprime en una línea cuántos números leíste y, en la siguiente, los que son mayores que el promedio, en el orden en que llegaron y separados por un espacio; si ninguno lo es, imprime `ninguno`. Si no llegó ningún número, imprime solo `0`. Libera la memoria antes de terminar.'
+    plantilla: |
+      #include <stdio.h>
+      #include <stdlib.h>
+
+      int main(void) {
+          int capacidad = 2;
+          int cuantos = 0;
+          int *v = malloc(capacidad * sizeof(int));
+          if (v == NULL) {
+              return 1;
+          }
+          int x;
+          while (scanf("%d", &x) == 1) {
+              /* si ya no cabe, duplica la capacidad con realloc */
+              /* guarda x */
+          }
+          printf("%d\n", cuantos);
+          /* imprime los mayores que el promedio */
+          free(v);
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+      #include <stdlib.h>
+
+      int main(void) {
+          int capacidad = 2;
+          int cuantos = 0;
+          int *v = malloc(capacidad * sizeof(int));
+          if (v == NULL) {
+              return 1;
+          }
+          int x;
+          while (scanf("%d", &x) == 1) {
+              if (cuantos == capacidad) {
+                  capacidad *= 2;
+                  int *nuevo = realloc(v, capacidad * sizeof(int));
+                  if (nuevo == NULL) {
+                      free(v);
+                      return 1;
+                  }
+                  v = nuevo;
+              }
+              v[cuantos] = x;
+              cuantos++;
+          }
+          printf("%d\n", cuantos);
+          if (cuantos > 0) {
+              long total = 0;
+              for (int i = 0; i < cuantos; i++) {
+                  total += v[i];
+              }
+              int impresos = 0;
+              for (int i = 0; i < cuantos; i++) {
+                  if ((long)v[i] * cuantos > total) {
+                      if (impresos > 0) {
+                          printf(" ");
+                      }
+                      printf("%d", v[i]);
+                      impresos++;
+                  }
+              }
+              if (impresos == 0) {
+                  printf("ninguno");
+              }
+              printf("\n");
+          }
+          free(v);
+          v = NULL;
+          return 0;
+      }
+    tests:
+      - { entrada: "3 1 4 1 5\n", salida: "5\n3 4 5\n" }
+      - { entrada: "2 2 2\n", salida: "3\nninguno\n" }
+      - { entrada: "7\n", salida: "1\nninguno\n" }
+      - { entrada: "", salida: "0\n", oculto: true }
+      - { entrada: "10 -10 7\n", salida: "3\n10 7\n", oculto: true }
+      - { entrada: "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17\n", salida: "17\n10 11 12 13 14 15 16 17\n", oculto: true }
+    pistas: ["Antes de guardar, revisa si `cuantos == capacidad`: entonces duplica `capacidad` y llama a `realloc`.", "Guarda lo que regresa `realloc` en un apuntador nuevo y revisa `NULL` antes de reemplazar `v`: si falla, el bloque viejo sigue siendo tuyo.", "Para no usar decimales: `x` es mayor que el promedio si `x * cuantos > total`."]
+    explicacion: 'El arreglo crece en el heap: 2, 4, 8, 16, 32 lugares según se necesite (con 17 números hay cuatro `realloc`). Guardar el resultado de `realloc` en `nuevo` evita perder el bloque viejo si falla, lo que sería una fuga. El promedio se compara sin decimales con `x * cuantos > total`, usando `long` para que la suma no se desborde. Al final, un solo `free(v)` libera el bloque actual: `realloc` ya se encargó de los anteriores.'
