@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import type { CatalogExercise } from "@/content/core/study-catalog";
 import type { CTest, PythonTest, TraceCell } from "@/content/schema";
 import type { Answer } from "@/engine/answers/check";
-import { blankMatches } from "@/engine/answers/text";
+import { assemble, parsonsExact, traceVerdict } from "@/engine/code/mechanics";
 import { createRng, seedFrom, shuffle } from "@/engine/rng";
 import { pythonLoaded, warmPython } from "@/runners/python-client";
 import { cn } from "@/lib/utils";
@@ -255,7 +255,6 @@ interface ParsonsDraft {
   readonly run: TestRun | null;
 }
 
-const indentOf = (line: string) => Math.floor((line.length - line.trimStart().length) / 4);
 
 function ParsonsInput({ exercise, draft, setDraft, disabled }: InputProps<ParsonsDraft>) {
   const ex = exercise as Ex<"parsons">;
@@ -375,7 +374,7 @@ function ParsonsInput({ exercise, draft, setDraft, disabled }: InputProps<Parson
 }
 
 function parsonsCode(ex: Ex<"parsons">, placed: readonly ParsonsItem[]): string {
-  return `${placed.map((p) => `${ex.lenguaje === "python" ? " ".repeat(4 * p.indent) : ""}${p.text}`).join("\n")}\n`;
+  return assemble(placed, ex.lenguaje === "python");
 }
 
 export const parsonsModule: TypeModule<ParsonsDraft> = {
@@ -391,9 +390,7 @@ export const parsonsModule: TypeModule<ParsonsDraft> = {
     if (ex.tipo !== "parsons") return "Tipo inválido.";
     if (d.placed.length === 0) return "Arma tu programa con las líneas de la izquierda.";
     const python = ex.lenguaje === "python";
-    const exact =
-      d.placed.length === ex.lineas.length &&
-      ex.lineas.every((l, i) => d.placed[i]?.text === l.trim() && (!python || d.placed[i]?.indent === indentOf(l)));
+    const exact = parsonsExact(ex.lineas, d.placed, python);
     if (exact) return { kind: "steps", passed: true, summary: "Orden exacto." };
     // Otro orden también puede ser correcto: si hay pruebas, deciden ellas.
     if (ex.tests) {
@@ -509,15 +506,9 @@ export const traceModule: TypeModule<TraceDraft> = {
   Input: TraceInput,
   toAnswer: (ex, d) => {
     if (ex.tipo !== "rastreo_memoria") return "Tipo inválido.";
-    const questions = ex.pasos.map((p, i) => ({ p, i })).filter(({ p }) => p.pregunta);
-    const missing = questions.filter(({ i }) => !(d.answers[i] ?? "").trim());
-    if (missing.length) return `Te faltan ${missing.length === 1 ? "1 pregunta" : `${missing.length} preguntas`} (paso ${missing.map(({ i }) => i + 1).join(", ")}).`;
-    const rows = questions.map(({ p, i }) => {
-      const mine = (d.answers[i] ?? "").trim();
-      const ok = blankMatches(mine, p.respuesta ?? "");
-      return { ok, text: `${ok ? "✓" : "✗"} Paso ${i + 1}: ${p.pregunta} → ${mine}${ok ? "" : ` (era ${p.respuesta})`}` };
-    });
-    return { kind: "steps", passed: rows.every((r) => r.ok), summary: rows.map((r) => r.text).join("\n") };
+    const v = traceVerdict(ex.pasos, d.answers);
+    if (v.status === "missing") return `Te faltan ${v.steps.length === 1 ? "1 pregunta" : `${v.steps.length} preguntas`} (paso ${v.steps.join(", ")}).`;
+    return { kind: "steps", passed: v.passed, summary: v.lines.join("\n") };
   },
   describe: (ex, d) => (ex.tipo === "rastreo_memoria" ? Object.entries(d.answers).map(([k, v]) => `paso ${Number(k) + 1}: ${v}`).join(" · ") : ""),
 };
