@@ -23,7 +23,7 @@ export const CONFIG = {
     /** Lección completada con mini quiz ≥ 80 %. */
     lesson: 20,
     lessonQuizPass: 0.8,
-    lessonQuizSize: 4,
+    lessonQuizSize: 5,
     /** Misión diaria completada (cada una). */
     mission: 30,
     /** Rendimientos decrecientes por repetir el MISMO ejercicio el mismo día (índice = aciertos previos hoy). */

@@ -1,5 +1,5 @@
 import type { Exercise } from "../schema";
-import { BLANK } from "./lesson-api";
+import { splitBlanks } from "./blanks";
 
 /** Un texto de un ejercicio que la app dibuja como Markdown + KaTeX. */
 export interface TextField {
@@ -23,7 +23,7 @@ export function exerciseTextFields(ex: Exercise): TextField[] {
       out.push(...ex.opciones.map((text, i) => ({ field: `opciones[${i}]`, text, inline: true })));
       break;
     case "completar":
-      out.push(...ex.texto.split(BLANK).map((text, i) => ({ field: `texto (tramo ${i + 1})`, text, inline: true })));
+      out.push(...splitBlanks(ex.texto).map((text, i) => ({ field: `texto (tramo ${i + 1})`, text, inline: true })));
       break;
     case "ordenar":
       out.push(...ex.elementos.map((text, i) => ({ field: `elementos[${i}]`, text, inline: true })));

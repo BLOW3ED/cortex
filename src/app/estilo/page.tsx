@@ -6,6 +6,7 @@ import { StreakChip } from "@/components/hud/streak-chip";
 import { XpBar } from "@/components/hud/xp-bar";
 import { InlineMarkdown } from "@/components/lessons/inline-markdown";
 import { ConceptBox, FadedExample, Pitfall, PredictPrompt } from "@/components/lessons/lesson-blocks";
+import { FormulaDemo } from "@/components/study/formula-demo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -124,7 +125,7 @@ export default function StylePage() {
         <Controls />
       </Section>
 
-      <Section id="hud" title="HUD · estados límite (los números los calcula la Fase 1)">
+      <Section id="hud" title="HUD · estados límite">
         <div className="grid gap-4">
           {(
             [
@@ -180,6 +181,10 @@ export default function StylePage() {
             <InlineMarkdown text="$0/0$ no es un número: es una señal de que hay que trabajar más." />
           </Pitfall>
         </div>
+      </Section>
+
+      <Section id="formulas" title="Entrada de fórmulas (MathLive) y verificador simbólico">
+        <FormulaDemo />
       </Section>
     </div>
   );

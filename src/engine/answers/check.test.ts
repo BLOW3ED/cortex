@@ -50,6 +50,17 @@ describe("equivalencia simbólica", () => {
     expect(symbolicMatch("x·y", "x*y", ["x", "y"])).toBe("equivalent");
   });
 
+  it("entiende lo que escribe MathLive (ascii-math) y la escritura común", () => {
+    expect(symbolicMatch("sin ^2x+cos ^2x+x+2", "x+3")).toBe("equivalent");
+    expect(symbolicMatch("|x|", "Abs(x)")).toBe("equivalent");
+    expect(symbolicMatch("sqrt(x) * sqrt(x)+3", "x+3")).toBe("equivalent");
+    expect(symbolicMatch("2pi x", "2*pi*x")).toBe("equivalent");
+    expect(symbolicMatch("e^x", "exp(x)")).toBe("equivalent");
+    expect(symbolicMatch("ln x + sin(x)", "log(x) + sin(x)")).toBe("equivalent");
+    expect(symbolicMatch("sin^2(x+1)", "sin(x+1)**2")).toBe("equivalent");
+    expect(symbolicMatch("(x^2-9)/(x-3)", "x+3")).toBe("equivalent");
+  });
+
   it("rechaza formas distintas", () => {
     expect(symbolicMatch("x-3", "x+3")).toBe("different");
     expect(symbolicMatch("x^2", "2*x")).toBe("different");

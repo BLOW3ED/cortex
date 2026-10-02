@@ -17,6 +17,9 @@ const FUNCTIONS = new Set([
 ]);
 const CONSTANTS: Readonly<Record<string, number>> = { pi: Math.PI, e: Math.E, E: Math.E, Infinity, oo: Infinity };
 
+/** `sin x`, `sin^2 x`, `sin ^2(x+1)`, `ln x`... (la función va seguida de un argumento sin paréntesis propios). */
+const FN_NO_PARENS = /\b(sinh|cosh|tanh|asin|acos|atan|sin|cos|tan|sec|csc|cot|ln|log|exp)\s*(?:\^\s*(\d+|\([^()]*\)))?\s*(?=[a-zA-Z0-9.(])((?:\d+(?:\.\d+)?)?[a-zA-Z]\w*|\d+(?:\.\d+)?|\([^()]*\))/g;
+
 export class ExpressionError extends Error {
   constructor(message: string) {
     super(message);
@@ -36,6 +39,10 @@ export function normalizeExpression(input: string): string {
     .replace(/√\s*\(/g, "sqrt(")
     .replace(/√\s*([a-zA-Z0-9.]+)/g, "sqrt($1)")
     .replace(/\bAbs\(/g, "abs(")
+    // Valor absoluto con barras: |x| → abs(x) (MathLive y la escritura a mano lo usan).
+    .replace(/\|([^|]+)\|/g, "abs($1)")
+    // Funciones sin paréntesis o con potencia antes del argumento: `sin x`, `sin ^2x`, `ln x`.
+    .replace(FN_NO_PARENS, (_m, fn: string, pow: string | undefined, arg: string) => `${fn}(${arg})${pow ? `^${pow}` : ""}`)
     .replace(/\bln\(/g, "log(")
     // `x(x+1)` es multiplicación implícita, no una llamada (mathjs lo leería como función `x`).
     .replace(/([a-zA-Z_][a-zA-Z_0-9]*)\s*\(/g, (m, id: string) => (FUNCTIONS.has(id) ? m : `${id}*(`))

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { BLANK } from "@/content/core/lesson-api";
+import { splitBlanks } from "@/content/core/blanks";
 import { InlineMarkdown } from "./inline-markdown";
 import { FadedInteractive, PredictInteractive } from "./lesson-interactive";
 
@@ -59,7 +59,7 @@ export function FadedExample({
   pasos: readonly string[];
   respuestas?: readonly string[];
 }) {
-  const steps = pasos.map((paso) => paso.split(BLANK).map((part, i) => (part ? <InlineMarkdown key={i} text={part} inline /> : null)));
+  const steps = pasos.map((paso) => splitBlanks(paso).map((part, i) => (part ? <InlineMarkdown key={i} text={part} inline /> : null)));
   return (
     <Block kind="desvanecido" label="Ahora tú completas" title={titulo}>
       <FadedInteractive steps={steps} answers={[...respuestas]} rendered={respuestas.map((r, i) => <InlineMarkdown key={i} text={r} inline />)} />

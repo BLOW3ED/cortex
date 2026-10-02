@@ -16,6 +16,7 @@ import { playSound } from "@/lib/sound";
 import { exerciseRef, missionContext, unitRef } from "@/lib/study";
 import { useCelebrate } from "./celebrations";
 import { type AfterAnswer, ExerciseCard, type ExerciseResult } from "./exercise-card";
+import { isPlayable } from "./exercise-types";
 import { RichText } from "./rich-text";
 
 /** Texto de "vuelve en..." a partir de días. */
@@ -139,7 +140,7 @@ export function PracticeRunner({
     () =>
       unit.exerciseIds.flatMap((id) => {
         const ex = catalog.exercises[id];
-        return ex ? [{ exerciseId: id, difficulty: ex.dificultad as Difficulty, concepts: ex.conceptos, ...(ex.tiempo_estimado_s ? { estimatedSeconds: ex.tiempo_estimado_s } : {}) }] : [];
+        return ex && isPlayable(ex) ? [{ exerciseId: id, difficulty: ex.dificultad as Difficulty, concepts: ex.conceptos, ...(ex.tiempo_estimado_s ? { estimatedSeconds: ex.tiempo_estimado_s } : {}) }] : [];
       }),
     [catalog, unit],
   );
@@ -152,6 +153,8 @@ export function PracticeRunner({
     current: FlowItem | null;
     worked: FlowItem | null;
     tally: Tally;
+    /** Avanza solo con "Siguiente": es la `key` de la tarjeta (responder no la remonta). */
+    turn: number;
     done: boolean;
   } | null>(null);
 
@@ -169,7 +172,7 @@ export function PracticeRunner({
         const solved = new Set(rows.map((r) => r.exerciseId));
         const level = initialLevel(pool, solved);
         const current = pickExercise(pool, { level, solved, seenNow: new Set(), lastId: null, rng: rng.current });
-        setState({ level, history: [], seen: new Set(), solved, current, worked: null, tally: { answered: 0, correct: 0, xp: 0 }, done: !current });
+        setState({ level, history: [], seen: new Set(), solved, current, worked: null, tally: { answered: 0, correct: 0, xp: 0 }, turn: 0, done: !current });
       });
     return () => {
       alive = false;
@@ -208,7 +211,7 @@ export function PracticeRunner({
       const lastId = s.current?.exerciseId ?? null;
       const current = pickExercise(pool, { level: flow.level, solved: s.solved, seenNow: s.seen, lastId, rng: rng.current });
       const worked = flow.showWorked ? workedExampleFor(pool, s.current?.concepts ?? [], flow.level, lastId) : null;
-      return { ...s, level: flow.level, current, worked };
+      return { ...s, level: flow.level, current, worked, turn: s.turn + 1 };
     });
   }, [blockSize, onDone, pool]);
 
@@ -225,12 +228,12 @@ export function PracticeRunner({
   return (
     <div className="grid gap-4">
       <p className="font-mono text-sm text-muted-foreground" aria-live="polite">
-        Ejercicio {state.tally.answered + 1} de {blockSize} · nivel {state.level}
+        Ejercicio {state.turn + 1} de {blockSize} · nivel {state.level}
       </p>
       {state.worked && catalog.exercises[state.worked.exerciseId] ? (
         <WorkedExample exercise={catalog.exercises[state.worked.exerciseId] as CatalogExercise} onClose={() => setState((s) => s && { ...s, worked: null })} />
       ) : (
-        <ExerciseCard key={`${ex.id}-${state.tally.answered}`} exercise={ex} onAnswered={onAnswered} onNext={onNext} seed={state.tally.answered + 1} />
+        <ExerciseCard key={`${ex.id}-${state.turn}`} exercise={ex} onAnswered={onAnswered} onNext={onNext} seed={state.turn + 1} />
       )}
     </div>
   );
@@ -291,7 +294,10 @@ export function ReviewRunner({
     const now = Date.now();
     void Promise.all([db.cards.toArray(), illusionIds(db)]).then(([cards, priority]) => {
       if (!alive) return;
-      const known = cards.filter((c) => catalog.exercises[c.exerciseId]);
+      const known = cards.filter((c) => {
+        const ex = catalog.exercises[c.exerciseId];
+        return ex !== undefined && isPlayable(ex);
+      });
       setQueue(warmupQueue(known, now, max, priority).map((c) => c.exerciseId));
     });
     return () => {
@@ -369,7 +375,7 @@ export function LessonQuiz({
   const items = useMemo(() => {
     const eligible = unit.exerciseIds
       .map((id) => catalog.exercises[id])
-      .filter((e): e is CatalogExercise => !!e && e.tipo !== "autoevaluacion")
+      .filter((e): e is CatalogExercise => !!e && e.tipo !== "autoevaluacion" && isPlayable(e))
       .sort((a, b) => a.dificultad - b.dificultad);
     const easy = eligible.filter((e) => e.dificultad <= 2);
     const base = easy.length >= CONFIG.xp.lessonQuizSize ? easy : eligible;

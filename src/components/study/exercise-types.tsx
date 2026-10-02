@@ -3,7 +3,7 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { type ComponentType, Fragment, useEffect, useRef } from "react";
 import type { CatalogExercise } from "@/content/core/study-catalog";
-import { BLANK } from "@/content/core/lesson-api";
+import { splitBlanks } from "@/content/core/blanks";
 import type { Answer } from "@/engine/answers/check";
 import { createRng, seedFrom, shuffle } from "@/engine/rng";
 import { cn } from "@/lib/utils";
@@ -137,6 +137,7 @@ function OutputInput({ exercise, draft, setDraft, disabled, onEnter }: InputProp
       <label className="grid gap-1.5">
         <span className="console-label">Salida exacta (una línea por renglón)</span>
         <textarea
+          aria-label="Salida exacta"
           autoFocus
           disabled={disabled}
           value={draft}
@@ -164,7 +165,7 @@ const output: TypeModule<string> = { ...numeric, Input: OutputInput };
 // ---------------------------------------------------------------- completar
 function BlanksInput({ exercise, draft, setDraft, disabled, onEnter }: InputProps<string[]>) {
   const ex = exercise as Extract<CatalogExercise, { tipo: "completar" }>;
-  const parts = ex.texto.split(BLANK);
+  const parts = splitBlanks(ex.texto);
   return (
     <p className="rich text-lg leading-[2.4]">
       {parts.map((part, i) => (
@@ -321,6 +322,7 @@ export const TYPE_MODULES: Record<string, TypeModule<never>> = {
   autoevaluacion: self as unknown as TypeModule<never>,
 };
 
-export function registerTypeModule(tipo: string, mod: TypeModule<never>): void {
-  TYPE_MODULES[tipo] = mod;
+/** ¿La app ya sabe jugar este tipo de ejercicio? Los que no, se omiten de práctica, repaso y jefes. */
+export function isPlayable(ex: { tipo: string }): boolean {
+  return ex.tipo in TYPE_MODULES;
 }

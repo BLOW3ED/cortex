@@ -165,6 +165,24 @@ describe("recordAnswer", () => {
   });
 });
 
+describe("récords sin ruido", () => {
+  it("el XP del día y la racha de aciertos se celebran una vez al superar un día anterior", async () => {
+    const db = await openCortexDb(freshIdb());
+    // Día 1: pone los primeros valores (no se celebran).
+    for (let i = 1; i <= 3; i++) expect((await answer(db, i, true)).recordsBroken).toEqual([]);
+    // Día 2: el primer acierto aún no supera; al superar el combo y el XP del día 1 se celebra una vez.
+    const day2 = NOW + DAY_MS;
+    const broken: string[] = [];
+    for (let i = 0; i < 8; i++) {
+      const out = await answer(db, 1 + (i % 4), true, { now: day2 + i * 1000 });
+      broken.push(...out.recordsBroken.map((r) => r.key));
+    }
+    expect(broken.filter((k) => k === "best:combo")).toHaveLength(1);
+    expect(broken.filter((k) => k === "best:day-xp")).toHaveLength(1);
+    db.close();
+  });
+});
+
 describe("lección, repaso completo, sesión y cofre", () => {
   it("la lección se completa con ≥ 80 % y da XP solo la primera vez", async () => {
     const db = await openCortexDb(freshIdb());

@@ -171,18 +171,30 @@ async function settleDay(db: CortexDb, state: { profile: ProfileRecord; day: Day
     { key: "best:day-xp", value: state.day.xp, direction: "higher", label: "Mejor día" },
     { key: "best:week-xp", value: week, direction: "higher", label: "Mejor semana" },
   ].filter((c) => c.value > 0) as RecordCandidate[];
-  const recordsBroken = await applyCandidates(db, candidates, now);
+  const startOfDay = new Date(now).setHours(0, 0, 0, 0);
+  const startOfWeek = new Date(`${monday}T00:00:00`).getTime();
+  const recordsBroken = await applyCandidates(db, candidates, now, { "best:combo": startOfDay, "best:day-xp": startOfDay, "best:week-xp": startOfWeek });
 
   await db.days.put(stamp(state.day));
   return { streakEvents, missionsCompleted: justCompleted, missionXp, recordsBroken };
 }
 
-async function applyCandidates(db: CortexDb, candidates: readonly RecordCandidate[], now: number): Promise<RecordCandidate[]> {
+/**
+ * Guarda los récords que mejoran. `since` (ms) evita celebrar de más: un récord que crece mientras
+ * lo sigues rompiendo (el XP del día, la racha de aciertos) se celebra una vez, cuando superas el
+ * de un periodo anterior; las mejoras siguientes del mismo periodo se guardan sin aviso.
+ */
+async function applyCandidates(db: CortexDb, candidates: readonly RecordCandidate[], now: number, since: Readonly<Record<string, number>> = {}): Promise<RecordCandidate[]> {
   if (!candidates.length) return [];
-  const existing = Object.fromEntries((await db.records.bulkGet(candidates.map((c) => c.key))).map((r, i) => [candidates[i]?.key ?? "", r]));
+  const rows = await db.records.bulkGet(candidates.map((c) => c.key));
+  const existing = Object.fromEntries(rows.map((r, i) => [candidates[i]?.key ?? "", r]));
   const { updates, broken } = applyRecords(existing, candidates, now);
   if (updates.length) await db.records.bulkPut(updates.map((u) => stamp(u) as PersonalRecord));
-  return broken;
+  return broken.filter((b) => {
+    const start = since[b.key];
+    const prev = existing[b.key];
+    return start === undefined || !prev || prev.at < start;
+  });
 }
 
 async function achievementStats(db: CortexDb, p: ProfileRecord, now: number): Promise<AchievementStats> {
@@ -336,7 +348,7 @@ export async function recordAnswer(db: CortexDb, input: AnswerInput): Promise<An
     if (input.correct && firstEver && ex.language === "c" && ex.concepts.includes("memoria-dinamica")) await bumpStat(db, STAT.zeroLeak, 1, now);
 
     const change = await settleDay(db, state, now, input.ctx);
-    const broken = [...change.recordsBroken, ...(await applyCandidates(db, reviewCandidates, now))];
+    const broken = [...change.recordsBroken, ...(await applyCandidates(db, reviewCandidates, now, { "best:review-run": startOfDay }))];
     await db.profile.put(state.profile);
     const achievements = await unlockAchievements(db, state.profile, now);
     const unit = await refreshUnit(db, input.unit, now);

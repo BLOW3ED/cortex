@@ -26,6 +26,7 @@ import { exerciseRef, missionContext, unitRef } from "@/lib/study";
 import { cn } from "@/lib/utils";
 import { useCelebrate } from "./celebrations";
 import { ExerciseCard } from "./exercise-card";
+import { isPlayable } from "./exercise-types";
 import { RichText } from "./rich-text";
 
 const fmt = (ms: number) => {
@@ -66,7 +67,8 @@ export function BossRunner({
   const info = useCallback(
     (id: string) => {
       const ex = catalog.exercises[id];
-      return ex ? { difficulty: ex.dificultad, selfAssessed: ex.tipo === "autoevaluacion" } : undefined;
+      // Las autoevaluaciones (y los tipos que esta versión aún no juega) no entran al jefe.
+      return ex ? { difficulty: ex.dificultad, selfAssessed: ex.tipo === "autoevaluacion" || !isPlayable(ex) } : undefined;
     },
     [catalog.exercises],
   );
