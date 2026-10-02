@@ -12,6 +12,7 @@ import {
   utf8ByteLength,
 } from "./backup";
 import { type CortexDb, openCortexDb } from "./db";
+import { emptyDayRecord } from "./defaults";
 import { DATA_TABLES } from "./schema";
 import { freshIdb } from "./test-utils";
 
@@ -19,28 +20,39 @@ const NOW = new Date("2026-10-01T18:30:00.000Z");
 
 async function filledDb(): Promise<CortexDb> {
   const db = await openCortexDb(freshIdb());
-  await db.profile.update(1, { xpTotal: 1234, level: 5, currentStreak: 3, maxStreak: 9, streakFreezes: 1, preferences: { sound: true } });
-  await db.unitProgress.add({ unitKey: "calculo/01-limites", subjectId: "calculo", status: "practiced", bestBoss: 0.75, bossAttempts: 2, schemaVersion: 1 });
+  await db.profile.update(1, {
+    xpTotal: 1234,
+    level: 5,
+    currentStreak: 3,
+    maxStreak: 9,
+    streakFreezes: 1,
+    lastStudyDay: "2026-10-01",
+    league: { division: 2, weekKey: "2026-09-28" },
+    cosmetics: { frames: ["ambar"], frame: "ambar", badges: ["cofre-dorado"] },
+    preferences: { sound: true, theme: "light", healthyMode: true },
+  });
+  await db.unitProgress.add({ unitKey: "calculo/01-limites", subjectId: "calculo", status: "practiced", bestBoss: 0.75, bossAttempts: 2, lessonDone: true, bossPassed: false, lastActivity: 3, schemaVersion: 1 });
   await db.attempts.bulkAdd([
     { exerciseId: "calc-01-001", at: 1, correct: true, timeMs: 900, confidence: 3, answer: "3", sessionId: 1, schemaVersion: 1 },
     { exerciseId: "calc-01-002", at: 2, correct: false, timeMs: 4000, confidence: 2, answer: "5", sessionId: 1, schemaVersion: 1 },
   ]);
-  await db.cards.add({ exerciseId: "calc-01-001", due: 10, stability: 2.5, difficulty: 5, reps: 1, lapses: 0, lastReview: 1, schemaVersion: 1 });
+  await db.cards.add({ exerciseId: "calc-01-001", due: 10, stability: 2.5, difficulty: 5, elapsedDays: 0, scheduledDays: 1, learningSteps: 0, reps: 1, lapses: 0, state: 2, lastReview: 1, longOk: false, schemaVersion: 1 });
   await db.sessions.add({ startedAt: 0, endedAt: 600, xpEarned: 50, kind: "daily", schemaVersion: 1 });
   await db.missions.add({ key: "2026-10-01/1", day: "2026-10-01", kind: "ejercicios", target: 3, progress: 3, completed: true, schemaVersion: 1 });
   await db.records.add({ key: "precision", value: 0.9, at: 5, schemaVersion: 1 });
   await db.ghosts.add({ context: "jefe:calculo/01-limites", events: [{ t: 1, ok: true }], schemaVersion: 1 });
   await db.achievements.add({ id: "memoria-de-elefante", unlockedAt: 7, schemaVersion: 1 });
   await db.gymResults.add({ game: "n-back", domain: "memoria", level: 2, score: 80, at: 8, schemaVersion: 1 });
-  await db.mistakes.add({ exerciseId: "calc-01-002", misses: 1, lastAnswer: "5", note: "olvidé factorizar", schemaVersion: 1 });
+  await db.mistakes.add({ exerciseId: "calc-01-002", misses: 1, lastAnswer: "5", note: "olvidé factorizar", lastAt: 2, illusion: true, fixedAt: null, schemaVersion: 1 });
   await db.reports.add({ exerciseId: "calc-01-003", comment: "¿opción ambigua?", createdAt: 9, schemaVersion: 1 });
+  await db.days.add({ ...emptyDayRecord("2026-10-01"), xp: 40, correct: 3, minimumMet: true });
   return db;
 }
 
 const tablesOf = (b: Backup) => b.tables;
 
 describe("exportar → importar (ida y vuelta)", () => {
-  it("conserva todos los datos e ids, en las 12 tablas", async () => {
+  it("conserva todos los datos e ids, en las 13 tablas", async () => {
     const source = await filledDb();
     const backup = await exportBackup(source, "0.0.0", NOW);
     const parsed = parseBackup(serializeBackup(backup));
@@ -52,7 +64,7 @@ describe("exportar → importar (ida y vuelta)", () => {
     const again = await exportBackup(target, "0.0.0", NOW);
     expect(tablesOf(again)).toEqual(tablesOf(backup));
     expect(Object.values(summarizeBackup(again).counts).every((n) => n >= 1)).toBe(true);
-    expect(await target.meta.get("schemaVersion")).toEqual({ key: "schemaVersion", value: 1 });
+    expect(await target.meta.get("schemaVersion")).toEqual({ key: "schemaVersion", value: 2 });
     source.close();
     target.close();
   });
@@ -90,6 +102,42 @@ describe("exportar → importar (ida y vuelta)", () => {
     target.close();
   });
 
+  it("un respaldo v1 se migra a la v2 al importarlo (mismas reglas que el upgrade de Dexie)", async () => {
+    const v1 = {
+      app: "cortex",
+      format: 1,
+      schemaVersion: 1,
+      exportedAt: NOW.toISOString(),
+      appVersion: "0.0.0",
+      tables: {
+        profile: [{ id: 1, xpTotal: 50, level: 1, currentStreak: 1, maxStreak: 1, streakFreezes: 0, preferences: { sound: false }, schemaVersion: 1 }],
+        unitProgress: [{ unitKey: "calculo/01-limites", subjectId: "calculo", status: "seen", bestBoss: null, bossAttempts: 0, schemaVersion: 1 }],
+        attempts: [{ id: 1, exerciseId: "calc-01-001", at: 1, correct: true, timeMs: 9, confidence: 2, answer: "3", sessionId: null, schemaVersion: 1 }],
+        cards: [{ exerciseId: "calc-01-001", due: 172_800_000, stability: 1, difficulty: 5, reps: 1, lapses: 0, lastReview: 86_400_000, schemaVersion: 1 }],
+        sessions: [],
+        missions: [],
+        records: [],
+        ghosts: [],
+        achievements: [],
+        gymResults: [],
+        mistakes: [{ exerciseId: "calc-01-002", misses: 1, lastAnswer: "5", note: "", schemaVersion: 1 }],
+        reports: [],
+      },
+    };
+    const parsed = parseBackup(JSON.stringify(v1));
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.backup.schemaVersion).toBe(2);
+    expect(parsed.backup.tables.days).toEqual([]);
+    expect(parsed.backup.tables.profile[0]).toMatchObject({ league: { division: 0, weekKey: null }, preferences: { sound: false, theme: "dark", healthyMode: false } });
+    const db = await openCortexDb(freshIdb());
+    await importBackup(db, parsed.backup);
+    expect(await db.cards.get("calc-01-001")).toMatchObject({ state: 2, scheduledDays: 1, longOk: false });
+    expect(await db.mistakes.get("calc-01-002")).toMatchObject({ illusion: false, fixedAt: null });
+    expect(await db.unitProgress.get("calculo/01-limites")).toMatchObject({ lessonDone: true, bossPassed: false });
+    db.close();
+  });
+
   it("nombra el archivo con la fecha local", () => {
     expect(backupFileName(new Date(2026, 9, 1, 23, 59))).toBe("cortex-2026-10-01.cortex-backup.json");
   });
@@ -108,7 +156,7 @@ describe("respaldos inválidos se rechazan sin tocar la base", () => {
     ["JSON truncado", () => serializeBackup(valid).slice(0, 200), /no es un JSON válido/],
     ["de otra app", () => mutate((b) => (b.app = "otra")), /No es un respaldo de cortex/],
     ["formato desconocido", () => mutate((b) => (b.format = 2)), /Formato de respaldo 2 desconocido/],
-    ["esquema del futuro", () => mutate((b) => (b.schemaVersion = 2)), /versión más nueva/],
+    ["esquema del futuro", () => mutate((b) => (b.schemaVersion = 3)), /versión más nueva/],
     ["esquema 0", () => mutate((b) => (b.schemaVersion = 0)), /Versión de esquema inválida/],
     ["esquema -1", () => mutate((b) => (b.schemaVersion = -1)), /Versión de esquema inválida/],
     ["esquema 1.5", () => mutate((b) => (b.schemaVersion = 1.5)), /Versión de esquema inválida/],

@@ -4,7 +4,7 @@ import { useId } from "react";
 import { Switch } from "@/components/ui/switch";
 import { useCortexDb, useProfileRecord } from "@/db/use-profile";
 
-/** Preferencia de sonido. Apagado por defecto; en la Fase 0 solo se guarda (los sonidos llegan en la Fase 1). */
+/** Preferencia de sonido. Apagado por defecto (CLAUDE.md). */
 export function SoundToggle() {
   const id = useId();
   const db = useCortexDb();
@@ -18,7 +18,7 @@ export function SoundToggle() {
           Sonido
         </label>
         <p id={`${id}-desc`} className="mt-1 text-sm text-muted-foreground">
-          Apagado por defecto. Por ahora solo se guarda tu preferencia; los sonidos llegan en la Fase 1.
+          Apagado por defecto. Si lo enciendes, suenan avisos cortos al acertar, fallar y subir de nivel.
         </p>
       </div>
       <Switch
@@ -27,7 +27,7 @@ export function SoundToggle() {
         checked={sound}
         disabled={!ready || !profile}
         onCheckedChange={(checked) => {
-          void ready?.profile.update(1, { preferences: { ...profile?.preferences, sound: checked } });
+          void ready?.profile.update(1, { "preferences.sound": checked });
         }}
       />
     </div>

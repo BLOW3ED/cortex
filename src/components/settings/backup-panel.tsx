@@ -46,6 +46,7 @@ const TABLE_LABELS: Record<DataTableName, string> = {
   gymResults: "Gimnasio",
   mistakes: "Cuaderno de errores",
   reports: "Reportes",
+  days: "Días de estudio",
 };
 
 const formatDate = (iso: string) => new Date(iso).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" });

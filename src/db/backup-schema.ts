@@ -11,6 +11,8 @@ const stringKey = z.string().min(1);
 // generador de claves de la tabla (`clear()` no lo reinicia) y no se podría agregar nada más.
 const autoKey = z.number().int().positive().max(2 ** 31 - 1);
 
+const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "día AAAA-MM-DD");
+
 export const profileRecordSchema = z.strictObject({
   id: z.literal(1),
   xpTotal: z.number().int().nonnegative(),
@@ -18,7 +20,11 @@ export const profileRecordSchema = z.strictObject({
   currentStreak: z.number().int().nonnegative(),
   maxStreak: z.number().int().nonnegative(),
   streakFreezes: z.number().int().nonnegative(),
-  preferences: z.strictObject({ sound: z.boolean() }),
+  lastStudyDay: day.nullable(),
+  streakRepair: z.strictObject({ previous: z.number().int().nonnegative(), deadline: day }).nullable(),
+  league: z.strictObject({ division: z.number().int().min(0).max(4), weekKey: day.nullable() }),
+  cosmetics: z.strictObject({ frames: z.array(z.string()), frame: z.string().nullable(), badges: z.array(z.string()) }),
+  preferences: z.strictObject({ sound: z.boolean(), theme: z.enum(["dark", "light"]), healthyMode: z.boolean() }),
   schemaVersion: version,
 });
 
@@ -28,7 +34,7 @@ export const profileRecordSchema = z.strictObject({
  */
 const loose = (key: string, keySchema: z.ZodType) => z.looseObject({ [key]: keySchema, schemaVersion: version });
 
-/** Clave primaria de cada tabla (igual que STORES_V1). */
+/** Clave primaria de cada tabla (igual que STORES_V2). */
 export const PRIMARY_KEYS: Record<DataTableName, string> = {
   profile: "id",
   unitProgress: "unitKey",
@@ -42,6 +48,7 @@ export const PRIMARY_KEYS: Record<DataTableName, string> = {
   gymResults: "id",
   mistakes: "exerciseId",
   reports: "id",
+  days: "day",
 };
 
 const tables = z.strictObject({
@@ -57,6 +64,7 @@ const tables = z.strictObject({
   gymResults: z.array(loose("id", autoKey)),
   mistakes: z.array(loose("exerciseId", stringKey)),
   reports: z.array(loose("id", autoKey)),
+  days: z.array(loose("day", day)),
 } satisfies Record<DataTableName, z.ZodType>);
 
 export const backupSchema = z.strictObject({

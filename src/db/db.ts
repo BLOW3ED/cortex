@@ -6,6 +6,7 @@ import type {
   AchievementRecord,
   AttemptRecord,
   CardRecord,
+  DayRecord,
   GhostRecord,
   GymResultRecord,
   MetaRecord,
@@ -92,6 +93,7 @@ export class CortexDb extends Dexie {
   gymResults!: EntityTable<GymResultRecord, "id">;
   mistakes!: EntityTable<MistakeRecord, "exerciseId">;
   reports!: EntityTable<ReportRecord, "id">;
+  days!: EntityTable<DayRecord, "day">;
 
   /** `true` si se cerró porque otra pestaña pidió actualizar o borrar la base. */
   closedElsewhere = false;
@@ -127,8 +129,10 @@ export class CortexDb extends Dexie {
     });
 
     // Cada registro guarda la versión de esquema con la que se escribió (docs/02).
+    // Solo las tablas que existen en la última versión de este historial (las pruebas abren la v1).
+    const last = history[history.length - 1]?.stores ?? {};
     for (const name of TABLE_NAMES) {
-      if (name === "meta") continue;
+      if (name === "meta" || !last[name]) continue;
       const table = this.table(name);
       table.hook("creating", (_key, obj: { schemaVersion?: number }) => {
         obj.schemaVersion = current;
@@ -158,12 +162,19 @@ export async function probeDb(options: DexieOptions = {}): Promise<ProbeResult> 
     if (!names.includes(APP_ID)) return { exists: false, version: 0, metaVersion: null };
   }
   const probe = new Dexie(APP_ID, options);
+  // Si otra pestaña pide subir la versión mientras la sonda está abierta, se cierra y no la bloquea.
+  probe.on("versionchange", () => {
+    probe.close();
+    return false;
+  });
   try {
     await probe.open();
     const version = Math.floor(probe.backendDB().version / 10);
     let metaVersion: number | null = null;
     if (probe.tables.some((t) => t.name === "meta")) {
-      const row = (await probe.table("meta").get("schemaVersion")) as MetaRecord | undefined;
+      // Dentro de una transacción explícita: su promesa se cumple cuando la transacción TERMINA, así
+      // `close()` no deja lecturas en vuelo (que cuentan como conexión abierta y dan un `blocked`).
+      const row = await probe.transaction("r", "meta", () => probe.table("meta").get("schemaVersion") as Promise<MetaRecord | undefined>);
       metaVersion = typeof row?.value === "number" ? row.value : null;
     }
     return { exists: true, version, metaVersion };

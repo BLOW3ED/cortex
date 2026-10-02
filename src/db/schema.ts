@@ -1,4 +1,5 @@
 import type { Transaction } from "dexie";
+import { upgradeV1toV2 } from "./migrations";
 
 /**
  * Esquema de IndexedDB (docs/02, ADR-013 y ADR-014).
@@ -7,7 +8,7 @@ import type { Transaction } from "dexie";
  * `SCHEMA_HISTORY` (con su `upgrade` y su prueba de migración) y sube `SCHEMA_VERSION`.
  */
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 /** Tablas e índices de la versión 1. La primera clave es la primaria (`++` = autoincremental). */
 export const STORES_V1 = {
@@ -26,8 +27,18 @@ export const STORES_V1 = {
   reports: "++id, exerciseId, createdAt",
 } as const;
 
-export type TableName = keyof typeof STORES_V1;
-export const TABLE_NAMES = Object.keys(STORES_V1) as TableName[];
+/**
+ * Versión 2 (Fase 1): agrega `days` (contadores por día local: racha, misiones, liga, modo sano).
+ * Los campos nuevos no indexados de perfil, tarjetas, errores y unidades se llenan en el upgrade
+ * (ver `migrations.ts`).
+ */
+export const STORES_V2 = {
+  ...STORES_V1,
+  days: "day",
+} as const;
+
+export type TableName = keyof typeof STORES_V2;
+export const TABLE_NAMES = Object.keys(STORES_V2) as TableName[];
 
 /** Tablas de datos de Carlo (todas menos `meta`, que la app regenera). */
 export const DATA_TABLES = TABLE_NAMES.filter((t): t is Exclude<TableName, "meta"> => t !== "meta");
@@ -41,4 +52,7 @@ export interface SchemaStep {
 }
 
 /** Historial completo y append-only del esquema. */
-export const SCHEMA_HISTORY: readonly SchemaStep[] = [{ version: 1, stores: STORES_V1 }];
+export const SCHEMA_HISTORY: readonly SchemaStep[] = [
+  { version: 1, stores: STORES_V1 },
+  { version: 2, stores: STORES_V2, upgrade: upgradeV1toV2 },
+];

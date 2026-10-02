@@ -1,6 +1,7 @@
 import { APP_ID } from "@/lib/app";
 import { type Backup, BACKUP_FORMAT, backupSchema, type BackupTables, PRIMARY_KEYS } from "./backup-schema";
 import type { CortexDb } from "./db";
+import { cardV1toV2, mistakeV1toV2, profileV1toV2, unitProgressV1toV2 } from "./migrations";
 import { DATA_TABLES, type DataTableName, SCHEMA_VERSION } from "./schema";
 
 /** Tamaño máximo por defecto de un respaldo a importar (100 MB). */
@@ -97,14 +98,34 @@ export function parseBackup(text: string, maxBytes: number = DEFAULT_MAX_BACKUP_
   return { ok: true, backup: r.data };
 }
 
-/** Lleva un respaldo viejo a la versión actual. En v1 no hay nada que migrar. */
+/**
+ * Lleva un respaldo viejo a la versión actual con las mismas transformaciones que el `upgrade` de
+ * Dexie. Recibe datos SIN validar: solo toca lo que tiene la forma esperada y deja que Zod juzgue.
+ */
 export function migrateBackup(backup: Backup): Backup {
-  switch (backup.schemaVersion) {
-    case 1:
-      return backup;
-    default:
-      return backup;
-  }
+  let b = backup as unknown as { schemaVersion: number; tables?: unknown };
+  if (b.schemaVersion === 1) b = v1toV2(b);
+  return b as unknown as Backup;
+}
+
+function v1toV2(b: { schemaVersion: number; tables?: unknown }): { schemaVersion: number; tables?: unknown } {
+  const t = b.tables;
+  if (typeof t !== "object" || t === null || Array.isArray(t)) return { ...b, schemaVersion: 2 };
+  const tables = { ...(t as Record<string, unknown>) };
+  const mapRows = (name: string, fn: (r: Record<string, unknown>) => Record<string, unknown>) => {
+    const rows = tables[name];
+    if (Array.isArray(rows)) {
+      tables[name] = rows.map((r: unknown) =>
+        typeof r === "object" && r !== null && !Array.isArray(r) ? { ...fn(r as Record<string, unknown>), schemaVersion: 2 } : r,
+      );
+    }
+  };
+  mapRows("profile", profileV1toV2);
+  mapRows("cards", cardV1toV2);
+  mapRows("mistakes", mistakeV1toV2);
+  mapRows("unitProgress", unitProgressV1toV2);
+  if (!("days" in tables)) tables.days = [];
+  return { ...b, schemaVersion: 2, tables };
 }
 
 export interface BackupSummary {
