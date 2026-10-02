@@ -1,0 +1,206 @@
+---
+titulo: "Recursión: funciones que se llaman a sí mismas"
+materia: programacion
+unidad: 09-recursion
+duracion_min: 25
+prerrequisitos: [funciones-definicion, parametros-retorno, ciclo-while, listas-python, cadenas]
+conceptos: [recursion-base, caso-base, pila-de-llamadas, recursion-vs-iteracion, recursion-en-secuencias, divide-y-venceras]
+programa_ref: "pendiente"
+---
+
+## El problema
+
+Quieres contar todos los archivos de una carpeta que tiene subcarpetas, que a su vez tienen subcarpetas, y así sin saber cuántos niveles hay. No puedes escribir "un ciclo dentro de otro dentro de otro" porque no sabes cuántos ciclos poner. Pero la regla es sencilla: los archivos de una carpeta son los suyos **más** los de cada subcarpeta, y contar los de una subcarpeta es *el mismo problema, más pequeño*. Cuando un problema contiene copias más chicas de sí mismo, la recursión lo resuelve de forma natural.
+
+<Predice pregunta="Si `f(n)` regresa `n + f(n - 1)` y `f(0)` regresa 0, ¿cuánto vale `f(4)`? ¿Y qué pasaría si borras la regla de `f(0)`?" revela="`f(4) = 4 + 3 + 2 + 1 + 0 = 10`. Sin la regla de `f(0)`, la función se llamaría con -1, -2, -3... sin parar, hasta agotar la memoria reservada para las llamadas: en Python termina con `RecursionError` y en C el programa truena." />
+
+## Idea central
+
+<Concepto titulo="Función recursiva">
+Una función es **recursiva** cuando, para resolver un problema, se llama a sí misma con una versión **más pequeña** del mismo problema. Toda función recursiva correcta tiene dos partes:
+
+- **Caso base:** un caso tan simple que se responde directo, sin volver a llamarse.
+- **Caso recursivo:** reduce el problema, se llama con la versión reducida y usa ese resultado para armar la respuesta.
+</Concepto>
+
+El factorial es el ejemplo clásico: $n! = n \cdot (n-1)!$ y $0! = 1$.
+
+```python
+def factorial(n):
+    if n == 0:                    # caso base
+        return 1
+    return n * factorial(n - 1)   # caso recursivo
+```
+
+```c
+long long factorial(int n) {
+    if (n == 0) {                 /* caso base */
+        return 1;
+    }
+    return n * factorial(n - 1);  /* caso recursivo */
+}
+```
+
+Para escribir cualquier función recursiva hazte tres preguntas:
+
+1. **¿Cuál es el caso más simple y cuánto vale?** Ese es el caso base.
+2. **Si alguien ya me diera la respuesta del problema un poco más chico, ¿cómo la uso?** Ese es el caso recursivo. No intentes seguir mentalmente todas las llamadas: confía en que la llamada más chica funciona, igual que confías en `len` o `printf`.
+3. **¿Cada llamada se acerca al caso base?** Si no, la función nunca termina.
+
+## La pila de llamadas
+
+<Concepto titulo="Pila de llamadas">
+Cada vez que se llama una función se crea un **marco**: un espacio con sus parámetros y variables locales que se pone encima de la pila de llamadas. Cuando la función regresa, su marco se quita y la ejecución sigue en quien la llamó, justo donde se había quedado. En la recursión hay varios marcos de la **misma** función a la vez, cada uno con su propia `n`.
+</Concepto>
+
+Así se ve `factorial(3)`. La sangría indica qué tan alta está la pila:
+
+```text
+factorial(3)  espera  3 * factorial(2)
+  factorial(2)  espera  2 * factorial(1)
+    factorial(1)  espera  1 * factorial(0)
+      factorial(0)  regresa 1           <- caso base: la pila está en su punto más alto
+    factorial(1)  regresa 1 * 1 = 1
+  factorial(2)  regresa 2 * 1 = 2
+factorial(3)  regresa 3 * 2 = 6
+```
+
+En la **ida** se apilan marcos y cada uno se queda esperando; en la **vuelta** se desapilan y se hacen las multiplicaciones pendientes. Por eso importa dónde pones el código: lo que va *antes* de la llamada recursiva ocurre en la ida, y lo que va *después*, en la vuelta.
+
+```python
+def ida_y_vuelta(n):
+    if n == 0:
+        return
+    print("bajo", n)        # en la ida: 3, 2, 1
+    ida_y_vuelta(n - 1)
+    print("subo", n)        # en la vuelta: 1, 2, 3
+```
+
+La pila tiene tamaño limitado. Python corta la recursión a cierta profundidad (por defecto 1000 llamadas; `sys.getrecursionlimit()` te dice el valor) y lanza `RecursionError`. En C no hay aviso: si la recursión es demasiado profunda la pila se desborda (*stack overflow*) y el programa termina abruptamente.
+
+## Recursión sobre secuencias
+
+<Concepto titulo="El primero y el resto">
+Una lista o una cadena se puede ver como **su primer elemento** más **el resto**, que es otra secuencia más corta. El caso base suele ser la secuencia vacía.
+</Concepto>
+
+```python
+def suma(xs):
+    if len(xs) == 0:               # lista vacía: suma 0
+        return 0
+    return xs[0] + suma(xs[1:])    # el primero más la suma del resto
+
+def contar(s, letra):
+    if s == "":
+        return 0
+    return (1 if s[0] == letra else 0) + contar(s[1:], letra)
+```
+
+`xs[1:]` crea una copia de la lista en cada llamada, lo que cuesta tiempo y memoria. En listas grandes conviene pasar un índice en lugar de rebanar. En C eso es lo normal: se pasa el arreglo y cuántos elementos quedan.
+
+```c
+int suma(const int a[], int n) {
+    if (n == 0) {
+        return 0;
+    }
+    return a[n - 1] + suma(a, n - 1);   /* el último más la suma de los primeros n-1 */
+}
+```
+
+## Recursión contra iteración
+
+Todo lo que se hace con recursión se puede hacer con ciclos (a veces guardando los pendientes en una pila propia), y al revés. La pregunta es cuál conviene:
+
+- **Recursión** cuando el problema tiene forma recursiva: carpetas dentro de carpetas, árboles, divide y vencerás. El código queda corto y parecido a la definición.
+- **Iteración** cuando es un recorrido lineal sencillo: no gasta pila y suele ser más rápida.
+- **Cuidado con la recursión que repite trabajo.** Fibonacci escrito directo de la definición, `fib(n) = fib(n - 1) + fib(n - 2)`, recalcula los mismos valores una y otra vez: `fib(30)` hace 2 692 537 llamadas. Con un ciclo bastan 30 pasos.
+
+```python
+def fib(n):                  # recursiva: elegante pero lentísima
+    if n < 2:
+        return n
+    return fib(n - 1) + fib(n - 2)
+
+def fib_ciclo(n):            # iterativa: n pasos
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+```
+
+## Divide y vencerás
+
+<Concepto titulo="Divide y vencerás">
+Es una estrategia en tres pasos: **dividir** el problema en partes más pequeñas del mismo tipo (casi siempre a la mitad), **resolver** cada parte con una llamada recursiva y **combinar** las soluciones parciales en la del problema completo.
+</Concepto>
+
+Partir a la mitad es poderoso porque el tamaño baja muy rápido: un millón de elementos se reduce a uno en unas 20 mitades ($2^{20} = 1\,048\,576$). Así funcionan la búsqueda binaria (descarta la mitad donde no puede estar lo que buscas) y el ordenamiento por mezcla (ordena cada mitad y luego las mezcla).
+
+<Ejemplo titulo="Sumar un arreglo por mitades">
+Queremos la suma de los elementos de `a` entre las posiciones `ini` (incluida) y `fin` (excluida), dividiendo a la mitad.
+
+1. **Casos base.** Si el tramo está vacío (`fin - ini == 0`) la suma es 0; si tiene un solo elemento, la suma es ese elemento.
+2. **Dividir.** `medio = (ini + fin) // 2` parte el tramo en `[ini, medio)` y `[medio, fin)`.
+3. **Resolver.** Una llamada recursiva para cada mitad. Las dos son más cortas que el tramo original, así que nos acercamos a los casos base.
+4. **Combinar.** La suma total es la suma de las dos mitades.
+
+```python
+def suma_dyv(a, ini, fin):
+    if fin - ini == 0:
+        return 0
+    if fin - ini == 1:
+        return a[ini]
+    medio = (ini + fin) // 2
+    return suma_dyv(a, ini, medio) + suma_dyv(a, medio, fin)
+
+print(suma_dyv([4, 7, 1, 8], 0, 4))   # 20
+```
+
+```c
+int suma_dyv(const int a[], int ini, int fin) {
+    if (fin - ini == 0) {
+        return 0;
+    }
+    if (fin - ini == 1) {
+        return a[ini];
+    }
+    int medio = (ini + fin) / 2;
+    return suma_dyv(a, ini, medio) + suma_dyv(a, medio, fin);
+}
+```
+
+5. **Rastreo.** Con `[4, 7, 1, 8]`: se divide en `[4, 7]` y `[1, 8]`; cada una se divide en tramos de un elemento (casos base); se combinan $4 + 7 = 11$ y $1 + 8 = 9$, y al final $11 + 9 = 20$.
+
+Para sumar no gana nada contra un ciclo, pero el mismo esqueleto (casos base, dividir, resolver, combinar) es el de algoritmos que sí ganan mucho, como el ordenamiento por mezcla.
+</Ejemplo>
+
+<Desvanecido titulo="Contar dígitos" pasos={[
+  "`digitos(n)` regresa 1 si `n < 10`; si no, regresa `1 + digitos(n // 10)`.",
+  "`digitos(4721)` hace una llamada recursiva con el argumento ___ .",
+  "La cadena de llamadas termina en `digitos(4)`, que es el caso base y regresa ___ .",
+  "Contando la de 4721, llegan a estar ___ marcos de `digitos` en la pila al mismo tiempo.",
+  "Al final, `digitos(4721)` regresa ___ ."
+]} respuestas={["472", "1", "4", "4"]} />
+
+<Ojo>
+- **Caso base ausente o inalcanzable.** Si el caso base es `n == 0` pero llamas con `n - 2` empezando en un impar, te lo saltas y la recursión no para.
+- **Olvidar el `return` del caso recursivo.** En Python la función regresa `None`; en C el valor es basura (el compilador con `-Wall` te avisa).
+- **Llamarse sin usar el resultado.** `factorial(n - 1)` sola, sin `n *` y sin `return`, calcula algo y lo tira.
+- **Caso base que deja fuera la secuencia vacía.** Si el caso base es "un elemento", una lista vacía provoca `IndexError` o recursión infinita.
+- **Recursión que repite trabajo** (como `fib` ingenua): crece de forma explosiva. Usa un ciclo o guarda los resultados ya calculados.
+- **Profundidad.** Recorrer recursivamente una lista de 10 000 elementos con `xs[1:]` choca con el límite de 1000 llamadas de Python: ahí va un ciclo.
+</Ojo>
+
+<Conexion materia="Inteligencia artificial">
+Los árboles de decisión se construyen de forma recursiva: se elige una pregunta que divide los datos en grupos y se construye un subárbol para cada grupo, hasta llegar a grupos que ya no conviene dividir (el caso base). Los programas que juegan ajedrez o gato exploran las jugadas con búsquedas recursivas como minimax: el valor de una posición depende del valor de las posiciones que siguen.
+</Conexion>
+
+<Resumen>
+- Una función recursiva resuelve un problema llamándose con una versión más pequeña; necesita un caso base y un caso recursivo que se acerque a él.
+- Cada llamada crea un marco en la pila: lo que va antes de la llamada ocurre en la ida y lo que va después, en la vuelta; si la recursión es muy profunda, la pila se agota.
+- Úsala cuando el problema tiene forma recursiva (secuencias como primero y resto, divide y vencerás); para recorridos lineales o recursión que repite trabajo, un ciclo es mejor.
+</Resumen>
+
+<Feynman>
+Explícale a alguien, con el ejemplo de `factorial(3)`, qué es el caso base, qué pasa en la pila durante la ida y la vuelta, y por qué `fib` recursiva es tan lenta comparada con un ciclo.
+</Feynman>

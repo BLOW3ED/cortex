@@ -1,0 +1,580 @@
+unidad: programacion/08-archivos
+ejercicios:
+  - id: prog-08-001
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [modos-apertura]
+    enunciado: 'Quieres **agregar** una línea al final de `bitacora.txt` sin borrar lo que ya tiene. ¿Qué modo usas al abrirlo, con `open` en Python o con `fopen` en C?'
+    opciones: ['`"a"`', '`"w"`', '`"r"`', 'Ninguno: hay que leerlo todo, agregar la línea y reescribirlo con `"w"`']
+    correcta: 0
+    explicacion: '`"a"` (agregar) abre el archivo para escribir **al final** y lo crea si no existe. `"w"` lo vaciaría al abrirlo y `"r"` solo permite leer. Reescribir todo funciona, pero es justo el trabajo que `"a"` te ahorra.'
+
+  - id: prog-08-002
+    tipo: completar
+    dificultad: 1
+    conceptos: [archivos-texto-python]
+    enunciado: 'Completa con el nombre del método de Python. `f` es un archivo ya abierto.'
+    texto: 'Para escribir un texto se usa `f.___("hola\n")`; para leer todo el archivo como un solo texto, `f.___()`; y para obtener una lista con todas sus líneas, `f.___()`.'
+    respuestas: ["write", "read", "readlines"]
+    explicacion: '`write` escribe exactamente el texto que le das (sin agregar salto de línea), `read` regresa todo el contenido en una sola cadena y `readlines` regresa una lista con cada línea, incluido su `\n`.'
+
+  - id: prog-08-003
+    tipo: predecir_salida
+    dificultad: 1
+    conceptos: [archivos-texto-python, modos-apertura]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Escribe la salida exacta.'
+    codigo: |
+      with open("saludo.txt", "w") as f:
+          f.write("hola\n")
+      with open("saludo.txt", "a") as f:
+          f.write("mundo\n")
+      with open("saludo.txt") as f:
+          print(f.read().upper())
+    respuesta: "HOLA\nMUNDO"
+    pistas: ["El segundo `open` usa `\"a\"`: ¿borra lo que había?"]
+    explicacion: 'El modo `"w"` crea el archivo con `hola`; el modo `"a"` agrega `mundo` al final sin borrar. Al leerlo todo y pasarlo a mayúsculas se imprimen las dos líneas: `HOLA` y `MUNDO`.'
+
+  - id: prog-08-004
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [manejo-errores-archivos]
+    enunciado: 'En Python, el archivo `datos.txt` no existe y ejecutas `f = open("datos.txt")`. ¿Qué pasa?'
+    opciones:
+      - "Se lanza `FileNotFoundError` y, si nadie la atrapa, el programa se detiene"
+      - "Se crea `datos.txt` vacío"
+      - "`open` regresa `None`"
+      - "Se abre sin error y `f.read()` regresa una cadena vacía"
+    correcta: 0
+    explicacion: 'Sin modo, `open` usa `"r"` (lectura), y leer algo que no existe es un error: Python lanza `FileNotFoundError`. Se puede atrapar con `try` / `except FileNotFoundError` para usar un valor por defecto. Solo `"w"` y `"a"` crean el archivo cuando no existe.'
+
+  - id: prog-08-005
+    tipo: codigo
+    dificultad: 2
+    conceptos: [archivos-texto-python, modos-apertura]
+    lenguaje: python
+    enunciado: 'Escribe `guardar_lineas(nombre, lineas)` que cree el archivo `nombre` (o lo reemplace si ya existía) con cada texto de la lista `lineas` en su propio renglón, terminado en `\n`. Después debe volver a abrir el archivo y regresar su contenido completo.'
+    plantilla: |
+      def guardar_lineas(nombre, lineas):
+          pass
+    solucion: |
+      def guardar_lineas(nombre, lineas):
+          with open(nombre, "w") as f:
+              for linea in lineas:
+                  f.write(linea + "\n")
+          with open(nombre) as f:
+              return f.read()
+    tests:
+      - { expr: 'guardar_lineas("lista.txt", ["uno", "dos"])', esperado: "uno\ndos\n" }
+      - { expr: 'guardar_lineas("vacio.txt", [])', esperado: "" }
+      - { expr: 'guardar_lineas("r.txt", ["viejo", "texto"]) and guardar_lineas("r.txt", ["nuevo"])', esperado: "nuevo\n", oculto: true }
+      - { expr: '(guardar_lineas("c.txt", ["x"]), open("c.txt").read())[1]', esperado: "x\n", oculto: true }
+    pistas: ["Abre con `\"w\"` para escribir y otra vez sin modo (o con `\"r\"`) para leer.", "`write` no agrega el salto de línea: súmalo tú, `linea + \"\\n\"`."]
+    explicacion: 'El modo `"w"` crea el archivo o lo vacía si ya existía (eso revisa la prueba oculta que guarda dos veces en `r.txt`). Cada texto se escribe con su `\n`. Al salir del `with` el archivo se cierra y lo escrito queda en disco, así que al reabrirlo `read()` regresa todo.'
+
+  - id: prog-08-006
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [archivos-c, manejo-errores-archivos]
+    enunciado: '¿Qué regresa `fopen("datos.txt", "r")` en C si `datos.txt` no existe?'
+    opciones:
+      - "`NULL`, y hay que revisarlo antes de usar el archivo"
+      - "`EOF`"
+      - "Un `FILE *` válido de un archivo vacío"
+      - "Nada: el programa se detiene en esa línea con un mensaje de error"
+    correcta: 0
+    explicacion: 'Cuando no puede abrir el archivo, `fopen` regresa `NULL` y el programa sigue como si nada. Si después usas ese apuntador con `fscanf` o `fgets`, el programa truena. Por eso siempre va `if (f == NULL) { ... }` justo después. `EOF` es lo que regresan las funciones de lectura al llegar al final, no `fopen`.'
+
+  - id: prog-08-007
+    tipo: predecir_salida
+    dificultad: 2
+    conceptos: [procesar-lineas]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa?'
+    codigo: |
+      with open("datos.txt", "w") as f:
+          f.write("10\n\n25\n7\n")
+      total = 0
+      with open("datos.txt") as f:
+          for linea in f:
+              linea = linea.strip()
+              if linea:
+                  total += int(linea)
+      print(total)
+    respuesta: "42"
+    pistas: ["Una de las líneas está vacía: ¿qué hace `if linea:` con ella?"]
+    explicacion: 'El archivo tiene cuatro líneas: `10`, una vacía, `25` y `7`. Tras `strip()`, la línea vacía queda como `""`, que es falso, así que se la salta. La suma es 10 + 25 + 7 = 42.'
+
+  - id: prog-08-008
+    tipo: ordenar
+    dificultad: 2
+    conceptos: [archivos-c, manejo-errores-archivos]
+    enunciado: 'Ordena las instrucciones para guardar un resultado en un archivo desde C.'
+    elementos:
+      - '`FILE *f = fopen("salida.txt", "w");`'
+      - '`if (f == NULL) { return 1; }`'
+      - '`fprintf(f, "%d\n", total);`'
+      - '`fclose(f);`'
+    explicacion: 'Primero se abre el archivo y de inmediato se revisa que `fopen` no haya fallado; solo entonces es seguro escribir con `fprintf`. Al final `fclose` vacía el búfer al disco y libera el archivo.'
+
+  - id: prog-08-009
+    tipo: codigo
+    dificultad: 2
+    conceptos: [procesar-lineas, archivos-texto-python]
+    lenguaje: python
+    enunciado: 'Escribe `contar_no_vacias(nombre, texto)` que guarde `texto` en el archivo `nombre`, lo vuelva a abrir y regrese cuántas de sus líneas **no están vacías**. Una línea que solo tiene espacios cuenta como vacía.'
+    plantilla: |
+      def contar_no_vacias(nombre, texto):
+          pass
+    solucion: |
+      def contar_no_vacias(nombre, texto):
+          with open(nombre, "w") as f:
+              f.write(texto)
+          cuenta = 0
+          with open(nombre) as f:
+              for linea in f:
+                  if linea.strip() != "":
+                      cuenta += 1
+          return cuenta
+    tests:
+      - { expr: 'contar_no_vacias("a.txt", "hola\n\nadiós\n")', esperado: 2 }
+      - { expr: 'contar_no_vacias("b.txt", "uno\ndos\ntres\n")', esperado: 3 }
+      - { expr: 'contar_no_vacias("c.txt", "")', esperado: 0, oculto: true }
+      - { expr: 'contar_no_vacias("d.txt", "  \nx\n   \ny")', esperado: 2, oculto: true }
+    pistas: ["Recorre el archivo con `for linea in f:`.", "`linea.strip()` quita espacios y el `\\n`; si queda `\"\"`, la línea estaba vacía."]
+    explicacion: 'Se escribe el texto con `"w"`, se reabre y se recorre línea por línea. `strip()` quita el salto de línea y los espacios, así que una línea de puros espacios queda vacía y no se cuenta. La última línea puede no tener `\n` (caso `"y"`) y aun así se recorre.'
+
+  - id: prog-08-010
+    tipo: codigo
+    dificultad: 2
+    conceptos: [archivos-c, procesar-lineas]
+    lenguaje: c
+    enunciado: 'Lee de la entrada estándar, línea por línea con `fgets`, un texto de cualquier número de líneas (cada una de menos de 200 caracteres). Imprime cuántas líneas hay y la longitud de la más larga sin contar el salto de línea, separadas por un espacio. Recuerda que `stdin` es un `FILE *`: `fgets(linea, sizeof linea, stdin)`.'
+    plantilla: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int main(void) {
+          char linea[256];
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int main(void) {
+          char linea[256];
+          int n = 0;
+          size_t mayor = 0;
+          while (fgets(linea, sizeof linea, stdin) != NULL) {
+              linea[strcspn(linea, "\n")] = '\0';
+              size_t largo = strlen(linea);
+              if (largo > mayor) {
+                  mayor = largo;
+              }
+              n++;
+          }
+          printf("%d %zu\n", n, mayor);
+          return 0;
+      }
+    tests:
+      - { entrada: "hola\nmundo cruel\n", salida: "2 11\n" }
+      - { entrada: "", salida: "0 0\n" }
+      - { entrada: "ab\nabcd", salida: "2 4\n", oculto: true }
+      - { entrada: "\n\nxyz\n", salida: "3 3\n", oculto: true }
+    pistas: ["`fgets` regresa `NULL` cuando ya no hay nada que leer: úsalo como condición del ciclo.", "`linea[strcspn(linea, \"\\n\")] = '\\0';` corta el salto de línea si está."]
+    explicacion: '`fgets` deja el `\n` dentro de la cadena (si la línea lo tenía), así que hay que quitarlo antes de medir con `strlen`; `strcspn` da la posición del primer `\n`, o la longitud si no hay. La última línea puede no traer `\n` (caso `"ab\nabcd"`) y se cuenta igual. Las líneas vacías también son líneas.'
+
+  - id: prog-08-011
+    tipo: depurar
+    dificultad: 3
+    conceptos: [modos-apertura]
+    lenguaje: python
+    enunciado: '`registrar(nombre, inicial, eventos)` debería crear el archivo con el texto `inicial` y luego **agregar** cada evento como una línea al final, para regresar el contenido completo. Pero el archivo termina solo con el último evento. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      def registrar(nombre, inicial, eventos):
+          with open(nombre, "w") as f:
+              f.write(inicial)
+          for e in eventos:
+              with open(nombre, "w") as f:
+                  f.write(e + "\n")
+          with open(nombre) as f:
+              return f.read()
+    linea_bug: 5
+    solucion: |
+      def registrar(nombre, inicial, eventos):
+          with open(nombre, "w") as f:
+              f.write(inicial)
+          for e in eventos:
+              with open(nombre, "a") as f:
+                  f.write(e + "\n")
+          with open(nombre) as f:
+              return f.read()
+    tests:
+      - { expr: 'registrar("log.txt", "inicio\n", ["a", "b"])', esperado: "inicio\na\nb\n" }
+      - { expr: 'registrar("vacio.txt", "", [])', esperado: "" }
+      - { expr: 'registrar("h.txt", "# bitacora\n", ["uno", "dos", "tres"])', esperado: "# bitacora\nuno\ndos\ntres\n", oculto: true }
+    pistas: ["¿Qué le hace el modo `\"w\"` a un archivo que ya tiene texto?"]
+    explicacion: 'Dentro del ciclo, cada `open(nombre, "w")` vacía el archivo antes de escribir, así que solo sobrevive el último evento. Con `"a"` cada evento se agrega al final. El primer `open` sí debe ser `"w"`: así el archivo empieza limpio con el texto inicial.'
+
+  - id: prog-08-012
+    tipo: codigo
+    dificultad: 3
+    conceptos: [archivos-c, modos-apertura, manejo-errores-archivos]
+    lenguaje: c
+    enunciado: 'Lee `n` y luego `n` enteros. Escríbelos en el archivo `numeros.txt`, uno por línea, con `fprintf`, y ciérralo. Después vuelve a abrir `numeros.txt` para leer, lee con `fscanf` hasta que ya no haya números e imprime su suma y el mayor, separados por un espacio. Si el archivo no tiene números, imprime `vacio`. Revisa que cada `fopen` no regrese `NULL`.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n, x;
+          scanf("%d", &n);
+          /* 1) escribe los n números en numeros.txt */
+          /* 2) reabre numeros.txt, léelos y calcula suma y mayor */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n, x;
+          scanf("%d", &n);
+          FILE *f = fopen("numeros.txt", "w");
+          if (f == NULL) {
+              printf("error\n");
+              return 1;
+          }
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &x);
+              fprintf(f, "%d\n", x);
+          }
+          fclose(f);
+
+          f = fopen("numeros.txt", "r");
+          if (f == NULL) {
+              printf("error\n");
+              return 1;
+          }
+          int suma = 0, mayor = 0, leidos = 0;
+          while (fscanf(f, "%d", &x) == 1) {
+              if (leidos == 0 || x > mayor) {
+                  mayor = x;
+              }
+              suma += x;
+              leidos++;
+          }
+          fclose(f);
+          if (leidos == 0) {
+              printf("vacio\n");
+          } else {
+              printf("%d %d\n", suma, mayor);
+          }
+          return 0;
+      }
+    tests:
+      - { entrada: "4\n3 9 -2 5\n", salida: "15 9\n" }
+      - { entrada: "1\n42\n", salida: "42 42\n" }
+      - { entrada: "3\n-5 -1 -7\n", salida: "-13 -1\n", oculto: true }
+      - { entrada: "0\n", salida: "vacio\n", oculto: true }
+    pistas: ["Cierra con `fclose` antes de volver a abrir: así lo escrito llega al disco.", "`fscanf(f, \"%d\", &x)` regresa 1 mientras logra leer un número.", "Si empiezas `mayor` en 0, ¿qué pasa cuando todos son negativos?"]
+    explicacion: 'Se escribe con modo `"w"` y se cierra; luego se reabre con `"r"`. El ciclo `while (fscanf(f, "%d", &x) == 1)` se detiene justo cuando ya no hay números (no uses `feof`). El mayor se inicializa con el primer número leído, no con 0: si todos son negativos, 0 sería un mayor falso.'
+
+  - id: prog-08-013
+    tipo: parsons
+    dificultad: 3
+    conceptos: [formato-csv, procesar-lineas]
+    lenguaje: python
+    enunciado: 'Ordena las líneas (con su sangría) para que `sumar_columna(nombre, texto, col)` guarde `texto`, un CSV con encabezado, en el archivo `nombre` y regrese la suma de la columna número `col` (contando desde 0) de todos los registros. Sobran líneas.'
+    lineas:
+      - "def sumar_columna(nombre, texto, col):"
+      - '    with open(nombre, "w") as f:'
+      - "        f.write(texto)"
+      - "    total = 0"
+      - "    with open(nombre) as f:"
+      - "        f.readline()"
+      - "        for linea in f:"
+      - '            campos = linea.strip().split(",")'
+      - "            total += float(campos[col])"
+      - "    return total"
+    distractores:
+      - '    with open(nombre, "a") as f:'
+      - "            total += campos[col]"
+    tests:
+      - { expr: 'sumar_columna("v.csv", "a,b\n1,2\n3,4\n", 1)', esperado: 6 }
+      - { expr: 'sumar_columna("w.csv", "x,y,z\n1.5,0,2\n", 0)', esperado: 1.5 }
+    explicacion: 'Primero se escribe el archivo con `"w"` (con `"a"`, un archivo previo con el mismo nombre conservaría datos viejos). Al leer, `f.readline()` consume el encabezado y el `for` recorre los registros. Cada campo es texto: hay que convertirlo con `float` antes de sumarlo, si no, `total += campos[col]` intenta sumar un número con una cadena.'
+
+  - id: prog-08-014
+    tipo: predecir_salida
+    dificultad: 3
+    conceptos: [formato-csv, archivos-texto-python]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son dos líneas.'
+    codigo: |
+      texto = "producto,precio\npan,12\nleche,28\n"
+      with open("lista.csv", "w") as f:
+          f.write(texto)
+      with open("lista.csv") as f:
+          lineas = f.readlines()
+      print(len(lineas))
+      print(lineas[1].strip().split(","))
+    respuesta: "3\n['pan', '12']"
+    pistas: ["`readlines` también cuenta el encabezado.", "`split` regresa una lista de cadenas: el precio sigue siendo texto."]
+    explicacion: 'El archivo tiene tres líneas (encabezado y dos registros), así que `readlines` da una lista de 3. `lineas[1]` es `"pan,12\n"`; `strip` le quita el `\n` y `split(",")` la separa en `[''pan'', ''12'']`. El `12` sigue siendo texto hasta que lo conviertas con `int` o `float`.'
+
+  - id: prog-08-015
+    tipo: codigo
+    dificultad: 3
+    conceptos: [formato-csv]
+    lenguaje: python
+    enunciado: 'Escribe `promedios_csv(nombre, texto)` que guarde `texto` en el archivo `nombre` y luego lo lea para regresar un diccionario `alumno → promedio de sus tres parciales`, redondeado a 2 decimales con `round`. El texto es un CSV con el encabezado `nombre,p1,p2,p3` y un alumno por línea; puede terminar con líneas vacías, que se ignoran.'
+    plantilla: |
+      def promedios_csv(nombre, texto):
+          pass
+    solucion: |
+      def promedios_csv(nombre, texto):
+          with open(nombre, "w") as f:
+              f.write(texto)
+          promedios = {}
+          with open(nombre) as f:
+              f.readline()
+              for linea in f:
+                  linea = linea.strip()
+                  if linea == "":
+                      continue
+                  campos = linea.split(",")
+                  suma = float(campos[1]) + float(campos[2]) + float(campos[3])
+                  promedios[campos[0]] = round(suma / 3, 2)
+          return promedios
+    tests:
+      - { expr: 'promedios_csv("g.csv", "nombre,p1,p2,p3\nAna,9,8,10\nLuis,7,6.5,8\n")', esperado: { "Ana": 9, "Luis": 7.17 } }
+      - { expr: 'promedios_csv("h.csv", "nombre,p1,p2,p3\nEva,10,10,9.5\n\n")', esperado: { "Eva": 9.83 } }
+      - { expr: 'promedios_csv("i.csv", "nombre,p1,p2,p3\n")', esperado: {}, oculto: true }
+    pistas: ["Salta el encabezado con `f.readline()` antes del ciclo.", "Cada campo es texto: conviértelo con `float` antes de sumar.", "Si después de `strip()` la línea queda vacía, sáltala con `continue`."]
+    explicacion: 'Se escribe el archivo, se reabre, se descarta el encabezado y por cada línea no vacía se separa por comas. El primer campo es la clave del diccionario y los otros tres se convierten a `float` para promediarlos. Sin el filtro de líneas vacías, `campos[1]` provocaría un `IndexError` con la línea en blanco del final.'
+
+  - id: prog-08-016
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [manejo-errores-archivos, modos-apertura, archivos-c]
+    enunciado: 'Supón que escribes un programa que lleva tus gastos en `gastos.txt`: al iniciar lee los gastos anteriores, y cada vez que registras uno nuevo lo guarda. Explica qué modo de apertura usarías en cada momento, qué pasa la primera vez que lo ejecutas (cuando el archivo aún no existe) y cómo lo manejarías en Python y en C.'
+    rubrica:
+      - "Usa `\"r\"` para leer los gastos anteriores y `\"a\"` para agregar cada gasto nuevo (o explica por qué `\"w\"` borraría el historial)."
+      - "Reconoce que la primera vez el archivo no existe y abrirlo para leer falla."
+      - "En Python atrapa `FileNotFoundError` (o revisa con `os.path.exists`) y empieza con una lista vacía."
+      - "En C revisa si `fopen` regresó `NULL` antes de leer, y cierra el archivo con `fclose`."
+    respuesta_modelo: 'Al iniciar abro `gastos.txt` en modo `"r"` para cargar lo anterior. La primera vez el archivo no existe: en Python eso lanza `FileNotFoundError`, que atrapo con `try` / `except` para empezar con una lista vacía; en C, `fopen` regresa `NULL`, lo reviso con un `if` y en ese caso arranco sin gastos en lugar de leer. Para guardar cada gasto nuevo uso `"a"`, que agrega al final y crea el archivo si no existía; con `"w"` borraría todo el historial en cada registro. En Python uso `with` para que el archivo se cierre solo; en C llamo `fclose` al terminar.'
+    explicacion: 'El punto clave es que "no existe" no es un error del programa sino un caso normal la primera vez. Si usaste `"w"` para registrar gastos nuevos, repasa la tabla de modos de apertura.'
+    tarjeta: false
+
+  - id: prog-08-017
+    tipo: depurar
+    dificultad: 4
+    conceptos: [archivos-c, procesar-lineas]
+    lenguaje: c
+    enunciado: 'Este programa copia la entrada estándar al archivo `lista.txt` y después cuenta cuántas líneas tiene el archivo (cada línea mide menos de 200 caracteres). Con palabras cortas funciona, pero con líneas largas cuenta de más. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      #include <stdio.h>
+
+      int main(void) {
+          char linea[8];
+          int n = 0;
+          FILE *f = fopen("lista.txt", "w");
+          if (f == NULL) {
+              return 1;
+          }
+          while (fgets(linea, sizeof linea, stdin) != NULL) {
+              fputs(linea, f);
+          }
+          fclose(f);
+          f = fopen("lista.txt", "r");
+          if (f == NULL) {
+              return 1;
+          }
+          while (fgets(linea, sizeof linea, f) != NULL) {
+              n++;
+          }
+          fclose(f);
+          printf("%d\n", n);
+          return 0;
+      }
+    linea_bug: 4
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          char linea[256];
+          int n = 0;
+          FILE *f = fopen("lista.txt", "w");
+          if (f == NULL) {
+              return 1;
+          }
+          while (fgets(linea, sizeof linea, stdin) != NULL) {
+              fputs(linea, f);
+          }
+          fclose(f);
+          f = fopen("lista.txt", "r");
+          if (f == NULL) {
+              return 1;
+          }
+          while (fgets(linea, sizeof linea, f) != NULL) {
+              n++;
+          }
+          fclose(f);
+          printf("%d\n", n);
+          return 0;
+      }
+    tests:
+      - { entrada: "pan\nleche\n", salida: "2\n" }
+      - { entrada: "mantequilla\nhuevo\n", salida: "2\n" }
+      - { entrada: "", salida: "0\n", oculto: true }
+      - { entrada: "una linea bastante larga sin salto al final", salida: "1\n", oculto: true }
+    pistas: ["Sigue a mano el segundo ciclo con la línea `mantequilla`: ¿cuántos caracteres caben en `linea`?", "`fgets` lee como máximo `tamaño - 1` caracteres por llamada."]
+    explicacion: '`fgets(linea, 8, f)` lee como máximo 7 caracteres por llamada. Una línea larga como `mantequilla` llega en dos pedazos y el ciclo los cuenta como dos líneas. La copia del primer ciclo sí sale bien (los pedazos se vuelven a juntar al escribirlos), por eso el error solo se nota al contar. Con un búfer holgado, como `char linea[256]`, cada línea cabe completa.'
+
+  - id: prog-08-018
+    tipo: codigo
+    dificultad: 4
+    conceptos: [formato-csv, procesar-lineas]
+    lenguaje: c
+    enunciado: |
+      Por la entrada estándar llega un CSV con el encabezado `nombre,calificacion` y luego un registro por línea: un nombre sin comas de menos de 40 caracteres (puede tener espacios) y una calificación decimal. Puede haber líneas vacías, que se ignoran.
+
+      Imprime en una línea el nombre con la calificación más alta (si hay empate, el que aparece primero) y en la siguiente el promedio con dos decimales. Si no hay registros, imprime `sin datos`.
+    plantilla: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int main(void) {
+          char linea[200], nombre[40];
+          double cal;
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int main(void) {
+          char linea[200], nombre[40], mejor[40] = "";
+          double cal, mejor_cal = 0, suma = 0;
+          int n = 0;
+          fgets(linea, sizeof linea, stdin);
+          while (fgets(linea, sizeof linea, stdin) != NULL) {
+              if (sscanf(linea, "%39[^,],%lf", nombre, &cal) != 2) {
+                  continue;
+              }
+              if (n == 0 || cal > mejor_cal) {
+                  mejor_cal = cal;
+                  strcpy(mejor, nombre);
+              }
+              suma += cal;
+              n++;
+          }
+          if (n == 0) {
+              printf("sin datos\n");
+          } else {
+              printf("%s\n%.2f\n", mejor, suma / n);
+          }
+          return 0;
+      }
+    tests:
+      - { entrada: "nombre,calificacion\nAna,9.5\nLuis,7.25\nEva,9.5\n", salida: "Ana\n8.75\n" }
+      - { entrada: "nombre,calificacion\nAna Luisa,6\n\nBeto,10\n", salida: "Beto\n8.00\n" }
+      - { entrada: "nombre,calificacion\n", salida: "sin datos\n", oculto: true }
+      - { entrada: "nombre,calificacion\nZoe,4.5", salida: "Zoe\n4.50\n", oculto: true }
+    pistas: ["Lee y descarta el encabezado con un primer `fgets`.", "`sscanf(linea, \"%39[^,],%lf\", nombre, &cal)` regresa 2 solo si la línea trae nombre y calificación; con una línea vacía regresa otra cosa.", "Para guardar el nombre del mejor usa `strcpy`: los arreglos no se asignan con `=`."]
+    explicacion: 'El primer `fgets` consume el encabezado. Por cada línea, `%39[^,]` toma todo hasta la coma (espacios incluidos) y `%lf` la calificación; si `sscanf` no regresa 2, la línea se ignora. Con `>` estricto, un empate no reemplaza al primero. El nombre del mejor se copia con `strcpy` porque `linea` y `nombre` se sobrescriben en la siguiente vuelta.'
+
+  - id: prog-08-019
+    tipo: codigo
+    dificultad: 4
+    conceptos: [manejo-errores-archivos]
+    lenguaje: python
+    enunciado: |
+      Escribe `contar_lineas_de(archivos, pedidos)`:
+
+      1. `archivos` es un diccionario `nombre → texto`: guarda cada texto en un archivo con ese nombre.
+      2. `pedidos` es una lista de nombres: intenta abrir cada uno y cuenta sus líneas como las recorre `for linea in f` (una línea vacía cuenta; un texto vacío tiene 0 líneas). Si el archivo no existe, en lugar de detener el programa anota `-1`.
+
+      Regresa la lista de conteos en el orden de `pedidos`.
+    plantilla: |
+      def contar_lineas_de(archivos, pedidos):
+          pass
+    solucion: |
+      def contar_lineas_de(archivos, pedidos):
+          for nombre, texto in archivos.items():
+              with open(nombre, "w") as f:
+                  f.write(texto)
+          conteos = []
+          for nombre in pedidos:
+              try:
+                  with open(nombre) as f:
+                      conteos.append(len(f.readlines()))
+              except FileNotFoundError:
+                  conteos.append(-1)
+          return conteos
+    tests:
+      - { expr: 'contar_lineas_de({"a.txt": "uno\ndos\n", "b.txt": ""}, ["a.txt", "b.txt"])', esperado: [2, 0] }
+      - { expr: 'contar_lineas_de({"c.txt": "x\n\ny"}, ["fantasma.txt", "c.txt"])', esperado: [-1, 3] }
+      - { expr: 'contar_lineas_de({}, ["no_existe_1.txt", "no_existe_2.txt"])', esperado: [-1, -1], oculto: true }
+      - { expr: 'contar_lineas_de({"d.txt": "solo"}, ["d.txt", "d.txt"])', esperado: [1, 1], oculto: true }
+    pistas: ["Escribe con `\"w\"` y recorre `archivos.items()`.", "Pon el `open` de lectura dentro de `try:` y atrapa `except FileNotFoundError:`.", "`len(f.readlines())` cuenta las líneas, incluida una última sin `\\n`."]
+    explicacion: 'Abrir para leer un archivo inexistente lanza `FileNotFoundError`; al atraparla dentro del ciclo, el programa anota `-1` y sigue con el siguiente nombre. El `try` debe envolver solo la apertura y la lectura de **ese** archivo: si envolviera todo el ciclo, el primer archivo faltante cortaría los demás conteos.'
+
+  - id: prog-08-020
+    tipo: codigo
+    dificultad: 5
+    conceptos: [formato-csv, procesar-lineas]
+    lenguaje: python
+    enunciado: |
+      Escribe `resumir_ventas(texto)` que:
+
+      1. Guarde `texto` en el archivo `ventas.csv`. Su primera línea es el encabezado `producto,cantidad,precio`.
+      2. Lea `ventas.csv` y sume `cantidad × precio` por producto. Las líneas vacías se ignoran. Una línea es **inválida** si no tiene exactamente 3 campos, si la cantidad no es un entero o si el precio no es un número; las inválidas no se suman, solo se cuentan.
+      3. Escriba `resumen.csv` con el encabezado `producto,total`, una línea por producto en orden alfabético con su total a dos decimales y, al final, la línea `invalidas,k`.
+      4. Regrese el contenido de `resumen.csv` leído del disco.
+
+      Ejemplo: con los registros `pan,2,10.5` y `pan,1,10.5`, el resumen tiene la línea `pan,31.50`.
+    plantilla: |
+      def resumir_ventas(texto):
+          pass
+    solucion: |
+      def resumir_ventas(texto):
+          with open("ventas.csv", "w") as f:
+              f.write(texto)
+          totales = {}
+          invalidas = 0
+          with open("ventas.csv") as f:
+              f.readline()
+              for linea in f:
+                  linea = linea.strip()
+                  if linea == "":
+                      continue
+                  campos = linea.split(",")
+                  if len(campos) != 3:
+                      invalidas += 1
+                      continue
+                  producto, cantidad, precio = campos
+                  try:
+                      total = int(cantidad) * float(precio)
+                  except ValueError:
+                      invalidas += 1
+                      continue
+                  totales[producto] = totales.get(producto, 0) + total
+          with open("resumen.csv", "w") as f:
+              f.write("producto,total\n")
+              for producto in sorted(totales):
+                  f.write(f"{producto},{totales[producto]:.2f}\n")
+              f.write(f"invalidas,{invalidas}\n")
+          with open("resumen.csv") as f:
+              return f.read()
+    tests:
+      - { expr: 'resumir_ventas("producto,cantidad,precio\npan,2,10.5\nleche,1,28\npan,1,10.5\n")', esperado: "producto,total\nleche,28.00\npan,31.50\ninvalidas,0\n" }
+      - { expr: 'resumir_ventas("producto,cantidad,precio\ncafe,2,45.5\n\ncafe,1,9\n")', esperado: "producto,total\ncafe,100.00\ninvalidas,0\n" }
+      - { expr: 'resumir_ventas("producto,cantidad,precio\npan,dos,10\nleche,1\nte,1,abc\ncafe,1,50\nluz,1.5,2\n")', esperado: "producto,total\ncafe,50.00\ninvalidas,4\n", oculto: true }
+      - { expr: 'resumir_ventas("producto,cantidad,precio\n")', esperado: "producto,total\ninvalidas,0\n", oculto: true }
+      - { expr: '(resumir_ventas("producto,cantidad,precio\nte,3,5\n"), open("resumen.csv").read())[1]', esperado: "producto,total\nte,15.00\ninvalidas,0\n", oculto: true }
+    pistas: ["Acumula en un diccionario `producto → total` con `totales.get(producto, 0) + ...`.", "`int(\"1.5\")` y `float(\"abc\")` lanzan `ValueError`: atrápalo para contar la línea como inválida.", "Para dos decimales: `f\"{valor:.2f}\"`; para el orden alfabético: `sorted(totales)`."]
+    explicacion: 'Es el patrón completo: escribir, leer línea por línea, validar, convertir, acumular y escribir un resultado. Las validaciones van en orden: primero el número de campos (si no, el desempaque `producto, cantidad, precio = campos` fallaría) y después las conversiones dentro de `try`. `int("1.5")` falla, así que una cantidad decimal cuenta como inválida. El resumen se escribe con `"w"` para que cada ejecución empiece de cero.'

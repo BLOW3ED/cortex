@@ -49,6 +49,13 @@ describe("arnés de Python en Pyodide", () => {
     expect(inFn.results[0]).toEqual({ ok: false, error: "línea 2: IndexError: list index out of range" });
   });
 
+  it("cada corrida usa una carpeta nueva: los archivos de un intento no pasan al siguiente", async () => {
+    const write = await runPy("open('datos.txt', 'w').write('hola')\nimport os\nprint(os.path.exists('datos.txt'))\n", []);
+    expect(write.stdout).toBe("True\n");
+    const read = await runPy("import os\nprint(os.path.exists('datos.txt'))\n", []);
+    expect(read.stdout).toBe("False\n");
+  });
+
   it("califica como verify_content.py (tolerancia, True == 1, tuplas como listas)", async () => {
     const r = await runPy("def f():\n    return 0.1 + 0.2\ndef g():\n    return True\ndef h():\n    return (1, 2.0)\n", ["f()", "g()", "h()"]);
     const s = gradePython(

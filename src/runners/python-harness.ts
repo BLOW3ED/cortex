@@ -8,7 +8,7 @@
  * intérprete de Pyodide (WebAssembly en un Web Worker, sin acceso a tu sistema ni a la red).
  */
 export const PY_HARNESS = String.raw`
-import json as _cx_json, sys as _cx_sys, io as _cx_io, traceback as _cx_tb
+import json as _cx_json, sys as _cx_sys, io as _cx_io, traceback as _cx_tb, os as _cx_os, tempfile as _cx_tmp, shutil as _cx_sh
 
 def _cx_fmt(e):
     line = None
@@ -25,6 +25,11 @@ def __cortex_run(code, exprs):
     old = _cx_sys.stdout
     _cx_sys.stdout = out
     res = {"ok": True, "error": None, "results": [], "stdout": ""}
+    # Carpeta nueva por corrida (como verify_content.py): los archivos de un intento no
+    # contaminan el siguiente.
+    old_cwd = _cx_os.getcwd()
+    work = _cx_tmp.mkdtemp(prefix="cortex-")
+    _cx_os.chdir(work)
     try:
         ns = {"__name__": "__main__"}
         try:
@@ -41,6 +46,8 @@ def __cortex_run(code, exprs):
                     res["results"].append({"ok": False, "error": _cx_fmt(e)})
     finally:
         _cx_sys.stdout = old
+        _cx_os.chdir(old_cwd)
+        _cx_sh.rmtree(work, ignore_errors=True)
     res["stdout"] = out.getvalue()[:20000]
     return _cx_json.dumps(res)
 `;

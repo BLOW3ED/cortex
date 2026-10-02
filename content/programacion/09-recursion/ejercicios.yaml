@@ -1,0 +1,581 @@
+unidad: programacion/09-recursion
+ejercicios:
+  - id: prog-09-001
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [caso-base, pila-de-llamadas]
+    enunciado: 'Una función recursiva no tiene caso base (o nunca lo alcanza). ¿Qué pasa al llamarla?'
+    opciones:
+      - "Se sigue llamando hasta agotar la pila de llamadas: en Python termina con `RecursionError`"
+      - "Regresa 0 automáticamente"
+      - "Se convierte sola en un ciclo infinito que nunca termina ni marca error"
+      - "Se ejecuta una sola vez y se detiene"
+    correcta: 0
+    explicacion: 'Cada llamada agrega un marco a la pila y ninguna regresa, así que los marcos se acumulan hasta llenar la pila. Python lo detecta al llegar a su límite de profundidad y lanza `RecursionError`; en C la pila se desborda y el programa truena.'
+
+  - id: prog-09-002
+    tipo: predecir_salida
+    dificultad: 1
+    conceptos: [recursion-base]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Escribe la salida exacta, una línea por renglón.'
+    codigo: |
+      def cuenta(n):
+          if n == 0:
+              print("Fin")
+          else:
+              print(n)
+              cuenta(n - 1)
+
+      cuenta(3)
+    respuesta: "3\n2\n1\nFin"
+    pistas: ["Cada llamada imprime su `n` y luego llama con `n - 1`."]
+    explicacion: '`cuenta(3)` imprime 3 y llama a `cuenta(2)`, que imprime 2 y llama a `cuenta(1)`, que imprime 1 y llama a `cuenta(0)`. Ese es el caso base: imprime `Fin` y ya no se llama.'
+
+  - id: prog-09-003
+    tipo: completar
+    dificultad: 1
+    conceptos: [caso-base, recursion-base]
+    enunciado: 'Completa `fact(n)`, que calcula $n!$ de forma recursiva (recuerda que $0! = 1$).'
+    texto: 'Caso base: `if n == 0: return ___`. Caso recursivo: `return n * fact(n - ___)`.'
+    respuestas: ["1", "1"]
+    explicacion: 'El caso base es $0! = 1$. El caso recursivo usa $n! = n \cdot (n-1)!$: se llama con `n - 1`, que acerca el argumento a 0 en cada paso.'
+
+  - id: prog-09-004
+    tipo: codigo
+    dificultad: 2
+    conceptos: [recursion-base, caso-base]
+    lenguaje: python
+    enunciado: 'Escribe `suma_digitos(n)`, **recursiva y sin ciclos**, que regrese la suma de los dígitos de un entero `n ≥ 0`. El último dígito es `n % 10` y el número sin su último dígito es `n // 10`.'
+    plantilla: |
+      def suma_digitos(n):
+          pass
+    solucion: |
+      def suma_digitos(n):
+          if n < 10:
+              return n
+          return n % 10 + suma_digitos(n // 10)
+    tests:
+      - { expr: "suma_digitos(1234)", esperado: 10 }
+      - { expr: "suma_digitos(7)", esperado: 7 }
+      - { expr: "suma_digitos(0)", esperado: 0, oculto: true }
+      - { expr: "suma_digitos(1000000)", esperado: 1, oculto: true }
+      - { expr: "suma_digitos(9999999999)", esperado: 90, oculto: true }
+    pistas: ["Caso base: un número de un solo dígito (`n < 10`) suma lo mismo que vale.", "Caso recursivo: el último dígito más la suma de los dígitos de `n // 10`."]
+    explicacion: 'Si `n` tiene un solo dígito, la suma es `n` (eso cubre también el 0). Si no, se separa el último dígito (`n % 10`) y se suma con la suma de los dígitos del resto (`n // 10`), que es el mismo problema con un dígito menos.'
+
+  - id: prog-09-005
+    tipo: predecir_salida
+    dificultad: 2
+    conceptos: [pila-de-llamadas]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son cuatro líneas.'
+    codigo: |
+      def f(n):
+          if n == 0:
+              return
+          print("entra", n)
+          f(n - 1)
+          print("sale", n)
+
+      f(2)
+    respuesta: "entra 2\nentra 1\nsale 1\nsale 2"
+    pistas: ["El `print(\"sale\", n)` de cada marco espera a que termine la llamada recursiva que hizo."]
+    explicacion: 'En la ida se imprime `entra 2` y `entra 1`, y se llega a `f(0)`, que regresa sin imprimir. En la vuelta, primero termina el marco de arriba (`n = 1`, imprime `sale 1`) y después el de abajo (`n = 2`, imprime `sale 2`). Lo que va después de la llamada sale en orden inverso.'
+
+  - id: prog-09-006
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [recursion-vs-iteracion]
+    enunciado: '¿Cuál de estas afirmaciones sobre recursión e iteración es **verdadera**?'
+    opciones:
+      - "Todo lo que hace una función recursiva se puede hacer con ciclos (a veces con una pila propia)"
+      - "La recursión siempre es más rápida que un ciclo equivalente"
+      - "En Python la recursión no tiene límite de profundidad"
+      - "En C una función no puede llamarse a sí misma"
+    correcta: 0
+    explicacion: 'Recursión e iteración tienen el mismo poder: lo recursivo se puede reescribir con ciclos, guardando en una pila propia lo que estaría en los marcos. La recursión no es más rápida (cada llamada tiene su costo), Python la corta por defecto a 1000 niveles y C sí la permite.'
+
+  - id: prog-09-007
+    tipo: codigo
+    dificultad: 2
+    conceptos: [recursion-base, caso-base]
+    lenguaje: c
+    enunciado: 'Escribe la función recursiva `long long potencia(long long b, int e)` que calcule $b^e$ para $e \ge 0$, sin ciclos, con la idea $b^e = b \cdot b^{e-1}$ y $b^0 = 1$. El programa lee `b` y `e` e imprime el resultado. Los datos cumplen que el resultado cabe en un `long long`.'
+    plantilla: |
+      #include <stdio.h>
+
+      long long potencia(long long b, int e) {
+          /* tu código aquí */
+          return 0;
+      }
+
+      int main(void) {
+          long long b;
+          int e;
+          scanf("%lld %d", &b, &e);
+          printf("%lld\n", potencia(b, e));
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      long long potencia(long long b, int e) {
+          if (e == 0) {
+              return 1;
+          }
+          return b * potencia(b, e - 1);
+      }
+
+      int main(void) {
+          long long b;
+          int e;
+          scanf("%lld %d", &b, &e);
+          printf("%lld\n", potencia(b, e));
+          return 0;
+      }
+    tests:
+      - { entrada: "2 10\n", salida: "1024\n" }
+      - { entrada: "5 0\n", salida: "1\n" }
+      - { entrada: "3 13\n", salida: "1594323\n", oculto: true }
+      - { entrada: "-2 3\n", salida: "-8\n", oculto: true }
+      - { entrada: "10 18\n", salida: "1000000000000000000\n", oculto: true }
+    pistas: ["El caso base es `e == 0`: cualquier número a la 0 da 1.", "El caso recursivo multiplica `b` por la potencia con un exponente menos."]
+    explicacion: 'Con `e == 0` se regresa 1. Si no, `b * potencia(b, e - 1)`: cada llamada baja el exponente en 1 hasta llegar a 0. Con `e = 10` se crean 11 marcos en la pila. El tipo `long long` aguanta hasta cerca de $9.2 \times 10^{18}$, por eso cabe $10^{18}$.'
+
+  - id: prog-09-008
+    tipo: ordenar
+    dificultad: 2
+    conceptos: [pila-de-llamadas]
+    enunciado: 'Con `def fact(n): return 1 if n <= 1 else n * fact(n - 1)`, ordena los eventos de la llamada `fact(3)` tal como ocurren.'
+    elementos:
+      - "Empieza `fact(3)` y llama a `fact(2)`"
+      - "Empieza `fact(2)` y llama a `fact(1)`"
+      - "`fact(1)` llega al caso base y regresa 1"
+      - "`fact(2)` calcula 2 × 1 y regresa 2"
+      - "`fact(3)` calcula 3 × 2 y regresa 6"
+    explicacion: 'Las llamadas se apilan hasta llegar al caso base; ninguna multiplicación ocurre en la ida. Después la pila se vacía de arriba hacia abajo: el marco más reciente es el primero en terminar y cada uno usa el resultado del que acaba de regresar.'
+
+  - id: prog-09-009
+    tipo: codigo
+    dificultad: 2
+    conceptos: [recursion-en-secuencias]
+    lenguaje: python
+    enunciado: 'Escribe `invertir(s)`, **recursiva y sin ciclos** (y sin `[::-1]`), que regrese la cadena `s` al revés.'
+    plantilla: |
+      def invertir(s):
+          pass
+    solucion: |
+      def invertir(s):
+          if s == "":
+              return ""
+          return invertir(s[1:]) + s[0]
+    tests:
+      - { expr: 'invertir("hola")', esperado: "aloh" }
+      - { expr: 'invertir("ab")', esperado: "ba" }
+      - { expr: 'invertir("")', esperado: "", oculto: true }
+      - { expr: 'invertir("anita lava la tina")', esperado: "anit al aval atina", oculto: true }
+    pistas: ["Piensa en la cadena como su primer carácter `s[0]` más el resto `s[1:]`.", "¿Dónde va el primer carácter en la cadena invertida?"]
+    explicacion: 'La cadena vacía invertida es ella misma (caso base). Para las demás, el primer carácter pasa al final: se invierte el resto y se le pega `s[0]` al final. Si tu caso base era `len(s) == 1`, la cadena vacía haría una recursión sin fin.'
+
+  - id: prog-09-010
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [divide-y-venceras]
+    enunciado: 'Un algoritmo de divide y vencerás parte una lista de 1024 elementos a la mitad, luego parte una de esas mitades a la mitad, y así sucesivamente. ¿Cuántas divisiones hacen falta para llegar a una lista de un solo elemento?'
+    opciones: ["10", "512", "1024", "32"]
+    valores: [10, 512, 1024, 32]
+    correcta: 0
+    verificar: { sympy: "log(1024, 2)" }
+    pistas: ["Cuenta: 1024, 512, 256, ... ¿cuántos pasos hasta 1?"]
+    explicacion: 'Cada división reduce el tamaño a la mitad: 1024 → 512 → 256 → 128 → 64 → 32 → 16 → 8 → 4 → 2 → 1, son 10 pasos porque $2^{10} = 1024$. Es $\log_2 n$: por eso la búsqueda binaria es tan rápida.'
+
+  - id: prog-09-011
+    tipo: rastreo_memoria
+    dificultad: 3
+    conceptos: [pila-de-llamadas]
+    lenguaje: c
+    enunciado: 'Sigue la pila de llamadas de `fact(3)` y contesta. Cada fila de la pila indica en qué marco vive la variable.'
+    codigo: |
+      #include <stdio.h>
+
+      int fact(int n) {
+          if (n <= 1) {
+              return 1;
+          }
+          int r = n * fact(n - 1);
+          return r;
+      }
+
+      int main(void) {
+          int x = fact(3);
+          printf("%d\n", x);
+          return 0;
+      }
+    pasos:
+      - linea: 3
+        vez: 1
+        nota: 'Se llamó `fact(3)`: se crea un marco nuevo encima del de `main`. La `x` de `main` aún no tiene valor.'
+        pila:
+          - { nombre: "x (main)", valor: "basura" }
+          - { nombre: "n (fact 3)", valor: "3", expr: "n", formato: "%d" }
+      - linea: 3
+        vez: 2
+        pila:
+          - { nombre: "x (main)", valor: "basura" }
+          - { nombre: "n (fact 3)", valor: "3" }
+          - { nombre: "r (fact 3)", valor: "basura" }
+          - { nombre: "n (fact 2)", valor: "2", expr: "n", formato: "%d" }
+        pregunta: '`fact(3)` llamó a `fact(2)`. ¿Cuánto vale `n` en el marco de arriba?'
+        respuesta: "2"
+        expr: "n"
+        formato: "%d"
+      - linea: 3
+        vez: 3
+        nota: 'Hay tres marcos de `fact` a la vez, cada uno con su propia `n`. Este es el más alto: con `n = 1` llega al caso base.'
+        pila:
+          - { nombre: "x (main)", valor: "basura" }
+          - { nombre: "n (fact 3)", valor: "3" }
+          - { nombre: "r (fact 3)", valor: "basura" }
+          - { nombre: "n (fact 2)", valor: "2" }
+          - { nombre: "r (fact 2)", valor: "basura" }
+          - { nombre: "n (fact 1)", valor: "1", expr: "n", formato: "%d" }
+      - linea: 7
+        vez: 1
+        nota: '`fact(1)` regresó 1 y su marco desapareció. Ahora termina la línea 7 en el marco de `fact(2)`.'
+        pila:
+          - { nombre: "x (main)", valor: "basura" }
+          - { nombre: "n (fact 3)", valor: "3" }
+          - { nombre: "r (fact 3)", valor: "basura" }
+          - { nombre: "n (fact 2)", valor: "2" }
+          - { nombre: "r (fact 2)", valor: "2", expr: "r", formato: "%d" }
+        pregunta: '¿Cuánto vale `r` en el marco de `fact(2)`?'
+        respuesta: "2"
+        expr: "r"
+        formato: "%d"
+      - linea: 7
+        vez: 2
+        pila:
+          - { nombre: "x (main)", valor: "basura" }
+          - { nombre: "n (fact 3)", valor: "3" }
+          - { nombre: "r (fact 3)", valor: "6", expr: "r", formato: "%d" }
+        pregunta: '`fact(2)` ya regresó. ¿Cuánto vale `r` en el marco de `fact(3)`?'
+        respuesta: "6"
+        expr: "r"
+        formato: "%d"
+      - linea: 12
+        nota: 'Todos los marcos de `fact` ya se quitaron de la pila; solo queda `main`.'
+        pila:
+          - { nombre: "x (main)", valor: "6", expr: "x", formato: "%d" }
+    explicacion: 'En la ida se apilan los marcos de `fact(3)`, `fact(2)` y `fact(1)`, cada uno con su `n`. `fact(1)` es el caso base y regresa 1 sin llegar a la línea 7. En la vuelta, la línea 7 termina primero en `fact(2)` (r = 2 × 1 = 2) y después en `fact(3)` (r = 3 × 2 = 6). Por eso la primera vez que se completa la línea 7 no es en el marco que la empezó primero.'
+
+  - id: prog-09-012
+    tipo: parsons
+    dificultad: 3
+    conceptos: [recursion-en-secuencias, caso-base]
+    lenguaje: python
+    enunciado: 'Ordena las líneas (con su sangría) para que `maximo(xs)` regrese, de forma recursiva, el mayor elemento de una lista **no vacía**: compara el primero con el máximo del resto. Sobran líneas.'
+    lineas:
+      - "def maximo(xs):"
+      - "    if len(xs) == 1:"
+      - "        return xs[0]"
+      - "    resto = maximo(xs[1:])"
+      - "    if xs[0] > resto:"
+      - "        return xs[0]"
+      - "    return resto"
+    distractores:
+      - "    if len(xs) == 0:"
+      - "    resto = maximo(xs)"
+    tests:
+      - { expr: "maximo([3, 9, 2])", esperado: 9 }
+      - { expr: "maximo([5])", esperado: 5 }
+      - { expr: "maximo([-4, -1, -7])", esperado: -1 }
+    explicacion: 'Como la lista no está vacía, el caso base es la lista de un elemento, cuyo máximo es ese elemento (con `len(xs) == 0` no habría nada que regresar). El caso recursivo calcula el máximo del resto, `maximo(xs[1:])`, y lo compara con el primero. `maximo(xs)` sin recortar llamaría siempre con la misma lista y nunca terminaría.'
+
+  - id: prog-09-013
+    tipo: depurar
+    dificultad: 3
+    conceptos: [caso-base]
+    lenguaje: python
+    enunciado: '`contar_vocales(s)` debería contar las vocales minúsculas sin acento de `s`, pero siempre le falta una cuando la cadena termina en vocal, y con la cadena vacía se rompe. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      def contar_vocales(s):
+          if len(s) == 1:
+              return 0
+          resto = contar_vocales(s[1:])
+          if s[0] in "aeiou":
+              return 1 + resto
+          return resto
+    linea_bug: 2
+    solucion: |
+      def contar_vocales(s):
+          if len(s) == 0:
+              return 0
+          resto = contar_vocales(s[1:])
+          if s[0] in "aeiou":
+              return 1 + resto
+          return resto
+    tests:
+      - { expr: 'contar_vocales("casa")', esperado: 2 }
+      - { expr: 'contar_vocales("murcielago")', esperado: 5 }
+      - { expr: 'contar_vocales("")', esperado: 0, oculto: true }
+      - { expr: 'contar_vocales("xyz")', esperado: 0, oculto: true }
+    pistas: ["¿Qué pasa con el último carácter de la cadena? ¿Alguien lo revisa?", "Sigue `contar_vocales(\"\")`: ¿llega alguna vez a `len(s) == 1`?"]
+    explicacion: 'Con `len(s) == 1` como caso base, el último carácter nunca se revisa: se regresa 0 sin ver si es vocal. Y una cadena vacía nunca tiene longitud 1, así que `s[1:]` sigue dando `""` y la recursión no termina (`RecursionError`). El caso base correcto es la cadena vacía, que tiene 0 vocales.'
+
+  - id: prog-09-014
+    tipo: codigo
+    dificultad: 3
+    conceptos: [recursion-vs-iteracion]
+    lenguaje: python
+    enunciado: |
+      Esta función recursiva calcula el n-ésimo número de Fibonacci, pero con `n = 40` ya tarda muchísimo:
+
+      ```python
+      def fib(n):
+          if n < 2:
+              return n
+          return fib(n - 1) + fib(n - 2)
+      ```
+
+      Escribe `fib_iter(n)` que dé el mismo resultado **con un ciclo**, sin recursión ($F_0 = 0$, $F_1 = 1$).
+    plantilla: |
+      def fib_iter(n):
+          pass
+    solucion: |
+      def fib_iter(n):
+          a, b = 0, 1
+          for _ in range(n):
+              a, b = b, a + b
+          return a
+    tests:
+      - { expr: "fib_iter(0)", esperado: 0 }
+      - { expr: "fib_iter(1)", esperado: 1 }
+      - { expr: "fib_iter(10)", esperado: 55 }
+      - { expr: "fib_iter(50)", esperado: 12586269025, oculto: true }
+      - { expr: "fib_iter(70)", esperado: 190392490709135, oculto: true }
+    pistas: ["Solo necesitas recordar los dos últimos valores.", "Con `a, b = b, a + b` avanzas un paso: el nuevo `a` es el viejo `b`."]
+    explicacion: 'La versión recursiva recalcula los mismos valores muchísimas veces: `fib(n)` hace $2F_{n+1} - 1$ llamadas, así que `fib(70)` no terminaría. Con un ciclo se guardan solo los dos últimos números y cada vuelta avanza uno: `n` pasos en total. Las pruebas ocultas usan `n` grandes justamente para que solo pase la versión con ciclo.'
+
+  - id: prog-09-015
+    tipo: codigo
+    dificultad: 3
+    conceptos: [recursion-en-secuencias, recursion-base]
+    lenguaje: c
+    enunciado: 'Escribe la función recursiva `int es_palindromo(const char *s, int i, int j)` que regrese 1 si el tramo de la cadena entre las posiciones `i` y `j` (inclusive) se lee igual al derecho y al revés, y 0 si no. Sin ciclos: compara los extremos y llama con el tramo de adentro. El programa lee una palabra (sin espacios, de menos de 100 letras) e imprime `si` o `no`.'
+    plantilla: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int es_palindromo(const char *s, int i, int j) {
+          /* tu código aquí */
+          return 0;
+      }
+
+      int main(void) {
+          char palabra[100];
+          scanf("%99s", palabra);
+          int n = (int)strlen(palabra);
+          printf("%s\n", es_palindromo(palabra, 0, n - 1) ? "si" : "no");
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int es_palindromo(const char *s, int i, int j) {
+          if (i >= j) {
+              return 1;
+          }
+          if (s[i] != s[j]) {
+              return 0;
+          }
+          return es_palindromo(s, i + 1, j - 1);
+      }
+
+      int main(void) {
+          char palabra[100];
+          scanf("%99s", palabra);
+          int n = (int)strlen(palabra);
+          printf("%s\n", es_palindromo(palabra, 0, n - 1) ? "si" : "no");
+          return 0;
+      }
+    tests:
+      - { entrada: "reconocer\n", salida: "si\n" }
+      - { entrada: "ab\n", salida: "no\n" }
+      - { entrada: "a\n", salida: "si\n", oculto: true }
+      - { entrada: "abca\n", salida: "no\n", oculto: true }
+      - { entrada: "abba\n", salida: "si\n", oculto: true }
+    pistas: ["Caso base: si `i >= j`, el tramo tiene 0 o 1 letras y siempre es palíndromo.", "Si `s[i]` y `s[j]` son distintos, ya sabes la respuesta; si no, revisa el tramo de `i + 1` a `j - 1`."]
+    explicacion: 'Hay dos formas de terminar: el tramo se quedó sin letras o con una sola (`i >= j`, palíndromo) o los extremos no coinciden (no es palíndromo). Si coinciden, la respuesta es la del tramo interior, que es dos letras más corto. Con `i == j` solo, una palabra de longitud par como `abba` se saltaría el caso base, porque `i` y `j` se cruzan sin igualarse.'
+
+  - id: prog-09-016
+    tipo: codigo
+    dificultad: 3
+    conceptos: [divide-y-venceras]
+    lenguaje: c
+    enunciado: 'Lee `n` (1 ≤ n ≤ 1000), luego `n` enteros **ordenados de menor a mayor** y sin repetidos, y al final un entero `x`. Imprime la posición (desde 0) de `x` en el arreglo, o `-1` si no está. Usa una función recursiva `int buscar(const int a[], int ini, int fin, int x)` que revise el elemento de en medio del tramo `a[ini]`...`a[fin]` y siga solo en la mitad donde puede estar `x` (búsqueda binaria).'
+    plantilla: |
+      #include <stdio.h>
+
+      int buscar(const int a[], int ini, int fin, int x) {
+          /* tu código aquí */
+          return -1;
+      }
+
+      int main(void) {
+          int a[1000], n, x;
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &a[i]);
+          }
+          scanf("%d", &x);
+          printf("%d\n", buscar(a, 0, n - 1, x));
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int buscar(const int a[], int ini, int fin, int x) {
+          if (ini > fin) {
+              return -1;
+          }
+          int medio = ini + (fin - ini) / 2;
+          if (a[medio] == x) {
+              return medio;
+          }
+          if (a[medio] < x) {
+              return buscar(a, medio + 1, fin, x);
+          }
+          return buscar(a, ini, medio - 1, x);
+      }
+
+      int main(void) {
+          int a[1000], n, x;
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &a[i]);
+          }
+          scanf("%d", &x);
+          printf("%d\n", buscar(a, 0, n - 1, x));
+          return 0;
+      }
+    tests:
+      - { entrada: "7\n1 3 5 7 9 11 13\n11\n", salida: "5\n" }
+      - { entrada: "3\n2 4 6\n5\n", salida: "-1\n" }
+      - { entrada: "1\n42\n42\n", salida: "0\n", oculto: true }
+      - { entrada: "5\n-9 -4 0 3 8\n-9\n", salida: "0\n", oculto: true }
+      - { entrada: "5\n-9 -4 0 3 8\n8\n", salida: "4\n", oculto: true }
+      - { entrada: "4\n1 2 3 4\n10\n", salida: "-1\n", oculto: true }
+    pistas: ["Caso base: si `ini > fin`, el tramo está vacío y `x` no está.", "Si `a[medio] < x`, `x` solo puede estar a la derecha: sigue con `medio + 1` a `fin`.", "No incluyas `medio` en la siguiente llamada: ya lo revisaste (y si lo incluyes, la recursión puede no terminar)."]
+    explicacion: 'Divide y vencerás: el elemento de en medio parte el tramo en dos. Si es `x`, se regresa su posición; si es menor, `x` solo puede estar a la derecha; si es mayor, a la izquierda. Cada llamada descarta al menos la mitad, así que con 1000 elementos bastan unas 10 llamadas. Si el tramo queda vacío (`ini > fin`), `x` no está.'
+
+  - id: prog-09-017
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [recursion-vs-iteracion, caso-base]
+    enunciado: 'Explica con tus palabras cómo escribirías una función recursiva que cuente cuántas veces aparece un número `x` en una lista: cuál es su caso base, cuál su caso recursivo y por qué termina. Después di en qué situación preferirías escribirla con un ciclo.'
+    rubrica:
+      - "Da un caso base correcto: la lista vacía tiene 0 apariciones."
+      - "Da un caso recursivo que reduce el problema: revisa el primer elemento (suma 1 si es `x`) y le suma el conteo del resto."
+      - "Explica que termina porque cada llamada recibe una lista más corta hasta llegar a la vacía."
+      - "Da una razón válida para preferir el ciclo: listas muy largas (límite de profundidad o desborde de la pila), el costo de copiar `xs[1:]`, o que un recorrido lineal es más simple con un `for`."
+    respuesta_modelo: 'Caso base: si la lista está vacía, `x` aparece 0 veces. Caso recursivo: miro el primer elemento; si es igual a `x` cuento 1 y si no, 0, y le sumo lo que regrese la función con el resto de la lista (`xs[1:]`). Termina porque cada llamada recibe una lista con un elemento menos, así que tarde o temprano llega a la vacía. Con un ciclo la escribiría si la lista puede ser muy larga: en Python con más de unos mil elementos chocaría con el límite de recursión, cada `xs[1:]` copia la lista y un `for` con un contador hace lo mismo de forma más directa.'
+    explicacion: 'Si tu caso base era "lista de un elemento", revisa qué pasa con la lista vacía. Si no supiste por qué termina, vuelve a la tercera pregunta de la sección "Idea central".'
+    tarjeta: false
+
+  - id: prog-09-018
+    tipo: predecir_salida
+    dificultad: 4
+    conceptos: [recursion-vs-iteracion, pila-de-llamadas]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son dos números en una línea.'
+    codigo: |
+      llamadas = 0
+
+      def fib(n):
+          global llamadas
+          llamadas += 1
+          if n < 2:
+              return n
+          return fib(n - 1) + fib(n - 2)
+
+      print(fib(5), llamadas)
+    respuesta: "5 15"
+    pistas: ["Cuenta las llamadas de abajo hacia arriba: `fib(0)` y `fib(1)` hacen 1 llamada cada una; `fib(2)` hace 1 más las de `fib(1)` y `fib(0)`.", "Las llamadas de `fib(n)` son 1 + las de `fib(n - 1)` + las de `fib(n - 2)`."]
+    explicacion: '`fib(5)` vale 5. Si $L(n)$ es el número de llamadas, $L(0) = L(1) = 1$ y $L(n) = 1 + L(n-1) + L(n-2)$: $L(2) = 3$, $L(3) = 5$, $L(4) = 9$ y $L(5) = 15$. Por ejemplo, `fib(2)` se calcula 3 veces y `fib(1)`, 5. Ese trabajo repetido crece casi tan rápido como los propios números de Fibonacci.'
+
+  - id: prog-09-019
+    tipo: codigo
+    dificultad: 4
+    conceptos: [divide-y-venceras, recursion-en-secuencias]
+    lenguaje: python
+    enunciado: |
+      Escribe `ordenar_mezcla(xs)` que regrese una lista **nueva** con los elementos de `xs` ordenados de menor a mayor, usando divide y vencerás (ordenamiento por mezcla). No uses `sort` ni `sorted`.
+
+      1. Si la lista tiene 0 o 1 elementos, ya está ordenada.
+      2. Si no, pártela a la mitad y ordena cada mitad con una llamada recursiva.
+      3. Mezcla las dos mitades ordenadas: compara el primer elemento pendiente de cada una, toma el menor y repite; cuando una se acabe, agrega lo que quede de la otra.
+    plantilla: |
+      def ordenar_mezcla(xs):
+          pass
+    solucion: |
+      def mezclar(a, b):
+          res = []
+          i = j = 0
+          while i < len(a) and j < len(b):
+              if a[i] <= b[j]:
+                  res.append(a[i])
+                  i += 1
+              else:
+                  res.append(b[j])
+                  j += 1
+          return res + a[i:] + b[j:]
+
+      def ordenar_mezcla(xs):
+          if len(xs) <= 1:
+              return list(xs)
+          medio = len(xs) // 2
+          return mezclar(ordenar_mezcla(xs[:medio]), ordenar_mezcla(xs[medio:]))
+    tests:
+      - { expr: "ordenar_mezcla([5, 2, 9, 1, 5, 6])", esperado: [1, 2, 5, 5, 6, 9] }
+      - { expr: "ordenar_mezcla([])", esperado: [] }
+      - { expr: "ordenar_mezcla([3, -1])", esperado: [-1, 3], oculto: true }
+      - { expr: "ordenar_mezcla(list(range(500, 0, -1))) == list(range(1, 501))", esperado: true, oculto: true }
+      - { expr: "(lambda xs: (ordenar_mezcla(xs), xs)[1])([3, 1, 2])", esperado: [3, 1, 2], oculto: true }
+    pistas: ["Escribe primero una función auxiliar `mezclar(a, b)` que una dos listas ya ordenadas.", "Para partir: `xs[:medio]` y `xs[medio:]` con `medio = len(xs) // 2`.", "En `mezclar`, usa dos índices, uno por lista; al final agrega `a[i:]` y `b[j:]`."]
+    explicacion: 'Es el esquema completo de divide y vencerás: dividir a la mitad, resolver cada mitad recursivamente y combinar con la mezcla, que recorre las dos listas una sola vez. Las rebanadas crean listas nuevas, así que la original no cambia (lo revisa una prueba oculta). La profundidad de la recursión es de solo unos $\log_2 n$ niveles: con 500 elementos, unos 9.'
+
+  - id: prog-09-020
+    tipo: codigo
+    dificultad: 5
+    conceptos: [divide-y-venceras, recursion-vs-iteracion]
+    lenguaje: python
+    enunciado: |
+      Escribe `potencia_mod(b, e, m)`, recursiva, que regrese $b^e \bmod m$ (con $e \ge 0$ y $m \ge 1$) usando divide y vencerás:
+
+      - $b^0 = 1$.
+      - Si $e$ es par, $b^e = \left(b^{e/2}\right)^2$.
+      - Si $e$ es impar, $b^e = b \cdot b^{e-1}$.
+
+      Aplica `% m` en cada paso para que los números no crezcan. Debe funcionar con exponentes enormes, como $10^{18}$, donde multiplicar $e$ veces nunca terminaría. No uses `pow` ni `**`.
+    plantilla: |
+      def potencia_mod(b, e, m):
+          pass
+    solucion: |
+      def potencia_mod(b, e, m):
+          if e == 0:
+              return 1 % m
+          if e % 2 == 0:
+              mitad = potencia_mod(b, e // 2, m)
+              return mitad * mitad % m
+          return b * potencia_mod(b, e - 1, m) % m
+    tests:
+      - { expr: "potencia_mod(2, 10, 1000)", esperado: 24 }
+      - { expr: "potencia_mod(3, 0, 7)", esperado: 1 }
+      - { expr: "potencia_mod(7, 13, 100)", esperado: 7 }
+      - { expr: "potencia_mod(5, 3, 1)", esperado: 0, oculto: true }
+      - { expr: "potencia_mod(7, 10**18, 1000000007)", esperado: 259616729, oculto: true }
+      - { expr: "potencia_mod(123456789, 10**18 + 1, 998244353)", esperado: 682641697, oculto: true }
+    pistas: ["Si $e$ es par, calcula `mitad = potencia_mod(b, e // 2, m)` **una sola vez** y regresa `mitad * mitad % m`.", "Llamar dos veces a `potencia_mod(b, e // 2, m)` da el resultado correcto, pero vuelve a hacer $e$ multiplicaciones.", "¿Qué debe regresar el caso base si `m` es 1?"]
+    explicacion: 'Con exponente par se resuelve **un** subproblema de la mitad de tamaño y se eleva al cuadrado; con impar se baja a par en un paso. Así el exponente se reduce a la mitad al menos cada dos llamadas: para $10^{18}$ bastan unas 120 llamadas en lugar de $10^{18}$ multiplicaciones. Si en el caso par llamas dos veces a la mitad, cada nivel duplica el trabajo y vuelves a $e$ multiplicaciones. Como todo se reduce módulo `m`, con `m = 1` el resultado siempre es 0.'

@@ -1,0 +1,270 @@
+---
+titulo: "Archivos: datos que sobreviven al programa"
+materia: programacion
+unidad: 08-archivos
+duracion_min: 25
+prerrequisitos: [cadenas, cadenas-c, apuntadores, ciclo-for, diccionarios]
+conceptos: [archivos-texto-python, archivos-c, modos-apertura, procesar-lineas, manejo-errores-archivos, formato-csv]
+programa_ref: "pendiente"
+---
+
+## El problema
+
+Todo lo que tu programa guarda en variables desaparece cuando termina. Si anotas tus gastos del mes y cierras el programa, mañana empiezas de cero. Un archivo es la forma más sencilla de que los datos sobrevivan: el programa los escribe en el disco y la próxima vez los vuelve a leer. Además, casi todos los datos del mundo real (calificaciones, lecturas de sensores, conjuntos de datos para entrenar modelos) llegan como archivos de texto que alguien tiene que leer línea por línea.
+
+<Predice pregunta="El archivo `notas.txt` tiene 3 líneas. Lo abres con `open('notas.txt', 'w')`, escribes una línea y lo cierras. ¿Cuántas líneas tiene ahora?" revela="Una sola. El modo `'w'` (escritura) vacía el archivo en cuanto lo abre. Para agregar al final sin borrar lo anterior, el modo es `'a'` (de append, agregar)." />
+
+## Abrir, usar, cerrar
+
+<Concepto titulo="Archivo de texto">
+Un archivo de texto es una secuencia de caracteres guardada en el disco, organizada en líneas separadas por el carácter `\n`. Trabajar con él siempre tiene tres pasos: **abrirlo** (diciendo para qué), **leer o escribir**, y **cerrarlo** para que todo quede guardado y se libere el recurso.
+</Concepto>
+
+En Python:
+
+```python
+# Escribir: crea el archivo, o lo vacía si ya existía
+with open("gastos.txt", "w") as f:
+    f.write("comida 120\n")        # write NO agrega el salto de línea: lo pones tú
+    f.write("transporte 45\n")
+
+# Leer todo de una vez
+with open("gastos.txt") as f:      # sin modo significa "r" (lectura)
+    contenido = f.read()
+print(contenido)
+```
+
+`with` cierra el archivo al salir del bloque, aunque ocurra un error adentro. Sin `with` tendrías que acordarte de llamar `f.close()`. Para leer tienes varias opciones:
+
+| Llamada | Qué te da |
+|---|---|
+| `f.read()` | todo el archivo en un solo texto |
+| `f.readline()` | la siguiente línea, con su `\n` al final (o `""` si ya no hay) |
+| `f.readlines()` | una lista con todas las líneas, cada una con su `\n` |
+| `for linea in f:` | las líneas una por una; la mejor opción para archivos grandes |
+
+En C, el archivo se maneja con un `FILE *`:
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    FILE *f = fopen("gastos.txt", "w");
+    if (f == NULL) {                      /* abrir puede fallar */
+        printf("No se pudo abrir el archivo\n");
+        return 1;
+    }
+    fprintf(f, "comida %d\n", 120);       /* como printf, pero al archivo */
+    fprintf(f, "transporte %d\n", 45);
+    fclose(f);
+
+    f = fopen("gastos.txt", "r");
+    if (f == NULL) {
+        return 1;
+    }
+    char concepto[50];
+    int monto, total = 0;
+    while (fscanf(f, "%49s %d", concepto, &monto) == 2) {
+        total += monto;
+    }
+    fclose(f);
+    printf("Total: %d\n", total);         /* Total: 165 */
+    return 0;
+}
+```
+
+- `fopen` regresa un `FILE *`, un apuntador a una struct con la que la biblioteca lleva la cuenta del archivo (en qué posición vas, qué hay en el búfer...). Tú solo se lo pasas a las demás funciones.
+- `fprintf(f, ...)`, `fscanf(f, ...)` y `fgets(buf, tam, f)` son las versiones "de archivo" de `printf`, `scanf` y de leer una línea. De hecho, el teclado y la pantalla también son `FILE *`: `stdin` y `stdout`. `fgets(linea, sizeof linea, stdin)` lee una línea de la entrada estándar.
+- `fscanf` regresa cuántos datos logró leer y `EOF` cuando se acaba el archivo. Por eso el ciclo sigue mientras regrese `2`.
+
+## Modos de apertura
+
+<Concepto titulo="Modo de apertura">
+El modo le dice al sistema qué piensas hacer con el archivo, y cambia lo que pasa al abrirlo. Es el mismo texto en Python (`open`) y en C (`fopen`).
+</Concepto>
+
+| Modo | Para qué | Si el archivo no existe | Si ya existe |
+|---|---|---|---|
+| `"r"` | leer | error (`FileNotFoundError` en Python, `NULL` en C) | lee desde el principio |
+| `"w"` | escribir | lo crea | **lo vacía** y escribe desde cero |
+| `"a"` | agregar | lo crea | escribe **al final**, sin borrar nada |
+
+Hay más modos (por ejemplo, con `b` para archivos binarios), pero estos tres cubren el trabajo con texto. Regla práctica: `"w"` cuando generas un archivo completo, `"a"` para bitácoras que crecen, `"r"` para todo lo que solo lees.
+
+## Procesar línea por línea
+
+<Concepto titulo="Patrón de procesamiento por líneas">
+Casi todo programa que lee datos hace lo mismo con cada línea: **leerla, limpiarla, separarla en partes, convertir los tipos y acumular**. Se repite hasta que ya no hay líneas.
+</Concepto>
+
+```python
+total = 0
+with open("gastos.txt") as f:
+    for linea in f:
+        linea = linea.strip()          # quita el "\n" y los espacios de las orillas
+        if linea == "":
+            continue                   # se salta las líneas vacías
+        concepto, monto = linea.split()
+        total += int(monto)
+print(total)                           # 165
+```
+
+En C el equivalente usa `fgets`, que guarda la línea en un arreglo de `char`:
+
+```c
+char linea[256];
+while (fgets(linea, sizeof linea, f) != NULL) {
+    linea[strcspn(linea, "\n")] = '\0';   /* quita el salto de línea (string.h) */
+    /* ... separar y convertir ... */
+}
+```
+
+`fgets` lee hasta el `\n` (y lo incluye) **o** hasta llenar el búfer, lo que pase primero. Si una línea es más larga que el búfer, llega en pedazos y cada pedazo es una vuelta del ciclo. Por eso el búfer debe ser holgado.
+
+## Errores al abrir archivos
+
+<Concepto titulo="Abrir puede fallar">
+El archivo puede no existir, estar en otra carpeta o no tener permisos. Un programa robusto **comprueba** que la apertura funcionó antes de usar el archivo y decide qué hacer si no.
+</Concepto>
+
+En C, `fopen` regresa `NULL`, y usar ese apuntador hace que el programa truene. Siempre se revisa; `perror` imprime en la salida de errores el motivo:
+
+```c
+FILE *f = fopen("config.txt", "r");
+if (f == NULL) {
+    perror("config.txt");      /* algo como: config.txt: No such file or directory */
+    return 1;
+}
+```
+
+En Python, abrir para leer un archivo que no existe lanza `FileNotFoundError`. Se atrapa con `try` / `except` (en la unidad 10 lo verás a fondo; aquí basta este patrón):
+
+```python
+try:
+    with open("config.txt") as f:
+        config = f.read()
+except FileNotFoundError:
+    config = ""                # valor por defecto si no existe
+```
+
+Ojo con dónde se busca el archivo: un nombre sin carpeta, como `"datos.txt"`, se busca en el **directorio de trabajo**, que es la carpeta desde la que se ejecuta el programa, no necesariamente la carpeta donde está tu código.
+
+## CSV: tablas en texto
+
+<Concepto titulo="CSV">
+Un CSV (*comma-separated values*) es un archivo de texto donde cada línea es un registro y los campos se separan con comas. La primera línea suele ser un **encabezado** con los nombres de las columnas.
+</Concepto>
+
+```text
+nombre,parcial1,parcial2
+Ana,9.5,8
+Luis,7,8.5
+```
+
+Leerlo es el patrón por líneas con un paso extra: saltar el encabezado y separar con `split(",")`.
+
+```python
+promedios = {}
+with open("califs.csv") as f:
+    f.readline()                               # salta el encabezado
+    for linea in f:
+        campos = linea.strip().split(",")
+        if len(campos) != 3:
+            continue                           # línea vacía o mal formada
+        nombre = campos[0]
+        promedios[nombre] = (float(campos[1]) + float(campos[2])) / 2
+print(promedios)                               # {'Ana': 8.75, 'Luis': 7.75}
+```
+
+En C, `sscanf` con `%[^,]` (lee todo lo que no sea coma) separa los campos de una línea ya leída:
+
+```c
+char nombre[40];
+double p1, p2;
+if (sscanf(linea, "%39[^,],%lf,%lf", nombre, &p1, &p2) == 3) {
+    printf("%s %.2f\n", nombre, (p1 + p2) / 2);
+}
+```
+
+`split(",")` se rompe si un campo trae comas adentro (`"Pérez, Ana"` entre comillas). Para esos casos Python tiene el módulo `csv` (`csv.reader`), que entiende las comillas.
+
+<Ejemplo titulo="Del CSV al total (Python y C)">
+Supón que `ventas.csv` contiene:
+
+```text
+producto,cantidad,precio
+cuaderno,3,32.50
+pluma,10,8.00
+mochila,1,450.00
+```
+
+Queremos el total vendido, $\sum \text{cantidad}\times\text{precio}$.
+
+1. **Abrir y comprobar.** Si el archivo no se puede abrir, avisamos y terminamos.
+2. **Saltar el encabezado.** Una lectura de línea que se descarta.
+3. **Por cada línea:** separar los tres campos, convertir cantidad a entero y precio a decimal, y acumular el producto.
+4. **Cerrar e imprimir.** Total: $3(32.50) + 10(8.00) + 1(450.00) = 627.50$.
+
+```python
+total = 0
+try:
+    with open("ventas.csv") as f:
+        f.readline()
+        for linea in f:
+            campos = linea.strip().split(",")
+            if len(campos) == 3:
+                total += int(campos[1]) * float(campos[2])
+    print(f"{total:.2f}")                      # 627.50
+except FileNotFoundError:
+    print("No encontré ventas.csv")
+```
+
+```c
+FILE *f = fopen("ventas.csv", "r");
+if (f == NULL) {
+    printf("No encontré ventas.csv\n");
+    return 1;
+}
+char linea[200], producto[50];
+int cantidad;
+double precio, total = 0;
+fgets(linea, sizeof linea, f);                 /* encabezado */
+while (fgets(linea, sizeof linea, f) != NULL) {
+    if (sscanf(linea, "%49[^,],%d,%lf", producto, &cantidad, &precio) == 3) {
+        total += cantidad * precio;
+    }
+}
+fclose(f);
+printf("%.2f\n", total);                       /* 627.50 */
+```
+</Ejemplo>
+
+<Desvanecido titulo="Una línea del CSV, paso a paso" pasos={[
+  "Leíste la línea `'pluma,10,8.00\\n'` y `.strip()` la deja como `'pluma,10,8.00'`.",
+  "`campos = linea.split(',')` produce una lista de ___ elementos.",
+  "`int(campos[1]) * float(campos[2])` vale ___ .",
+  "Si el archivo tiene el encabezado y 3 registros, y antes del ciclo llamaste `f.readline()` una vez, `for linea in f` da ___ vueltas."
+]} respuestas={["3", "80", "3"]} />
+
+<Ojo>
+- **Abrir con `"w"` un archivo que tiene datos los borra.** Si querías agregar, es `"a"`.
+- **Olvidar el `\n` al escribir.** `write` y `fprintf` escriben exactamente lo que les das: sin `\n`, todo queda en una sola línea.
+- **No cerrar el archivo.** Lo que escribes se junta en un búfer en memoria y llega al disco al cerrar (o cuando el búfer se llena). Si en C vuelves a abrir para leer sin haber hecho `fclose`, puedes no encontrar lo que escribiste. En Python, `with` lo resuelve.
+- **Comparar líneas sin limpiarlas.** Cada línea trae su `\n`: `linea == "fin"` es falso aunque la línea diga `fin`. Usa `strip()` en Python o quita el `\n` en C.
+- **`while (!feof(f))` en C.** `feof` solo se vuelve verdadero *después* de que una lectura falló, así que el ciclo da una vuelta de más y procesa el último dato dos veces. Controla el ciclo con lo que regresa `fscanf` o `fgets`.
+- **No revisar `NULL`.** Usar el `FILE *` de un `fopen` fallido hace que el programa truene.
+</Ojo>
+
+<Conexion materia="Inteligencia artificial">
+Muchos conjuntos de datos clásicos se distribuyen como texto separado por comas; por ejemplo, el conjunto Iris del UCI Machine Learning Repository trae 150 registros, uno por flor, con cuatro medidas y la especie. Bibliotecas como pandas leen un CSV con una sola llamada (`pandas.read_csv`), pero por dentro hacen lo mismo que viste aquí: abrir, leer líneas, separar campos, convertir tipos y decidir qué hacer con las líneas mal formadas.
+</Conexion>
+
+<Resumen>
+- Un archivo se abre (con un modo), se lee o escribe y se cierra; en Python `with` lo cierra solo y en C se usa `fopen`, `fprintf`/`fscanf`/`fgets` y `fclose`.
+- `"r"` lee, `"w"` crea o **vacía**, `"a"` agrega al final; abrir puede fallar, así que revisa `NULL` en C y atrapa `FileNotFoundError` en Python.
+- Para procesar datos: lee línea por línea, limpia, separa (por comas en un CSV), convierte y acumula.
+</Resumen>
+
+<Feynman>
+Explícale a alguien qué diferencia hay entre los modos `"w"` y `"a"`, por qué conviene leer un archivo grande línea por línea y qué debe hacer un programa cuando el archivo que necesita no existe. Usa como ejemplo una bitácora de gastos.
+</Feynman>

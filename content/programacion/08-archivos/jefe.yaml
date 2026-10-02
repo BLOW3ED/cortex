@@ -1,0 +1,9 @@
+unidad: programacion/08-archivos
+nombre: "El Bibliotecario que Nunca Cierra"
+vidas: 3
+tiempo_segundos: 1080
+aprobado_minimo: 0.8
+preguntas:
+  propias: [prog-08-003, prog-08-005, prog-08-006, prog-08-007, prog-08-011, prog-08-014, prog-08-017, prog-08-019]
+  repaso_de: []
+recompensa: { xp: 250, insignia: "guardian-del-disco" }
