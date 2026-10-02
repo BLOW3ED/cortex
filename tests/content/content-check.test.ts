@@ -111,6 +111,8 @@ describe("pnpm content:check", () => {
     const r = contentCheck(makeRoot(), [], env);
     expect(r.status).toBe(1);
     expect(r.out).toContain("no encontré Python 3.11+");
-    expect(r.out).toContain("pip install -r scripts/requirements.txt");
+    expect(r.out).toContain("python3 -m venv .venv");
+    expect(r.out).toContain(".venv/bin/python -m pip install -r scripts/requirements.txt");
+    expect(r.out).toContain("CORTEX_PYTHON");
   });
 });

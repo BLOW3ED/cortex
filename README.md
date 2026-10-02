@@ -24,7 +24,12 @@ Estado: **Fase 0 · Fundaciones** (ver `ESTADO.md`). La app ya corre en tu máqu
 ## Arranque rápido
 
 1. Instala: Node 22.12+ (recomendado Node 24 LTS), pnpm 10.28 (`npm i -g pnpm@10.28.0`), Python 3.11+, git. `gcc` es opcional (solo verifica ejercicios en C). En Windows conviene WSL2, con el repo dentro del sistema de archivos de Linux (no en `/mnt/c`).
-2. `pip install -r scripts/requirements.txt`
+2. Dependencias de Python en un entorno virtual (en macOS con Homebrew y en Linux recientes, `pip install` global falla con `externally-managed-environment`):
+   ```bash
+   python3 -m venv .venv
+   .venv/bin/python -m pip install -r scripts/requirements.txt
+   ```
+   `pnpm check` y `pnpm content:check` buscan Python en `CORTEX_PYTHON`, `python3`, `python` y `py -3`: en cada terminal activa el entorno (`source .venv/bin/activate`) o define la ruta absoluta desde la raíz del repo (`export CORTEX_PYTHON="$PWD/.venv/bin/python"`). En WSL2 es igual (en Ubuntu quizá antes necesites `sudo apt install python3-venv`). En Windows sin WSL2: `py -3 -m venv .venv`, `.venv\Scripts\python -m pip install -r scripts/requirements.txt` y `.venv\Scripts\activate`.
 3. `pnpm install --frozen-lockfile`. Si aparece "Ignored build scripts", avísale a Claude Code.
 4. `pnpm dev` y abre **http://localhost:3000**. Usa siempre esa dirección: tus datos viven en el navegador y van ligados a ella. Si el puerto está ocupado, `pnpm dev` falla a propósito en vez de cambiarse a otro (cierra lo que lo use).
 5. Verificaciones: `pnpm content:check` (contenido) y `pnpm check` (lint, tipos y pruebas). Para las pruebas de navegador, una vez: `pnpm exec playwright install chromium` (en Linux/WSL2: `pnpm exec playwright install --with-deps chromium`); luego `pnpm test:e2e`.
