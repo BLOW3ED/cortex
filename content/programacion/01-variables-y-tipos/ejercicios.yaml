@@ -172,3 +172,163 @@ ejercicios:
     respuesta_modelo: 'En C el tipo del resultado depende de los operandos: entero entre entero da entero, así que `7 / 2` es 3. En Python `/` siempre da decimal (3.5) y `//` es la división entera. En C se obtiene 3.5 volviendo decimal un operando: `7 / 2.0` o `(double)7 / 2`.'
     explicacion: 'Si te faltó mencionar el cast o el literal decimal, repasa la sección de tipos y operaciones.'
     tarjeta: false
+
+  - id: prog-01-011
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [precision-flotante]
+    enunciado: 'Después de varios cálculos tienes dos `float` de Python, `a` y `b`, que deberían valer lo mismo. ¿Cuál es la forma más segura de compararlos?'
+    opciones: ["`a == b`", "`abs(a - b) < 1e-9`", "`int(a) == int(b)`", "`a - b == 0`"]
+    correcta: 1
+    pistas: ["Recuerda qué da `0.1 + 0.2 == 0.3`."]
+    explicacion: 'Los decimales se guardan en binario con un pequeño error de redondeo, así que dos cálculos que "deberían" dar lo mismo pueden diferir en la última cifra (`0.1 + 0.2` da `0.30000000000000004`). Por eso se comparan con una tolerancia: que la diferencia sea muy pequeña. `a - b == 0` es lo mismo que `a == b`, e `int(a) == int(b)` diría que 2.1 y 2.9 son iguales. Python trae `math.isclose(a, b)` para esto.'
+
+  - id: prog-01-012
+    tipo: ordenar
+    dificultad: 1
+    conceptos: [estructura-programa-c, entrada-salida]
+    enunciado: 'Supón un programa en C que lee dos números y muestra su suma. Ordena lo que pasa desde que lo escribes hasta que ves el resultado.'
+    elementos:
+      - "Escribes el código fuente en un archivo `.c`"
+      - "El compilador (por ejemplo, `gcc`) lo traduce a un programa ejecutable"
+      - "Ejecutas el programa y empieza a correr `main`"
+      - "`scanf` espera a que escribas los dos números"
+      - "`printf` muestra la suma y `return 0;` termina el programa"
+    explicacion: 'C es un lenguaje compilado: primero el compilador revisa tu código y genera un ejecutable; si hay errores de sintaxis, ni siquiera llegas a ejecutarlo. Al ejecutarlo, todo empieza en `main` y las instrucciones corren en orden: primero se leen los datos y después se usan. `return 0;` le avisa al sistema que el programa terminó bien.'
+
+  - id: prog-01-013
+    tipo: predecir_salida
+    dificultad: 2
+    conceptos: [variables-asignacion, conversion-tipos]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Escribe la salida exacta.'
+    codigo: |
+      a = "3"
+      b = a
+      a = int(a) + 1
+      print(a, b)
+    respuesta: "4 3"
+    pistas: ["Cuando cambias `a`, ¿cambia también `b`?"]
+    explicacion: '`b = a` hace que `b` tenga el valor que `a` tenía en ese momento: el texto `"3"`. Después `a` cambia: `int(a)` convierte el texto en el número 3, se le suma 1 y `a` queda en 4. Reasignar `a` no afecta a `b`, que sigue con `"3"`. `print` muestra los textos sin comillas.'
+
+  - id: prog-01-014
+    tipo: parsons
+    dificultad: 2
+    conceptos: [estructura-programa-c, entrada-salida, formato-salida]
+    lenguaje: c
+    enunciado: 'Ordena las líneas para armar un programa en C que lea una temperatura en grados Celsius (puede tener decimales) e imprima su equivalente en Fahrenheit con un decimal. Fórmula: $F = C\cdot\frac{9}{5}+32$. Sobran dos líneas.'
+    lineas:
+      - "#include <stdio.h>"
+      - "int main(void) {"
+      - "    double c;"
+      - '    scanf("%lf", &c);'
+      - '    printf("%.1f\n", c * 9 / 5 + 32);'
+      - "    return 0;"
+      - "}"
+    distractores: ['    scanf("%lf", c);', '    printf("%d\n", c * 9 / 5 + 32);']
+    tests:
+      - { entrada: "100\n", salida: "212.0\n" }
+      - { entrada: "-40\n", salida: "-40.0\n" }
+      - { entrada: "36.6\n", salida: "97.9\n", oculto: true }
+    pistas: ["No puedes leer una variable antes de declararla, ni imprimir el resultado antes de leer el dato.", "`%lf` lee un `double`; para imprimirlo con un decimal se usa `%.1f`."]
+    explicacion: 'El programa empieza con el `#include` y la función `main`. Adentro se declara la variable, se lee y luego se calcula e imprime; `return 0;` va al final porque lo que esté después de él ya no se ejecuta. Las líneas que sobran tienen errores clásicos: `scanf` necesita la dirección de la variable (`&c`), y `%d` es para enteros, no para un `double`.'
+
+  - id: prog-01-015
+    tipo: opcion_multiple
+    dificultad: 3
+    conceptos: [variables-asignacion]
+    enunciado: 'Quieres intercambiar los valores de dos variables enteras de C, `a` y `b`. Ya tienes declarada otra variable entera, `aux`. ¿Cuál fragmento hace el intercambio?'
+    opciones: ["`a = b; b = a;`", "`aux = a; a = b; b = aux;`", "`aux = a; b = a; a = aux;`", "`aux = b; a = b; b = aux;`"]
+    correcta: 1
+    pistas: ["Rastrea cada opción con `a = 3` y `b = 7`.", "Al hacer `a = b`, ¿dónde quedó el valor viejo de `a`?"]
+    explicacion: 'Al asignar `a = b` se pierde el valor original de `a`, así que antes hay que guardarlo en `aux`. Con `a = 3` y `b = 7`: `aux = 3`, luego `a = 7` y luego `b = 3`. La primera opción deja las dos en 7, la tercera las deja en 3 y la cuarta, en 7. (En Python existe el atajo `a, b = b, a`.)'
+
+  - id: prog-01-016
+    tipo: depurar
+    dificultad: 3
+    conceptos: [aritmetica-entera, conversion-tipos, estructura-programa-c]
+    lenguaje: c
+    enunciado: 'Este programa lee tres calificaciones enteras e imprime su promedio con dos decimales. Con `7 8 10` imprime `8.00` en lugar de `8.33`. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      #include <stdio.h>
+
+      int main(void) {
+          int a, b, c;
+          scanf("%d %d %d", &a, &b, &c);
+          double prom = (a + b + c) / 3;
+          printf("%.2f\n", prom);
+          return 0;
+      }
+    linea_bug: 6
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int a, b, c;
+          scanf("%d %d %d", &a, &b, &c);
+          double prom = (a + b + c) / 3.0;
+          printf("%.2f\n", prom);
+          return 0;
+      }
+    tests:
+      - { entrada: "7 8 10\n", salida: "8.33\n" }
+      - { entrada: "3 3 3\n", salida: "3.00\n" }
+      - { entrada: "1 2 2\n", salida: "1.67\n", oculto: true }
+    pistas: ["¿De qué tipo son los dos operandos de esa división?", "Guardar el resultado en un `double` no recupera decimales que ya se perdieron."]
+    explicacion: '`(a + b + c) / 3` divide un entero entre un entero, así que C hace división entera: 25 / 3 da 8, y **después** ese 8 se guarda como `8.0` en el `double`. Basta que un operando sea decimal para que la división conserve los decimales: `/ 3.0`, o un cast como `(double)(a + b + c) / 3`.'
+
+  - id: prog-01-017
+    tipo: codigo
+    dificultad: 3
+    conceptos: [formato-salida, aritmetica-entera, entrada-salida]
+    lenguaje: c
+    enunciado: 'Escribe un programa en C que lea una cantidad de dinero en centavos (un entero `n >= 0`) e imprima esa cantidad en pesos con exactamente dos decimales, seguida de un salto de línea. Ejemplo: `1205` imprime `12.05`. Hazlo solo con enteros: `/`, `%` y el formato `%02d`.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          printf("%d.%02d\n", n / 100, n % 100);
+          return 0;
+      }
+    tests:
+      - { entrada: "1205\n", salida: "12.05\n" }
+      - { entrada: "7\n", salida: "0.07\n" }
+      - { entrada: "100\n", salida: "1.00\n" }
+      - { entrada: "0\n", salida: "0.00\n" }
+      - { entrada: "99999\n", salida: "999.99\n", oculto: true }
+      - { entrada: "50\n", salida: "0.50\n", oculto: true }
+    pistas: ["Los pesos completos son `n / 100` y los centavos que sobran, `n % 100`.", "`%02d` imprime al menos dos dígitos rellenando con ceros: el 7 sale como `07`."]
+    explicacion: 'Con enteros, `n / 100` da los pesos completos y `n % 100` los centavos que sobran. El formato `%d.%02d` los junta con un punto y obliga a que los centavos tengan dos dígitos: sin el `02`, 1205 saldría como `12.5`. Guardar dinero en centavos enteros es una práctica común porque evita los errores de redondeo de los decimales.'
+
+  - id: prog-01-018
+    tipo: codigo
+    dificultad: 4
+    conceptos: [precision-flotante, conversion-tipos]
+    lenguaje: python
+    enunciado: 'Una caja registradora recibe montos en pesos como `float` con dos decimales. Escribe `cambio_en_centavos(pagado, precio)` que regrese el cambio en centavos como **entero** (`int`) exacto. Por ejemplo, `cambio_en_centavos(20.0, 19.99)` es `1`. Cuidado: en Python, `1.15 * 100` da `114.99999999999999`.'
+    plantilla: |
+      def cambio_en_centavos(pagado, precio):
+          pass
+    solucion: |
+      def cambio_en_centavos(pagado, precio):
+          return round(pagado * 100) - round(precio * 100)
+    tests:
+      - { expr: "cambio_en_centavos(20.0, 19.99)", esperado: 1 }
+      - { expr: "cambio_en_centavos(100.0, 37.5)", esperado: 6250 }
+      - { expr: "cambio_en_centavos(50.0, 50.0)", esperado: 0 }
+      - { expr: "isinstance(cambio_en_centavos(20.0, 19.99), int)", esperado: true }
+      - { expr: "cambio_en_centavos(1.15, 1.0)", esperado: 15, oculto: true }
+      - { expr: "cambio_en_centavos(0.29, 0.0)", esperado: 29, oculto: true }
+    pistas: ["`int(x)` no redondea: corta los decimales.", "`round(x)` lleva al entero más cercano y regresa un `int`.", "Convierte cada monto a centavos antes de restar."]
+    explicacion: '`1.15` no se puede guardar exacto en binario: queda un poquito abajo, y `1.15 * 100` da `114.99999999999999`. `int()` corta los decimales y daría 114, un centavo de menos. `round()` lleva al entero más cercano (115) y absorbe ese error. Si conviertes cada monto a centavos enteros **antes** de restar, la resta ya es exacta. Por eso los sistemas de cobro suelen trabajar en centavos enteros.'

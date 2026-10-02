@@ -24,12 +24,14 @@ describe("buildHomeModel con el plan 2020 real", () => {
     expect(home.electives).toHaveLength(14);
   });
 
-  it("solo cálculo y programación tienen contenido, con una lección cada una", () => {
+  it("solo cálculo y programación tienen contenido; las lecciones van por materia y en orden", () => {
     expect(home.totals.withContent).toBe(2);
-    expect(home.lessons.map((l) => [l.subjectId, l.unit.slug])).toEqual([
-      ["calculo", "01-limites"],
-      ["programacion", "01-variables-y-tipos"],
-    ]);
+    const keys = home.lessons.map((l) => `${l.subjectId}/${l.unit.slug}`);
+    expect(keys[0]).toBe("calculo/01-limites");
+    expect(keys).toContain("programacion/01-variables-y-tipos");
+    expect(new Set(home.lessons.map((l) => l.subjectId))).toEqual(new Set(["calculo", "programacion"]));
+    const prog = home.lessons.filter((l) => l.subjectId === "programacion").map((l) => l.unit.number);
+    expect(prog).toEqual([...prog].sort((a, b) => a - b));
     expect(home.lessons[0]?.unit.title).toBe("Límites: acercarse sin llegar");
   });
 

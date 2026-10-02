@@ -18,9 +18,11 @@ const units = subjects.flatMap((s) =>
 );
 
 describe("el contenido real cumple los esquemas", () => {
-  it("hay 2 materias y 2 unidades de ejemplo", () => {
+  it("hay contenido de cálculo y programación, y cada unidad trae sus 3 archivos", () => {
     expect(subjects.sort()).toEqual(["calculo", "programacion"]);
-    expect(units).toHaveLength(2);
+    expect(units).toContain("content/calculo/01-limites");
+    expect(units).toContain("content/programacion/01-variables-y-tipos");
+    for (const u of units) for (const f of ["leccion.mdx", "ejercicios.yaml", "jefe.yaml"]) expect(() => read(`${u}/${f}`), `${u}/${f}`).not.toThrow();
   });
 
   it("plan-2020.json", () => {
