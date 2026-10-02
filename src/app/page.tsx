@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { HomeToday } from "@/components/pages/home-today";
 import { SemesterSection } from "@/components/subjects/semester-section";
 import { Badge } from "@/components/ui/badge";
 import { buildHomeModel } from "@/content/core/home-model";
@@ -38,9 +39,13 @@ export default function HomePage() {
         </dl>
       </header>
 
+      <div className="mt-10">
+        <HomeToday />
+      </div>
+
       <section aria-labelledby="lecciones" className="mt-14">
         <h2 id="lecciones" className="console-label mb-4">
-          Lecciones para leer hoy · la práctica llega en la Fase 1
+          Unidades jugables · lección, práctica y jefe
         </h2>
         <ul className="grid gap-3 sm:grid-cols-2">
           {home.lessons.map((l) => (

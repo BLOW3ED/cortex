@@ -3,7 +3,8 @@
  *
  * Verifica el contenido en 4 capas y sale con 1 si cualquiera falla:
  *   1. Esquemas Zod y reglas cruzadas sobre el índice completo (lo mismo que usa `next build`).
- *   2. Cada lección compila y se dibuja (MDX, componentes, KaTeX, escapes).
+ *   2. Cada lección compila y se dibuja (MDX, componentes, KaTeX, escapes), y cada texto de
+ *      ejercicio (enunciado, opciones, pistas...) se dibuja con el mismo KaTeX estricto.
  *   3. Paridad YAML: la app y PyYAML leen igual cada archivo YAML.
  *   4. `scripts/verify_content.py` (corrección de respuestas con sympy / ejecución).
  * La ruta acota el reporte: `content`, `content/<materia>` o `content/<materia>/<NN-unidad>` (un
@@ -18,7 +19,9 @@ import { LessonBody } from "../src/components/lessons/lesson-body";
 import { buildIndex, splitFrontmatter } from "../src/content/core/build-index";
 import { type ContentIssue, formatIssue, issue } from "../src/content/core/issues";
 import { readRawContent } from "../src/content/loader";
+import { exerciseTextFields } from "../src/content/core/exercise-text";
 import { LessonCompileError } from "../src/content/mdx";
+import { renderRichText, RichTextError } from "../src/content/rich-text";
 import { findPython, PYTHON_ENV } from "./lib/find-python";
 import { compareWithPyYaml, type YamlSource } from "./lib/yaml-parity";
 
@@ -108,8 +111,26 @@ function main(): number {
       layer2.push(issue("mdx-invalido", lesson.path, reason));
     }
   }
+  // Textos de los ejercicios (enunciados, opciones, pistas...): mismo KaTeX estricto que las lecciones.
+  let texts = 0;
+  for (const s of index ? Object.values(index.content) : []) {
+    for (const u of s.units) {
+      const file = `content/${s.id}/${u.slug}/ejercicios.yaml`;
+      if (!inScope(file)) continue;
+      for (const ex of u.exercises) {
+        for (const f of exerciseTextFields(ex)) {
+          texts++;
+          try {
+            renderRichText(f.text, { inline: f.inline });
+          } catch (e) {
+            layer2.push(issue("texto-invalido", file, `${f.field}: ${e instanceof RichTextError ? e.reason : String(e)}`, ex.id));
+          }
+        }
+      }
+    }
+  }
   show(layer2);
-  console.log(`Capa 2 · lecciones: ${compiled} se dibujan, ${layer2.length} con error\n`);
+  console.log(`Capa 2 · lecciones y textos: ${compiled} lección(es) y ${texts} texto(s) de ejercicio; ${layer2.length} con error\n`);
   if (layer2.length) failed.push("2");
 
   // ---- Python (capas 3 y 4)

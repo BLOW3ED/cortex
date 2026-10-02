@@ -3,6 +3,10 @@
 import { TriangleAlert } from "lucide-react";
 import { DbClosedError, FutureSchemaError } from "@/db/db";
 import { useProfile } from "@/db/use-profile";
+import Link from "next/link";
+import { levelInfo } from "@/engine/levels";
+import { visibleStreak } from "@/engine/streak";
+import { useToday } from "@/lib/use-clock";
 import { HudBar } from "./hud-bar";
 
 /**
@@ -11,6 +15,7 @@ import { HudBar } from "./hud-bar";
  */
 export function ProfileHud() {
   const state = useProfile();
+  const today = useToday();
   if (state.status === "error") {
     const [label, short] =
       state.error instanceof FutureSchemaError
@@ -33,8 +38,14 @@ export function ProfileHud() {
       </span>
     );
   }
-  if (state.status === "loading") return <HudBar data={null} />;
+  if (state.status === "loading" || today === null) return <HudBar data={null} />;
   const p = state.profile;
-  // La curva de niveles llega en la Fase 1; sin XP el avance es 0, con XP aún no se calcula.
-  return <HudBar data={{ xpTotal: p.xpTotal, level: p.level, currentStreak: p.currentStreak, levelProgress: p.xpTotal === 0 ? 0 : null }} />;
+  const level = levelInfo(p.xpTotal);
+  // La racha que se ve: si los días sin estudiar no caben en los congelamientos, se ve en 0 (sin culpa).
+  const streak = visibleStreak({ current: p.currentStreak, max: p.maxStreak, freezes: p.streakFreezes, lastDay: p.lastStudyDay, repair: p.streakRepair }, today);
+  return (
+    <Link href="/progreso" aria-label="Tu progreso" className="rounded-md" data-frame={p.cosmetics.frame ?? undefined}>
+      <HudBar data={{ xpTotal: p.xpTotal, level: level.level, currentStreak: streak.current, levelProgress: level.progress }} />
+    </Link>
+  );
 }

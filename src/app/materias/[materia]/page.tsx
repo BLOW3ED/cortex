@@ -47,7 +47,10 @@ export default async function SubjectPage({ params }: PageProps<"/materias/[mate
         </div>
         <p className="mt-4 text-ink-2">
           {content.concepts?.conceptos.length ?? 0} conceptos en el mapa · {content.units.length}{" "}
-          {content.units.length === 1 ? "unidad" : "unidades"}
+          {content.units.length === 1 ? "unidad" : "unidades"} ·{" "}
+          <Link href={`/materias/${materia}/mapa`} className="text-brand underline underline-offset-2">
+            ver mapa de maestría
+          </Link>
         </p>
       </header>
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LessonBody } from "@/components/lessons/lesson-body";
+import { UnitActions } from "@/components/pages/unit-actions";
 import { Badge } from "@/components/ui/badge";
 import { getContentIndex, getUnit, readLessonSource } from "@/content/server";
 import { APP_NAME } from "@/lib/app";
@@ -60,19 +61,9 @@ export default async function LessonPage({ params }: PageProps<"/materias/[mater
           <LessonBody file={unit.lessonFile} source={readLessonSource(unit)} />
         </article>
       </div>
-      <aside aria-label="Práctica de la unidad" className="lg:sticky lg:top-20 lg:self-start">
-        <div className="rounded-lg border bg-surface p-5">
-          <h2 className="console-label">Práctica y jefe</h2>
-          <p className="mt-3 font-mono text-3xl font-semibold tabular-nums">{unit.exercises.length}</p>
-          <p className="text-sm text-ink-2">ejercicios en escalera de dificultad</p>
-          <p className="mt-4 text-sm">
-            Jefe: <span className="font-semibold">«{unit.boss.nombre}»</span>
-          </p>
-          <p className="mt-4 text-sm text-muted-foreground">La práctica jugable llega en la Fase 1.</p>
-          <p className="mt-4 text-xs text-muted-foreground">
-            {pending ? "Programa oficial: pendiente" : `Programa: ${fm.programa_ref}`}
-          </p>
-        </div>
+      <aside aria-label="Práctica de la unidad" className="grid gap-3 lg:sticky lg:top-20 lg:self-start">
+        <UnitActions unitKey={unit.key} exerciseCount={unit.exercises.length} bossName={unit.boss.nombre} />
+        <p className="px-1 text-xs text-muted-foreground">{pending ? "Programa oficial: pendiente" : `Programa: ${fm.programa_ref}`}</p>
       </aside>
     </div>
   );

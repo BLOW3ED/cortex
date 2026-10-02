@@ -42,6 +42,15 @@ describe("pnpm content:check", () => {
     expect(r.out).toMatch(/<Predice pregunta>: KaTeX no puede dibujar/);
   });
 
+  it("LaTeX roto en el enunciado de un ejercicio falla en la capa 2 con su id y campo", () => {
+    const root = makeRoot();
+    edit(root, `${CALC}/ejercicios.yaml`, (t) => t.replace("enunciado: 'Calcula $\\lim_{x\\to 2}\\left(3x^2-5x+1\\right)$.'", "enunciado: 'Calcula $\\lim_{x\\to 2}\\left(3x^2-5x+1$.'"));
+    const r = contentCheck(root);
+    expect(r.status).toBe(1);
+    expect(r.out).toMatch(/ejercicios\.yaml \[calc-01-001\]: enunciado: KaTeX no puede dibujar/);
+    expect(r.out).toContain("falló en la(s) capa(s): 2");
+  });
+
   it("un id duplicado falla en las capas 1 y 4", () => {
     const root = makeRoot();
     edit(root, `${PROG}/ejercicios.yaml`, (t) => t.replace("  - id: prog-01-002\n", "  - id: prog-01-001\n"));

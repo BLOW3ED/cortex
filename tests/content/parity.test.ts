@@ -242,7 +242,7 @@ const CASES: readonly Case[] = [
 ];
 
 /** Reglas que se prueban en otro lado (render de lecciones y paridad YAML de content:check). */
-const COVERED_ELSEWHERE: readonly RuleCode[] = ["mdx-invalido", "yaml-distinto"];
+const COVERED_ELSEWHERE: readonly RuleCode[] = ["mdx-invalido", "yaml-distinto", "texto-invalido"];
 
 // ---------------------------------------------------------------- arnés
 const py = findPython();

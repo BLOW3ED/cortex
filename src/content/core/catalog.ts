@@ -38,6 +38,7 @@ export const RULES = {
   "prerrequisito-leccion-inexistente": { severity: "error", python: false, description: "Un prerrequisito de la lección no existe." },
   "mdx-invalido": { severity: "error", python: false, description: "La lección no compila o no se puede dibujar (MDX, componentes, KaTeX, escapes)." },
   "yaml-distinto": { severity: "error", python: false, description: "La app y PyYAML leen distinto un YAML (texto ambiguo sin comillas)." },
+  "texto-invalido": { severity: "error", python: false, description: "El texto de un ejercicio no se puede dibujar (KaTeX, HTML crudo, imágenes o `$` sin cerrar)." },
   // Ejercicios
   "id-duplicado": { severity: "error", python: true, description: "Un id de ejercicio se repite en el repo (incluidos los retirados)." },
   "pocos-ejercicios": { severity: "warning", python: true, description: "Menos de 6 ejercicios en la unidad." },

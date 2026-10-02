@@ -21,7 +21,10 @@ export function AppShell({ children, hud }: { children: ReactNode; hud?: ReactNo
             <Link href="/" className="rounded-md px-2 py-1.5 hover:bg-surface-2 hover:text-ink sm:px-2.5">
               Inicio
             </Link>
-            <Link href="/ajustes" className="rounded-md px-2 py-1.5 hover:bg-surface-2 hover:text-ink sm:px-2.5">
+            <Link href="/progreso" className="rounded-md px-2 py-1.5 hover:bg-surface-2 hover:text-ink sm:px-2.5">
+              Progreso
+            </Link>
+            <Link href="/ajustes" className="hidden rounded-md px-2 py-1.5 hover:bg-surface-2 hover:text-ink min-[400px]:inline sm:px-2.5">
               Ajustes
             </Link>
           </nav>
@@ -34,6 +37,10 @@ export function AppShell({ children, hud }: { children: ReactNode; hud?: ReactNo
       <footer className="mx-auto w-full max-w-6xl px-4 pt-4 pb-10 sm:px-6">
         <p className="console-label">
           Tus datos viven solo en este navegador ·{" "}
+          <Link href="/ajustes" className="underline underline-offset-2 hover:text-ink">
+            ajustes y respaldo
+          </Link>{" "}
+          ·{" "}
           <Link href="/estilo" className="underline underline-offset-2 hover:text-ink">
             sistema visual
           </Link>

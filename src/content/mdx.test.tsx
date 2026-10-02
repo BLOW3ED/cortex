@@ -26,7 +26,9 @@ describe("lecciones reales", () => {
     // `pregunta` de <Predice> y `pasos` de <Desvanecido> traen fórmulas: no deben quedar `$` crudos.
     expect(html).toContain("Multiplica arriba y abajo por el conjugado");
     expect(html).not.toMatch(/\$\\?[a-z]/);
-    expect(html).toContain("<summary>Ver respuestas</summary>");
+    // Desde la Fase 1 <Desvanecido> es interactivo: un campo por hueco y un botón para comprobar.
+    expect(html).toContain('aria-label="Hueco 1"');
+    expect(html).toContain(">Comprobar</button>");
   });
 
   it("la plantilla de lección compila", () => {
@@ -169,11 +171,12 @@ describe("guardia de lecciones · casos de la revisión adversarial", () => {
     expect(fail("El tipo <vector> no existe.\n")?.message).toMatch(/backticks/);
   });
 
-  it("los huecos ___ se dibujan como espacios visibles", () => {
+  it("los huecos ___ se dibujan como campos para completar", () => {
     const html = renderToStaticMarkup(
       <LessonBody file="f.mdx" source={`${FM}<Desvanecido pasos={["El resultado es ___ ."]} respuestas={["3"]} />\n`} />,
     );
-    expect(html).toContain('class="lesson-blank"');
+    expect(html).toContain('aria-label="Hueco 1"');
+    expect(html).not.toContain("___");
     expect(html).not.toContain("<hr");
   });
 });

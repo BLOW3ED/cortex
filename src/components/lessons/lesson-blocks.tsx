@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 import { BLANK } from "@/content/core/lesson-api";
 import { InlineMarkdown } from "./inline-markdown";
+import { FadedInteractive, PredictInteractive } from "./lesson-interactive";
 
 /*
- * Componentes PROVISIONALES de la Fase 0 (decisión D6): muestran el contenido, sin estado ni
- * interactividad, para que las lecciones carguen. Las versiones interactivas llegan en la Fase 1.
- * Sus props las valida el compilador contra LESSON_API (src/content/core/lesson-api.ts).
+ * Componentes de lección (docs/05). Los textos de los atributos se dibujan en el servidor
+ * (Markdown + KaTeX); `<Predice>` y `<Desvanecido>` son interactivos desde la Fase 1 (su estado vive
+ * en `lesson-interactive.tsx`). Sus props las valida el compilador contra LESSON_API.
  */
 
 function Block({ kind, label, title, children }: { kind: string; label: string; title?: string; children: ReactNode }) {
@@ -24,35 +25,11 @@ function Block({ kind, label, title, children }: { kind: string; label: string; 
   );
 }
 
-/** Un paso con huecos `___`: cada hueco se dibuja como un espacio visible para completar. */
-function StepWithBlanks({ text }: { text: string }) {
-  const parts = text.split(BLANK);
-  return (
-    <>
-      {parts.map((part, i) => (
-        <span key={i}>
-          {part ? <InlineMarkdown text={part} inline /> : null}
-          {i < parts.length - 1 ? (
-            <span className="lesson-blank" role="img" aria-label="hueco por completar">
-              {"  "}
-            </span>
-          ) : null}
-        </span>
-      ))}
-    </>
-  );
-}
-
 export function PredictPrompt({ pregunta, revela }: { pregunta: string; revela?: string }) {
   return (
     <Block kind="predice" label="Predice">
       <InlineMarkdown text={pregunta} />
-      {revela ? (
-        <details>
-          <summary>Ver la idea</summary>
-          <InlineMarkdown text={revela} />
-        </details>
-      ) : null}
+      <PredictInteractive reveal={revela ? <InlineMarkdown text={revela} /> : null} />
     </Block>
   );
 }
@@ -82,27 +59,10 @@ export function FadedExample({
   pasos: readonly string[];
   respuestas?: readonly string[];
 }) {
+  const steps = pasos.map((paso) => paso.split(BLANK).map((part, i) => (part ? <InlineMarkdown key={i} text={part} inline /> : null)));
   return (
     <Block kind="desvanecido" label="Ahora tú completas" title={titulo}>
-      <ol className="lesson-steps">
-        {pasos.map((paso, i) => (
-          <li key={i}>
-            <StepWithBlanks text={paso} />
-          </li>
-        ))}
-      </ol>
-      {respuestas.length ? (
-        <details>
-          <summary>Ver respuestas</summary>
-          <ol className="lesson-steps">
-            {respuestas.map((r, i) => (
-              <li key={i}>
-                <InlineMarkdown text={r} inline />
-              </li>
-            ))}
-          </ol>
-        </details>
-      ) : null}
+      <FadedInteractive steps={steps} answers={[...respuestas]} rendered={respuestas.map((r, i) => <InlineMarkdown key={i} text={r} inline />)} />
     </Block>
   );
 }

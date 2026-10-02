@@ -375,6 +375,97 @@
   }
 }
 
+/* ---------------------------------------------------------------- estudio (Fase 1) */
+@layer components {
+  /* Texto de ejercicios: como la lección, pero compacto. */
+  .rich {
+    line-height: 1.65;
+  }
+  .rich > * + * {
+    margin-top: 0.7em;
+  }
+  .rich strong {
+    font-weight: 650;
+  }
+  .rich :not(pre) > code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    padding: 0.05em 0.3em;
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+  }
+  .rich pre {
+    overflow-x: auto;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+  .rich ul,
+  .rich ol {
+    padding-left: 1.3em;
+  }
+  .rich ul {
+    list-style: square;
+  }
+  .rich ol {
+    list-style: decimal;
+  }
+  .rich .katex-display {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .code-view {
+    overflow-x: auto;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    white-space: pre;
+    tab-size: 4;
+  }
+  .kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.4em;
+    padding: 0 0.3em;
+    border: 1px solid var(--border-strong);
+    border-bottom-width: 2px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.75em;
+    color: var(--ink-2);
+  }
+  /* Microfeedback (< 200 ms). Con movimiento reducido no se mueve nada. */
+  @keyframes cortex-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+  @keyframes cortex-pop {
+    0% { transform: scale(0.96); opacity: 0.6; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .fx-wrong {
+    animation: cortex-shake 180ms var(--ease-snap);
+  }
+  .fx-right {
+    animation: cortex-pop 160ms var(--ease-snap);
+  }
+  /* Marcos cosméticos del HUD (cofre). */
+  [data-frame="fosforo"] { box-shadow: 0 0 0 2px var(--brand); }
+  [data-frame="ambar"] { box-shadow: 0 0 0 2px var(--xp); }
+  [data-frame="coral"] { box-shadow: 0 0 0 2px var(--life); }
+  [data-frame="cian"] { box-shadow: 0 0 0 2px var(--info); }
+  [data-frame="doble"] { box-shadow: 0 0 0 2px var(--brand), 0 0 0 4px var(--xp); }
+}
+
 /* Movimiento reducido: nada se anima ni se desplaza. */
 @media (prefers-reduced-motion: reduce) {
   :root {

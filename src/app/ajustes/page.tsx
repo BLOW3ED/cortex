@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { BackupPanel } from "@/components/settings/backup-panel";
 import { SoundToggle } from "@/components/settings/sound-toggle";
+import { ChestOddsTable, ReportsPanel, StudyPreferences } from "@/components/settings/study-settings";
 import { StorageStatus } from "@/components/settings/storage-status";
 import { APP_NAME } from "@/lib/app";
 
@@ -28,7 +29,16 @@ export default function SettingsPage() {
       </header>
       <div className="grid gap-6">
         <Panel id="preferencias" title="Preferencias">
-          <SoundToggle />
+          <div className="grid gap-6">
+            <SoundToggle />
+            <StudyPreferences />
+          </div>
+        </Panel>
+        <Panel id="cofre" title="Probabilidades del cofre">
+          <ChestOddsTable />
+        </Panel>
+        <Panel id="reportes" title="Reportes de contenido">
+          <ReportsPanel />
         </Panel>
         <Panel id="datos" title="Tus datos">
           <div className="grid gap-6">
