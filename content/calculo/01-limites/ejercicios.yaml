@@ -153,3 +153,78 @@ ejercicios:
     verificar: { sympy: "limit((x**2-4)/(x**2-5*x+6), x, 2)" }
     pistas: ["Factoriza numerador y denominador."]
     explicacion: 'Se tiene $\dfrac{(x-2)(x+2)}{(x-2)(x-3)}=\dfrac{x+2}{x-3}$ para $x\neq2$. En $x=2$: $\dfrac{4}{-1}=-4$.'
+
+  - id: calc-01-015
+    tipo: numerico
+    dificultad: 1
+    conceptos: [limite-polinomio]
+    enunciado: 'Calcula $\lim_{x\to -1}\left(x^3+2x^2-x+4\right)$.'
+    respuesta: 6
+    tolerancia: 0
+    verificar: { sympy: "limit(x**3+2*x**2-x+4, x, -1)" }
+    pistas: ["Es un polinomio: sustituye $x=-1$ con cuidado con los signos."]
+    explicacion: 'Un polinomio es continuo, así que basta sustituir: $(-1)^3+2(-1)^2-(-1)+4=-1+2+1+4=6$.'
+
+  - id: calc-01-016
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [limite-intuitivo]
+    enunciado: 'Una función cumple $f(2)=7$, pero cuando $x$ se acerca a 2 (por ambos lados) sus valores se acercan a 4. ¿Cuánto vale $\lim_{x\to 2}f(x)$?'
+    opciones: ["7", "4", "No existe, porque $f(2)\\neq 4$", "$\\tfrac{11}{2}$"]
+    correcta: 1
+    pistas: ["El límite mira los valores cerca de 2, no el valor en 2."]
+    explicacion: 'El límite solo depende de lo que hace $f$ cerca de $a$ con $x\neq a$. Como los valores se acercan a 4 por ambos lados, $\lim_{x\to2}f(x)=4$ aunque $f(2)=7$.'
+
+  - id: calc-01-017
+    tipo: numerico
+    dificultad: 2
+    conceptos: [limite-lateral, limite-polinomio]
+    enunciado: 'Sea $f(x)=x^2$ si $x<1$ y $f(x)=3x-1$ si $x\geq 1$. Calcula $\lim_{x\to 1^-}f(x)$.'
+    respuesta: 1
+    tolerancia: 0
+    verificar: { sympy: "limit(x**2, x, 1, '-')" }
+    pistas: ["Por la izquierda $x<1$: ¿qué fórmula usa $f$ ahí?"]
+    explicacion: 'Por la izquierda ($x<1$) la función es $x^2$, un polinomio, así que el límite lateral es $1^2=1$.'
+
+  - id: calc-01-018
+    tipo: opcion_multiple
+    dificultad: 3
+    conceptos: [limite-lateral]
+    enunciado: 'Sea $f(x)=x^2$ si $x<1$ y $f(x)=3x-1$ si $x\geq 1$. ¿Qué pasa con $\lim_{x\to 1}f(x)$?'
+    opciones: ["Vale 1", "Vale 2", "No existe: los laterales son 1 y 2", "Vale $\\tfrac{3}{2}$"]
+    correcta: 2
+    pistas: ["Calcula también el límite por la derecha con $3x-1$."]
+    explicacion: 'Por la izquierda el límite es $1^2=1$; por la derecha es $3(1)-1=2$. Como los laterales son distintos, el límite no existe.'
+
+  - id: calc-01-019
+    tipo: numerico
+    dificultad: 3
+    conceptos: [limite-infinito]
+    enunciado: 'Calcula $\lim_{x\to\infty}\dfrac{3x^3-x}{6x^3+2}$. Puedes dar decimal.'
+    respuesta: 0.5
+    tolerancia: 0.001
+    verificar: { sympy: "limit((3*x**3-x)/(6*x**3+2), x, oo)" }
+    pistas: ["Divide numerador y denominador entre $x^3$."]
+    explicacion: 'Dividiendo entre $x^3$ queda $\dfrac{3-1/x^2}{6+2/x^3}$. Los términos con $1/x$ tienden a 0, así que el límite es $\dfrac{3}{6}=\dfrac12$.'
+
+  - id: calc-01-020
+    tipo: numerico
+    dificultad: 5
+    conceptos: [limite-infinito, indeterminacion-cero-cero]
+    enunciado: 'Calcula $\lim_{x\to\infty}x\left(\sqrt{x^2+1}-x\right)$. Puedes dar decimal.'
+    respuesta: 0.5
+    tolerancia: 0.001
+    verificar: { sympy: "limit(x*(sqrt(x**2+1)-x), x, oo)" }
+    pistas: ["Es de la forma $\\infty\\cdot 0$. Multiplica y divide por el conjugado $\\sqrt{x^2+1}+x$.", "Después divide entre $x$ dentro y fuera de la raíz (con $x>0$)."]
+    explicacion: 'Con el conjugado: $x\cdot\dfrac{(x^2+1)-x^2}{\sqrt{x^2+1}+x}=\dfrac{x}{\sqrt{x^2+1}+x}$. Dividiendo entre $x$: $\dfrac{1}{\sqrt{1+1/x^2}+1}\to\dfrac{1}{2}$.'
+
+  - id: calc-01-021
+    tipo: numerico
+    dificultad: 4
+    conceptos: [definicion-epsilon-delta]
+    enunciado: 'Para $f(x)=3x+1$ se cumple $\lim_{x\to 2}f(x)=7$. ¿Cuál es el mayor $\delta$ tal que $0<|x-2|<\delta$ implica $|f(x)-7|<0.03$?'
+    respuesta: 0.01
+    tolerancia: 0.000001
+    verificar: { sympy: "solve(3*x+1-7-Rational(3,100), x)[0] - 2" }
+    pistas: ["Escribe $|f(x)-7|$ en términos de $|x-2|$."]
+    explicacion: 'Como $|f(x)-7|=|3x-6|=3|x-2|$, pedir $3|x-2|<0.03$ equivale a $|x-2|<0.01$. El mayor $\delta$ que funciona es $0.01=\varepsilon/3$.'

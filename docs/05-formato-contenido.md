@@ -48,7 +48,7 @@ programa_ref: "Cálculo, Unidad I"  # sección del programa oficial; "pendiente"
 ---
 ```
 
-Componentes MDX disponibles. Desde la Fase 0 existen versiones **provisionales** (muestran el contenido, sin interactividad) para que las lecciones carguen; las interactivas llegan en la Fase 1. Usar un componente que no esté en esta tabla rompe `pnpm content:check` y el build:
+Componentes MDX disponibles. Desde la Fase 1, `<Predice>` (escribes tu predicción antes de ver la idea) y `<Desvanecido>` (un campo por hueco, con "Comprobar") son interactivos; los demás muestran su contenido. Usar un componente que no esté en esta tabla rompe `pnpm content:check` y el build:
 
 | Componente | Uso |
 |---|---|
@@ -120,6 +120,8 @@ ejercicios:
 
 **Tests de `codigo` en Python:** lista de `{ expr: "f(2)", esperado: 4, tolerancia: 0 }`. `expr` se evalúa después de ejecutar la solución.
 **Tests de `codigo` en C:** lista de `{ entrada: "3 4\n", salida: "7\n" }`; `solucion` es un programa completo con `main`. Se compila con `gcc -Wall -O0` y se compara salida (sin espacios finales).
+
+**Texto de los ejercicios.** `enunciado`, `explicacion`, `pistas`, `opciones`, `elementos`, `rubrica`, `respuesta_modelo` y los tramos de `texto` (en `completar`) son Markdown con fórmulas `$...$`, sin HTML ni imágenes; `pnpm content:check` los dibuja con el mismo KaTeX estricto de las lecciones (capa 2). Un hueco `___` puede ir dentro de código (`` `7 ___ 2` ``) o de una fórmula.
 
 **Textos exactos van entre comillas.** `opciones`, `elementos`, `respuestas` (de `completar`), la `respuesta` de `predecir_salida` y la `salida` de los tests de C se muestran o se comparan tal cual: escríbelos entre comillas (`respuesta: "3.0"`). Sin comillas, YAML los lee como número y se pierde la forma (`3.0` → 3). Los enteros (`dificultad`, `correcta`, `vidas`, `tiempo_segundos`, `xp`, `duracion_min`) van sin decimales (`4`, no `4.0`).
 

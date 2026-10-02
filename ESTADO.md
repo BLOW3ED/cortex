@@ -28,6 +28,16 @@
   - D7: importar un respaldo = reemplazo total atómico tras confirmar.
   - D8: tokens de modo claro definidos ahora; el interruptor llega en la Fase 1.
 
+## Decisiones de la Fase 1 que tomó Claude (revisables por Carlo)
+Carlo pidió el 2026-10-02 dejar listas las Fases 1 y 2 sin pausas; estas interpretaciones caben en los rangos de `docs/03` y se afinan en `src/engine/config.ts` tras la sesión real:
+- Las preguntas del jefe no dan XP sueltas: la recompensa llega al aprobar (completa la 1.ª vez, 10 % después) + 25 si le ganas al fantasma. Perder no quita XP.
+- Mini quiz de lección: 5 preguntas fáciles (con 4, el 80 % exigía 100 %).
+- Misión mínima "1 repaso completo" = vaciar la cola del calentamiento con al menos 1 tarjeta. Doble misión para reparar = 6 aciertos (o repaso completo + 3).
+- Modo sano: tras 90 min activos en el día, ya no suma XP ni racha y lo avisa.
+- Cosméticos: títulos por nivel y marcos del HUD (del cofre); el tema claro es preferencia, no premio.
+- Un récord que crece mientras lo rompes (XP del día/semana, aciertos seguidos) se celebra una vez por periodo.
+- Los tipos que aún no se juegan (código hasta la Fase 2) se omiten de práctica, repaso y jefes.
+
 ## Decisiones pendientes (preguntar a Carlo)
 - [ ] Programas sintéticos oficiales: Carlo debe colocarlos en `curriculum/programas/` (prioridad: programacion, calculo, matematicas-discretas, mecanica-electromagnetismo, fundamentos-economicos).
 - [ ] Confirmar el semestre actual (se asumió 1º).
@@ -60,16 +70,17 @@
 
 ### Fase 1 · Motor de aprendizaje
 Plan (2026-10-02, rama `fase-1-motor`): 1) motor puro en `src/engine/` con pruebas · 2) Dexie v2 (tabla `days`, perfil y tarjetas FSRS completas) con migración probada y respaldo v1→v2 · 3) capa de progreso (`recordAnswer` y compañía, una transacción) · 4) texto enriquecido de ejercicios y catálogo estático · 5) renderers + confianza + MathLive · 6) práctica, jefe y sesión del día · 7) lección interactiva, mapa, cuaderno, progreso y ajustes · 8) gimnasio · 9) piloto `calculo/01-limites` + e2e.
-- [ ] Reproductor de sesión (lección → práctica → jefe)
-- [ ] Renderers de ejercicios (sin `codigo`)
-- [ ] Verificadores de respuesta + MathLive
-- [ ] FSRS y cola de repaso
-- [ ] Motor de gamificación (XP, niveles, rachas, misiones, cofres, jefes, fantasma, récords, liga personal, logros)
-- [ ] Mapa de habilidades
-- [ ] Botón "Empezar sesión de hoy"
-- [ ] Calibración de confianza y cuaderno de errores
-- [ ] Gimnasio mínimo (n-back, aritmética, secuencias)
-- [ ] Unidad piloto `calculo/01-limites` jugable
+- [x] Reproductor de sesión (lección → práctica → jefe): `/sesion` (calentamiento → misión → reto → cierre, reanudable), `/materias/[m]/[u]/{quiz,practica,jefe}`
+- [x] Renderers de ejercicios (sin `codigo`): opción múltiple, numérico, simbólico, completar, ordenar, predecir salida, autoevaluación
+- [x] Verificadores de respuesta + MathLive (`src/engine/answers/`, mathjs `number` con lista blanca; MathLive con fuentes locales)
+- [x] FSRS y cola de repaso (`src/engine/srs.ts`, `/repaso`; "ilusión de saber" primero)
+- [x] Motor de gamificación (XP, niveles, rachas con congelamiento y reparación, misiones, cofres con probabilidades visibles, jefes con vidas/tiempo/oleadas, fantasma, récords, liga personal, logros)
+- [x] Mapa de habilidades (`/materias/[m]/mapa`)
+- [x] Botón "Empezar sesión de hoy" (panel "Hoy" del inicio)
+- [x] Calibración de confianza (teclas 1/2/3 antes del resultado) y cuaderno de errores (`/cuaderno`)
+- [x] Gimnasio mínimo (n-back, cálculo mental, secuencias; `/gimnasio`)
+- [x] Unidad piloto `calculo/01-limites` jugable (21 ejercicios, revisión a ciegas de los 7 nuevos sin discrepancias)
+- [ ] Cierre formal: sesión real de ~20 min de Carlo y etiqueta `fase-1` (pendiente de Carlo)
 
 ### Fase 2 · Fundamentos de programación (Python + C)
 Plan (2026-10-02, rama `fase-2-programacion`): 1) CodeMirror 6 y Pyodide local (sin CDN) · 2) formato: tests `oculto`, tipos `depurar`, `parsons` y `rastreo_memoria` en Zod, `verify_content.py`, paridad y docs/05 · 3) runner de Python en Web Worker con límite de tiempo · 4) runner de C (ruta local con candados de ADR-005) · 5) renderers de código, Debug Dojo, Parsons y rastreo · 6) unidades 1–12 con jefes (`programa_ref: "pendiente"` hasta tener el PDF) y revisión a ciegas · 7) e2e y DoH.
@@ -110,9 +121,12 @@ Complementan los ADR-001 a 008 de `docs/02`. Cada uno se escribe en el commit de
 
 **ADR-017 · Dependencias de la Fase 1** (paso 1 de la F1). `ts-fsrs` 5.4.2 (FSRS-6, el de `docs/02`; tarjetas planas en IndexedDB y traducción a `Date` solo dentro de `engine/srs.ts`; sin "fuzz" para que las pruebas sean exactas). `mathjs` 15.2.0 importado como `mathjs/number` (sin complejos: `sqrt(-1)` da `NaN` y ese punto se descarta; lista blanca de funciones y símbolos para que una respuesta no pueda llamar `import`, `evaluate`, etc.). `mathlive` 0.111.0 para escribir fórmulas (fuentes servidas en local). `unified` 11 + `remark-parse` 11 + `remark-rehype` 11 + `hast-util-to-html` 9 (ya estaban en el árbol por `@mdx-js/mdx`; ahora explícitas) para dibujar el texto de los ejercicios con el mismo `remark-math` + `rehype-katex` estricto de las lecciones. *Descartado:* Zustand (el estado de UI cabe en React y los datos en Dexie; se agrega si un flujo lo pide), mathjs completo (complejos y BigNumber no hacen falta), un parser propio de Markdown (divergiría de lo que valida `content:check`).
 
+**ADR-018 · Datos y UI de estudio** (F1). Esquema Dexie v2: tabla `days` (contadores por día local) y campos nuevos en perfil, tarjetas, errores y unidades, llenados por `migrations.ts` (las mismas funciones puras migran la base y los respaldos v1). Toda regla vive en `src/engine/`; `src/db/progress.ts` la aplica en UNA transacción por evento (`recordAnswer`, `completeLesson`, `finishBoss`, `recordGym`, cofre, liga). El navegador lee el contenido de `/catalogo.json` (estático, generado en el build) y dibuja el texto de los ejercicios con el pipeline de las lecciones (`rich-text.ts`; `content:check` lo valida en la capa 2). La misión del día se fija por día en `sessionStorage` para que la sesión se reanude al volver de leer la lección. Los componentes no llaman `Date.now()` al dibujar: `useMinute`/`useToday` (`useSyncExternalStore`). *Descartado:* pasar el catálogo como props de cada página (lo necesitan casi todas), HTML pre-dibujado en el JSON (pesaría megas), Zustand.
+
 **ADR-013 · Nomenclatura** (paso 1, decisión D1). Código, tablas y campos de IndexedDB en inglés, con equivalencias en `docs/02`. Las claves de YAML y del front matter siguen en español (son el formato de contenido). Los componentes MDX conservan su nombre en español porque son la API del contenido (`Predice` se implementa como `PredictPrompt`). Las URL van en español porque son interfaz. `APP_ID = 'cortex'` es inmutable (nombre de la base y marca de los respaldos); renombrar la app solo cambia `APP_NAME`. *Descartado:* todo en español (contradice `CLAUDE.md`) o una capa de traducción.
 
 ## Bitácora
+- 2026-10-02 · F1 pasos 2–9: Dexie v2 + capa de progreso; texto enriquecido y `/catalogo.json`; interfaz de estudio completa (tarjeta de ejercicio con teclado, confianza, pistas con costo, reporte; práctica adaptativa con ejemplo resuelto tras 2 errores; repaso FSRS; mini quiz; jefe con oleadas/vidas/tiempo/fantasma/autopsia; sesión del día con cofre y gancho para mañana; mapa, cuaderno, progreso con liga/récords/calibración/logros; gimnasio; tema claro; modo sano; `<Predice>`/`<Desvanecido>` interactivos). Prueba a mano en el navegador (puerto 3200) encontró y se arreglaron: tarjeta que se remontaba al responder, huecos dentro de código, récords que se celebraban en cada respuesta, quiz de 4 que exigía 100 %, salidas de MathLive (`sin ^2x`, `|x|`). Piloto: 7 ejercicios nuevos (21 en total), revisión a ciegas con subagente: 7/7 coinciden; se aclaró la redacción de calc-01-018 y 021. Evidencia: `pnpm check` 358 + 86; `pnpm content:check` en verde; `pnpm build` (24 rutas estáticas); Playwright 10/10 (7 de humo + sesión del día, jefe y desborde de las páginas nuevas a 320/375 px).
 - 2026-10-02 · F1 paso 1: motor puro en `src/engine/` (config, azar con semilla, fechas, niveles, XP, verificadores de respuesta, FSRS, racha con congelamientos y reparación, día, misiones, cofre con probabilidades públicas, liga personal, récords, logros, jefes con oleadas/vidas/tiempo/fantasma/autopsia, flujo adaptativo, maestría, plan de la sesión y gimnasio: escalera, n-back, cálculo mental, secuencias). Evidencia: 58 pruebas nuevas en verde, `tsc` y `eslint` limpios.
 - 2026-10-02 · `findPython` detecta el `.venv` del repo sin activarlo (orden: `CORTEX_PYTHON`, `.venv`, `python3`, `python`, `py -3`). La ruta sale del propio módulo (no de la carpeta actual) y usa `bin/python` o `Scripts\python.exe` según la plataforma; un enlace roto (Python base desinstalado) sí se prueba y aparece en lo que probó. `CORTEX_VENV` apunta a otro venv, solo para pruebas (como `CORTEX_CONTENT_ROOT`): las de runner falso y la de "sin Python" lo usan para no ver el `.venv` real. README y el error "sin Python" ya no piden activarlo. Evidencia en macOS (sin activar el venv; `python3` de Homebrew sin sympy): `pnpm check` 264 + 85; con solo `node` en el PATH, `content:check` en verde con Python 3.13 del venv; al apagar la detección fallan 5 pruebas (las 3 nuevas del venv y las 2 con Python real).
 - 2026-10-02 · Smoke 6 en macOS (Playwright 1.63.0, chrome-headless-shell 153): fallaba 10/10 con "bloqueada: la pestaña vieja no soltó la base", pero la culpa no era de la pestaña vieja. La "otra pestaña" abría `/estilo`, una página de la app: su `ProfileHud` arranca su propia sonda, y `probeDb` llama a `close()` con dos lecturas en vuelo; según la especificación esa conexión no cuenta como cerrada hasta que terminan, así que Chromium dispara un `blocked` pasajero (la subida termina 1–2 ms después). La traza de Playwright (`retain-on-failure`) agrega ~10 ms de capturas que caen justo en esa ventana; en el contenedor Linux nunca se vio. Arreglo (solo la prueba): la subida se hace desde `/icon.svg` (mismo origen, sin layout ni sonda) y se exige que responda bien (un 404 traería la sonda de vuelta); el `onblocked` estricto se queda y ahora significa lo que dice. Evidencia en macOS: antes, 5/5 fallos; una copia sin traza y con 8–10 ms de espera tras `goto` falla 7/10 con `/estilo` (todas "bloqueada") y pasa 10/10 con `/icon.svg`; ya arreglada, 10/10 con la configuración del repo (traza encendida) y 10/10 + 10/10 sin traza con 8 y 10 ms de espera; una conexión retenida en la pestaña vieja sin manejador de `versionchange` sí la hace fallar con "bloqueada" (5/5); smoke 21/21 con `--repeat-each 3`; eslint y typecheck en verde. Rareza conocida (sin riesgo para los datos): como la sonda cierra con transacciones en vuelo, una subida de versión de la propia app en ese instante ve un `blocked` pasajero y Dexie avisa en consola (visto 2 de 6 veces en el diagnóstico, en una subida 5→10 en la misma pestaña). Se atiende, con su prueba, cuando llegue la primera migración real: cerrar la sonda al terminar sus transacciones o darle manejador de `versionchange`.

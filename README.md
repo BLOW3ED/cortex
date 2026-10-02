@@ -2,7 +2,7 @@
 
 App web **local-first** para estudiar toda la carrera de Ingeniería en Inteligencia Artificial (IPN, plan 2020) de forma interactiva, retadora y difícil de soltar.
 
-Estado: **Fase 0 · Fundaciones** (ver `ESTADO.md`). La app ya corre en tu máquina: inicio con el plan 2020, lecciones con fórmulas, HUD y respaldo de tus datos. La práctica jugable llega en la Fase 1.
+Estado: **Fase 1 · Motor de aprendizaje** implementada (ver `ESTADO.md`). Botón "Empezar sesión de hoy" (repaso espaciado → misión → reto del gimnasio → cofre), práctica adaptativa, jefes, mapa de maestría, cuaderno de errores y progreso. Los ejercicios de código llegan en la Fase 2.
 
 ## Qué hay aquí
 

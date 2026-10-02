@@ -6,7 +6,7 @@
 |---|---|---|
 | Framework | Next.js (App Router) + TypeScript estricto | Rutas de API locales para el runner de C |
 | UI | Tailwind + shadcn/ui | Teclado primero, tema oscuro por defecto |
-| Estado | Zustand (UI) + Dexie `liveQuery` (datos) | |
+| Estado | React (UI) + Dexie `liveQuery` (datos) | Zustand quedó fuera (ADR-017): no hizo falta |
 | Persistencia | Dexie sobre IndexedDB | Respaldo JSON exportable |
 | Contenido | MDX + YAML en `content/` | Validado con Zod |
 | Matemáticas | KaTeX (render), MathLive (entrada), mathjs (evaluación) | |
@@ -28,14 +28,18 @@ cortex/
   content/           <materia>/{conceptos.yaml, NN-unidad/{leccion.mdx, ejercicios.yaml, jefe.yaml}}
   scripts/           verify_content.py, content-check.ts, lib/ (Python multiplataforma, paridad YAML)
   src/
-    app/             rutas: / · /materias/[materia] · /materias/[materia]/[unidad] · /ajustes · /estilo
+    app/             rutas: / · /sesion · /repaso · /gimnasio · /progreso · /cuaderno · /ajustes · /estilo · /catalogo.json
+                     /materias/[materia] (+ /mapa) · /materias/[materia]/[unidad] (+ /quiz, /practica, /jefe)
     content/
       schema/        esquemas Zod de docs/05 (puro)
       core/          índice, reglas cruzadas, lector YAML, API de componentes de lección (puro)
       loader.ts      lee content/ del disco · server.ts (solo servidor) · mdx.ts (MDX + KaTeX + guardia)
     db/              esquema Dexie y guarda de versión, respaldo, hooks de React
-    components/      ui (shadcn/ui) · hud · lessons · subjects · settings · layout
-    engine/          (Fase 1) xp, niveles, rachas, fsrs, jefes, verificadores (puro TS, sin React)
+    content/rich-text.ts  texto de ejercicios (Markdown + KaTeX) · core/study-catalog.ts (catálogo del navegador)
+    components/      ui (shadcn/ui) · hud · lessons · subjects · settings · layout · study · gym · pages
+    engine/          config, xp, niveles, racha, fsrs, misiones, cofre, liga, récords, logros, jefes, flujo,
+                     maestría, sesión, answers/ (verificadores), gym/ (puro TS, sin React)
+    db/              (además) migrations.ts (v1→v2) · progress.ts (reglas del motor en una transacción)
     runners/         (Fase 2) pyodide worker, cliente del runner de C
     lib/  styles/
   tests/             pruebas con Python (paridad, content:check) y stubs
@@ -64,6 +68,7 @@ Los nombres de tablas y campos van **en inglés** porque son identificadores de 
 | `gymResults` | resultados del gimnasio | autoincrement | game, domain, level, score, at |
 | `mistakes` | cuaderno de errores | `exerciseId` | veces falladas, última respuesta, nota propia |
 | `reports` | reportes | autoincrement | exerciseId, comentario de Carlo (para corregir contenido) |
+| `days` | días (v2) | `day` (`AAAA-MM-DD`) | XP, respondidos, correctos, repasos, misión mínima, combo, tiempo activo, cofre y sesión del día |
 
 Fechas en milisegundos desde epoch; días como `AAAA-MM-DD` en hora local. Cada registro guarda `schemaVersion`. Migraciones de Dexie obligatorias y probadas; la versión 1 del esquema no se edita nunca (una versión nueva se agrega encima).
 
