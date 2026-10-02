@@ -69,5 +69,7 @@ export default defineConfig([
     "coverage/**",
     "playwright-report/**",
     "test-results/**",
+    // Copias de node_modules para el navegador (scripts/vendor-assets.ts): código de terceros.
+    "public/vendor/**",
   ]),
 ]);
