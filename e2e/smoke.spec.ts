@@ -266,8 +266,11 @@ test("6 - si otra pestaña sube la versión de la base, esta se desconecta y no 
   await expect(page.getByRole("switch", { name: "Sonido" })).toBeEnabled();
 
   // "Otra pestaña" con una app más nueva: versión 2 (nativa 20), sin un índice de la v1 y con una tabla nueva.
+  // Se abre en una página del mismo origen SIN la app (el ícono), para que la única conexión sea la de la
+  // pestaña vieja: una página de la app abre su propia sonda, cuyo `close()` queda pendiente mientras
+  // terminan sus lecturas, y eso dispara un `blocked` pasajero que no es culpa de la pestaña vieja.
   const other = await context.newPage();
-  await other.goto("/estilo");
+  expect((await other.goto("/icon.svg"))?.ok()).toBe(true); // un 404 traería el layout (y la sonda) de vuelta
   await other.evaluate(
     () =>
       new Promise<void>((resolve, reject) => {
