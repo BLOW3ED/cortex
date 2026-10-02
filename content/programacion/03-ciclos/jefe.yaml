@@ -5,5 +5,5 @@ tiempo_segundos: 1200
 aprobado_minimo: 0.8
 preguntas:
   propias: [prog-03-006, prog-03-008, prog-03-011, prog-03-012, prog-03-013, prog-03-014, prog-03-017, prog-03-019]
-  repaso_de: []
+  repaso_de: [prog-02-010, prog-02-007, prog-01-006]
 recompensa: { xp: 300, insignia: "rompe-bucles" }

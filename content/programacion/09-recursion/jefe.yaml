@@ -5,5 +5,5 @@ tiempo_segundos: 1140
 aprobado_minimo: 0.8
 preguntas:
   propias: [prog-09-005, prog-09-007, prog-09-010, prog-09-011, prog-09-013, prog-09-016, prog-09-018, prog-09-019]
-  repaso_de: []
+  repaso_de: [prog-08-011, prog-08-014, prog-02-005]
 recompensa: { xp: 300, insignia: "domador-de-la-pila" }

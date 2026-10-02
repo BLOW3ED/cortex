@@ -5,5 +5,5 @@ tiempo_segundos: 1080
 aprobado_minimo: 0.8
 preguntas:
   propias: [prog-05-004, prog-05-008, prog-05-010, prog-05-011, prog-05-014, prog-05-015, prog-05-017, prog-05-019]
-  repaso_de: []
+  repaso_de: [prog-04-007, prog-04-011, prog-01-009]
 recompensa: { xp: 250, insignia: "indice-cero" }

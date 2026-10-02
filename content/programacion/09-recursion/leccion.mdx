@@ -184,7 +184,7 @@ Para sumar no gana nada contra un ciclo, pero el mismo esqueleto (casos base, di
 
 <Ojo>
 - **Caso base ausente o inalcanzable.** Si el caso base es `n == 0` pero llamas con `n - 2` empezando en un impar, te lo saltas y la recursión no para.
-- **Olvidar el `return` del caso recursivo.** En Python la función regresa `None`; en C el valor es basura (el compilador con `-Wall` te avisa).
+- **Olvidar el `return` del caso recursivo.** En Python la función regresa `None`, y el síntoma suele ser `TypeError: unsupported operand type(s) for *: 'int' and 'NoneType'` en la llamada de arriba; en C el valor es basura (el compilador con `-Wall` te avisa).
 - **Llamarse sin usar el resultado.** `factorial(n - 1)` sola, sin `n *` y sin `return`, calcula algo y lo tira.
 - **Caso base que deja fuera la secuencia vacía.** Si el caso base es "un elemento", una lista vacía provoca `IndexError` o recursión infinita.
 - **Recursión que repite trabajo** (como `fib` ingenua): crece de forma explosiva. Usa un ciclo o guarda los resultados ya calculados.

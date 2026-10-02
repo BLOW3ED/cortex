@@ -119,7 +119,7 @@ while (fgets(linea, sizeof linea, f) != NULL) {
 }
 ```
 
-`fgets` lee hasta el `\n` (y lo incluye) **o** hasta llenar el búfer, lo que pase primero. Si una línea es más larga que el búfer, llega en pedazos y cada pedazo es una vuelta del ciclo. Por eso el búfer debe ser holgado.
+`fgets` lee hasta el `\n` (y lo incluye), hasta el fin del archivo **o** hasta llenar el búfer, lo que pase primero. El búfer necesita lugar para la línea, su `\n` y el `\0` final: con `char linea[200]`, una línea de 199 caracteres más su `\n` ya llega en dos pedazos, y cada pedazo es una vuelta del ciclo. Por eso el búfer debe ser holgado.
 
 ## Errores al abrir archivos
 
@@ -251,7 +251,7 @@ printf("%.2f\n", total);                       /* 627.50 */
 - **Olvidar el `\n` al escribir.** `write` y `fprintf` escriben exactamente lo que les das: sin `\n`, todo queda en una sola línea.
 - **No cerrar el archivo.** Lo que escribes se junta en un búfer en memoria y llega al disco al cerrar (o cuando el búfer se llena). Si en C vuelves a abrir para leer sin haber hecho `fclose`, puedes no encontrar lo que escribiste. En Python, `with` lo resuelve.
 - **Comparar líneas sin limpiarlas.** Cada línea trae su `\n`: `linea == "fin"` es falso aunque la línea diga `fin`. Usa `strip()` en Python o quita el `\n` en C.
-- **`while (!feof(f))` en C.** `feof` solo se vuelve verdadero *después* de que una lectura falló, así que el ciclo da una vuelta de más y procesa el último dato dos veces. Controla el ciclo con lo que regresa `fscanf` o `fgets`.
+- **`while (!feof(f))` en C.** `feof` se vuelve verdadero cuando una lectura ya tocó el fin del archivo, y eso no siempre coincide con "no queda nada por leer": si el archivo termina en `\n`, el ciclo da una vuelta de más y, como esa última lectura falla, vuelve a usar el dato anterior. Controla el ciclo con lo que regresa `fscanf` o `fgets`.
 - **No revisar `NULL`.** Usar el `FILE *` de un `fopen` fallido hace que el programa truene.
 </Ojo>
 

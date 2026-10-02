@@ -5,5 +5,5 @@ tiempo_segundos: 1200
 aprobado_minimo: 0.8
 preguntas:
   propias: [prog-06-004, prog-06-005, prog-06-009, prog-06-011, prog-06-014, prog-06-015, prog-06-017, prog-06-019]
-  repaso_de: []
+  repaso_de: [prog-05-007, prog-05-005, prog-02-005]
 recompensa: { xp: 300, insignia: "cazador-de-colgantes" }

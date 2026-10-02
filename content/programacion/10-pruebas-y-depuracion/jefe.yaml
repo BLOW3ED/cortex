@@ -5,5 +5,5 @@ tiempo_segundos: 1200
 aprobado_minimo: 0.8
 preguntas:
   propias: [prog-10-006, prog-10-009, prog-10-010, prog-10-011, prog-10-013, prog-10-015, prog-10-017, prog-10-018]
-  repaso_de: []
+  repaso_de: [prog-09-004, prog-09-012, prog-07-006]
 recompensa: { xp: 300, insignia: "cazador-de-bichos" }
