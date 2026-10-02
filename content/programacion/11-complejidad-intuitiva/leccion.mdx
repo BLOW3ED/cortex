@@ -1,0 +1,200 @@
+---
+titulo: "Complejidad: contar pasos en vez de segundos"
+materia: programacion
+unidad: 11-complejidad-intuitiva
+duracion_min: 25
+prerrequisitos: [ciclos-anidados, recorrido-busqueda, arreglos-c, listas-python, "calculo:limite-infinito"]
+conceptos: [conteo-operaciones, notacion-o-grande, crecimiento-funciones, busqueda-binaria, ordenamiento-basico]
+programa_ref: "pendiente"
+---
+
+## El problema
+
+Supón que tienes la lista **ordenada** de un millón de números de boleta y quieres saber si el 2024630187 está ahí. Puedes revisarlos uno por uno desde el principio, o abrir la lista a la mitad, ver si te pasaste o te faltó, y descartar la mitad que no sirve. Con 20 datos ambas ideas se sienten igual de rápidas. Con un millón, una termina casi al instante y la otra no. Esta lección te da una forma de **predecir** eso sin cronómetro.
+
+<Predice pregunta="En una lista ordenada de un millón de números, una búsqueda que en cada paso descarta la mitad de lo que queda, ¿cuántos elementos revisa en el peor caso? ¿Unos 20, unos 1,000 o unos 500,000?" revela="Unos 20. Cada paso parte lo que queda a la mitad, y 20 mitades bastan porque 2 elevado a 20 es 1,048,576, más que un millón. Revisar uno por uno podría costar el millón completo." />
+
+## Contar operaciones
+
+Los segundos dependen de la computadora, del lenguaje y de qué más esté corriendo. Lo que no cambia es **cuántas veces se repite** la operación central del algoritmo. Por eso contamos pasos en función del tamaño de la entrada, al que llamamos $n$.
+
+<Concepto titulo="Conteo de operaciones">
+Elige la operación que más se repite (normalmente la línea más interna de los ciclos, como una comparación) y cuenta cuántas veces se ejecuta para una entrada de tamaño $n$. Si el conteo depende de los datos, se suele reportar el **peor caso**.
+</Concepto>
+
+Los patrones que más vas a ver:
+
+```python
+# 1) Un ciclo: n veces
+for i in range(n):
+    cuenta += 1
+
+# 2) Dos ciclos anidados completos: n * n = n² veces
+for i in range(n):
+    for j in range(n):
+        cuenta += 1
+
+# 3) Anidado "triangular": (n-1) + (n-2) + ... + 1 + 0 = n(n-1)/2 veces
+for i in range(n):
+    for j in range(i + 1, n):
+        cuenta += 1
+
+# 4) Partir a la mitad: unas log2(n) veces
+while n > 1:
+    n = n // 2
+    cuenta += 1
+```
+
+```c
+/* Los mismos cuatro patrones en C */
+for (int i = 0; i < n; i++) cuenta++;
+
+for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++) cuenta++;
+
+for (int i = 0; i < n; i++)
+    for (int j = i + 1; j < n; j++) cuenta++;
+
+while (n > 1) { n = n / 2; cuenta++; }
+```
+
+Con $n = 1000$: el primero cuenta 1,000; el segundo 1,000,000; el tercero 499,500; el cuarto solo 9 divisiones (1000 → 500 → 250 → 125 → 62 → 31 → 15 → 7 → 3 → 1).
+
+## Notación O grande
+
+Al comparar algoritmos con entradas grandes, lo que manda es **cómo crece** el conteo, no el número exacto. La notación $O$ resume eso.
+
+<Concepto titulo="O grande">
+Idea práctica: quédate con el término que crece más rápido y quítale su constante. Así, $3n^2 + 5n + 2$ es $O(n^2)$ y $4n + 7$ es $O(n)$.
+
+Definición: $f(n)$ es $O(g(n))$ si existen constantes $c > 0$ y $n_0$ tales que $f(n) \le c \cdot g(n)$ para toda $n \ge n_0$. Por ejemplo, $3n^2 + 5n + 2 \le 10n^2$ para toda $n \ge 1$.
+</Concepto>
+
+Los cuatro patrones de arriba son $O(n)$, $O(n^2)$, $O(n^2)$ (porque $n(n-1)/2 = \tfrac{1}{2}n^2 - \tfrac{1}{2}n$) y $O(\log n)$. En $O$ la base del logaritmo no importa: cambiar de base es multiplicar por una constante.
+
+## Cómo crecen las funciones
+
+| $n$ | $\log_2 n$ | $n \log_2 n$ | $n^2$ | $2^n$ |
+|---|---|---|---|---|
+| 10 | 3.3 | 33 | 100 | 1,024 |
+| 100 | 6.6 | 664 | 10,000 | $\approx 1.27 \times 10^{30}$ |
+| 1,000 | 10.0 | 9,966 | 1,000,000 | $\approx 1.07 \times 10^{301}$ |
+| 1,000,000 | 19.9 | $\approx 2 \times 10^{7}$ | $10^{12}$ | un número de 301,030 cifras |
+
+Para sentirlo, supón una computadora que hace $10^9$ operaciones por segundo. Con $n = 10^6$, un algoritmo $n \log_2 n$ tarda unas 2 centésimas de segundo; uno $n^2$, unos 17 minutos. Y uno $2^n$ con apenas $n = 100$ tardaría más de 40 billones de años.
+
+## Búsqueda lineal contra búsqueda binaria
+
+La **búsqueda lineal** revisa uno por uno: $O(n)$ y funciona con cualquier lista. La **búsqueda binaria** exige que la lista esté **ordenada**: mira el elemento de en medio y descarta la mitad donde el valor no puede estar.
+
+```python
+def busqueda_binaria(lista, x):
+    izq, der = 0, len(lista) - 1
+    while izq <= der:
+        medio = (izq + der) // 2
+        if lista[medio] == x:
+            return medio
+        elif lista[medio] < x:
+            izq = medio + 1
+        else:
+            der = medio - 1
+    return -1
+```
+
+```c
+int busqueda_binaria(const int a[], int n, int x) {
+    int izq = 0, der = n - 1;
+    while (izq <= der) {
+        int medio = izq + (der - izq) / 2;   /* evita desbordar izq + der */
+        if (a[medio] == x) return medio;
+        if (a[medio] < x) izq = medio + 1;
+        else der = medio - 1;
+    }
+    return -1;
+}
+```
+
+Cada vuelta del `while` revisa un elemento y deja, a lo más, la mitad. Por eso en el peor caso da $\lfloor \log_2 n \rfloor + 1$ vueltas: 7 con 100 datos, 10 con 1,000 y 20 con un millón. Es $O(\log n)$.
+
+<Ejemplo titulo="Binaria paso a paso">
+Lista `[3, 8, 12, 15, 21, 30, 42]` (índices 0 a 6).
+
+**Buscar 30.**
+1. `izq = 0`, `der = 6`, `medio = 3`: `lista[3]` es 15, menor que 30, así que el 30 está a la derecha: `izq = 4`.
+2. `izq = 4`, `der = 6`, `medio = 5`: `lista[5]` es 30. Lo encontró en 2 vueltas.
+
+**Buscar 5 (no está).**
+1. `medio = 3`: 15 es mayor que 5, así que `der = 2`.
+2. `medio = 1`: 8 es mayor que 5, así que `der = 0`.
+3. `medio = 0`: 3 es menor que 5, así que `izq = 1`.
+4. Ahora `izq > der`: no está. Regresa -1 tras 3 vueltas.
+
+La búsqueda lineal habría revisado 6 elementos para hallar el 30 y los 7 para concluir que el 5 no está.
+</Ejemplo>
+
+## Ordenamiento básico y su costo
+
+El **ordenamiento por selección** busca el menor de lo que falta y lo pone en su lugar, una posición a la vez.
+
+```python
+def seleccion(lista):
+    a = lista[:]                     # copia: no tocamos la original
+    n = len(a)
+    for i in range(n - 1):
+        minimo = i
+        for j in range(i + 1, n):
+            if a[j] < a[minimo]:     # la operación que contamos
+                minimo = j
+        a[i], a[minimo] = a[minimo], a[i]
+    return a
+```
+
+```c
+void seleccion(int a[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        int minimo = i;
+        for (int j = i + 1; j < n; j++) {
+            if (a[j] < a[minimo]) minimo = j;   /* la operación que contamos */
+        }
+        int tmp = a[i];
+        a[i] = a[minimo];
+        a[minimo] = tmp;
+    }
+}
+```
+
+Es el patrón triangular: $(n-1) + (n-2) + \dots + 1 = \dfrac{n(n-1)}{2}$ comparaciones, **siempre**, aunque la lista ya venga ordenada. Es $O(n^2)$.
+
+Otros métodos básicos cambian según los datos. El **ordenamiento por inserción** toma cada elemento y lo recorre hacia la izquierda hasta su lugar: con una lista ya ordenada hace solo $n - 1$ comparaciones, pero al revés llega a $\tfrac{n(n-1)}{2}$. Para listas grandes se usan algoritmos $O(n \log n)$; `sorted` y `list.sort` de Python usan uno de ellos.
+
+<Desvanecido titulo="Cuenta las comparaciones de selección" pasos={[
+  "Con n = 5, la primera pasada compara el primer lugar contra los otros ___ elementos.",
+  "Las pasadas siguientes comparan 3, 2 y 1 veces, así que el total es ___ .",
+  "Con n = 10, usando n(n - 1)/2, serían ___ comparaciones."
+]} respuestas={["4", "10", "45"]} />
+
+<Ojo>
+- **Ciclos seguidos no se multiplican.** Dos ciclos de $n$ uno **después** del otro dan $2n$, que es $O(n)$. Solo los anidados multiplican.
+- **Operaciones escondidas.** `x in lista`, `lista.index(x)`, `min(lista)` y `sum(lista)` recorren la lista: son $O(n)$. Meter una de ellas dentro de un ciclo da $O(n^2)$. En C pasa igual con `strlen(s)` en la condición de un `for`.
+- **Binaria sobre una lista desordenada.** No truena: da respuestas equivocadas sin avisar.
+- **O grande no es el tiempo exacto.** Con entradas chicas, un algoritmo $O(n^2)$ sencillo puede ganarle a uno $O(n \log n)$ complicado. La notación habla de lo que pasa cuando $n$ crece.
+- **`(izq + der) / 2` en C** puede desbordar un `int` con arreglos enormes; `izq + (der - izq) / 2` da lo mismo sin ese riesgo.
+</Ojo>
+
+<Conexion materia="Cálculo">
+Comparar crecimientos es calcular un límite al infinito. Si $\displaystyle\lim_{n\to\infty} \frac{f(n)}{g(n)} = 0$, $f$ crece más lento que $g$; si da una constante positiva, crecen al mismo ritmo; si da $\infty$, $f$ crece más rápido. Por ejemplo, $\displaystyle\lim_{n\to\infty} \frac{3n^2+5n+2}{n^2} = 3$ (mismo orden, por eso es $O(n^2)$), $\displaystyle\lim_{n\to\infty} \frac{\log_2 n}{n} = 0$ y $\displaystyle\lim_{n\to\infty} \frac{n^3}{2^n} = 0$.
+</Conexion>
+
+<Conexion materia="Inteligencia artificial">
+En los modelos de lenguaje tipo *transformer*, el mecanismo de atención estándar compara cada *token* (un pedazo de texto) con todos los demás: su costo es $O(n^2)$ en la longitud del texto. Por eso duplicar el contexto cuesta mucho más que el doble, y hay toda una línea de investigación para bajar ese exponente.
+</Conexion>
+
+<Resumen>
+- Contamos cuántas veces se repite la operación central en función de $n$; los ciclos anidados multiplican y partir a la mitad da $\log_2 n$.
+- $O$ grande se queda con el término dominante sin constantes: $n \log n$ crece mucho más lento que $n^2$, y $2^n$ es impráctico desde valores pequeños.
+- La búsqueda binaria es $O(\log n)$ pero exige lista ordenada; ordenar por selección cuesta $\tfrac{n(n-1)}{2}$ comparaciones, $O(n^2)$.
+</Resumen>
+
+<Feynman>
+Explícale a alguien sin experiencia por qué buscar en un diccionario de papel abriéndolo a la mitad es mucho más rápido que leerlo desde la primera página, cuántos pasos necesitarías con un millón de palabras y qué tendría que cumplir el diccionario para que el truco funcione.
+</Feynman>

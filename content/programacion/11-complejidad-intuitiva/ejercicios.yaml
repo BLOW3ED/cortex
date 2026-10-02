@@ -1,0 +1,517 @@
+# Nota sobre `verificar.python`: el entorno de verify_content.py no trae builtins dentro de
+# comprensiones anidadas ni de lambdas (Python 3.11). Por eso los conteos usan `for r in [range]`
+# para tener `range` dentro de la comprensión, y lambdas recursivas (`f(f, ...)`) para simular
+# ciclos `while` paso a paso. Así se cuenta de verdad, sin copiar el número.
+unidad: programacion/11-complejidad-intuitiva
+ejercicios:
+  - id: prog-11-001
+    tipo: numerico
+    dificultad: 1
+    conceptos: [conteo-operaciones]
+    enunciado: |
+      ¿Cuántas veces se ejecuta la línea `total += i`?
+
+      ```python
+      total = 0
+      for i in range(3, 50):
+          total += i
+      ```
+    respuesta: 47
+    tolerancia: 0
+    verificar: { python: "sum([1 for i in range(3, 50)])" }
+    pistas: ["`range(a, b)` empieza en `a` y se detiene **antes** de `b`."]
+    explicacion: '`range(3, 50)` produce 3, 4, ..., 49: son $50 - 3 = 47$ valores, así que la línea se ejecuta 47 veces.'
+
+  - id: prog-11-002
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [notacion-o-grande]
+    enunciado: 'Un algoritmo hace $f(n) = 4n + 7$ operaciones con una entrada de tamaño $n$. ¿De qué orden es?'
+    opciones: ['$O(1)$', '$O(n)$', '$O(n^2)$', '$O(\log n)$']
+    correcta: 1
+    pistas: ["Quédate con el término que más crece y quítale la constante."]
+    explicacion: 'El término que domina es $4n$; sin su constante queda $n$. El $+7$ no importa cuando $n$ es grande. Por eso $f(n)$ es $O(n)$.'
+
+  - id: prog-11-003
+    tipo: predecir_salida
+    dificultad: 2
+    conceptos: [conteo-operaciones]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa?'
+    codigo: |
+      cuenta = 0
+      n = 5
+      for i in range(n):
+          for j in range(i):
+              cuenta += 1
+      print(cuenta)
+    respuesta: "10"
+    pistas: ["¿Cuántas vueltas da el ciclo de adentro cuando `i` vale 0? ¿Y cuando vale 4?"]
+    explicacion: 'El ciclo interno da `i` vueltas: $0 + 1 + 2 + 3 + 4 = 10$. Es el patrón triangular, $\frac{n(n-1)}{2}$ con $n = 5$.'
+
+  - id: prog-11-004
+    tipo: completar
+    dificultad: 2
+    conceptos: [notacion-o-grande, crecimiento-funciones]
+    enunciado: 'Completa con números.'
+    texto: 'Si la entrada crece al triple (de 1000 a 3000 datos), un algoritmo $O(n)$ hace unas ___ veces más operaciones y uno $O(n^2)$ unas ___ veces más.'
+    respuestas: ["3", "9"]
+    pistas: ["¿Cuánto vale $(3n)^2$ comparado con $n^2$?"]
+    explicacion: 'En $O(n)$ el trabajo crece igual que la entrada: el triple. En $O(n^2)$, $(3n)^2 = 9n^2$: nueve veces más. Por eso los algoritmos cuadráticos se vuelven lentos tan rápido.'
+
+  - id: prog-11-005
+    tipo: ordenar
+    dificultad: 2
+    conceptos: [crecimiento-funciones, notacion-o-grande]
+    enunciado: 'Ordena de la que crece **más lento** a la que crece **más rápido** cuando $n$ es muy grande.'
+    elementos: ['$O(1)$', '$O(\log n)$', '$O(n)$', '$O(n \log n)$', '$O(n^2)$', '$O(2^n)$']
+    explicacion: 'Una constante no crece; el logaritmo crece muy despacio (con un millón apenas llega a 20); luego vienen $n$, $n \log n$ (un poco más que lineal) y $n^2$. La exponencial $2^n$ supera a cualquier potencia de $n$: con $n = 100$ ya pasa de $10^{30}$.'
+
+  - id: prog-11-006
+    tipo: predecir_salida
+    dificultad: 2
+    conceptos: [busqueda-binaria]
+    lenguaje: python
+    enunciado: 'Esta búsqueda binaria imprime el índice `medio` de cada elemento que revisa. ¿Qué imprime?'
+    codigo: |
+      lista = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
+      x = 23
+      izq, der = 0, len(lista) - 1
+      while izq <= der:
+          medio = (izq + der) // 2
+          print(medio, end=" ")
+          if lista[medio] == x:
+              break
+          elif lista[medio] < x:
+              izq = medio + 1
+          else:
+              der = medio - 1
+    respuesta: "4 7 5"
+    pistas: ["Primero `medio = (0 + 9) // 2`.", "Después de cada comparación, ¿se mueve `izq` o `der`?"]
+    explicacion: 'Con `izq = 0` y `der = 9`, `medio = 4` y `lista[4]` es 16, menor que 23: `izq = 5`. Luego `medio = 7`, `lista[7]` es 56, mayor: `der = 6`. Luego `medio = 5` y `lista[5]` es 23: lo encontró. Revisó 3 de 10 elementos.'
+
+  - id: prog-11-007
+    tipo: opcion_multiple
+    dificultad: 3
+    conceptos: [notacion-o-grande, conteo-operaciones]
+    enunciado: |
+      ¿De qué orden es esta función para una lista de $n$ elementos?
+
+      ```python
+      def resumen(lista):
+          total = 0
+          for x in lista:
+              total += x
+          mayor = lista[0]
+          for x in lista:
+              if x > mayor:
+                  mayor = x
+          return total, mayor
+      ```
+    opciones: ['$O(1)$', '$O(n)$', '$O(n^2)$', '$O(n \log n)$']
+    correcta: 1
+    pistas: ["¿Los ciclos están uno dentro del otro o uno después del otro?"]
+    explicacion: 'Los dos ciclos van **uno después del otro**, no anidados: hacen $n + n = 2n$ pasos, y $2n$ es $O(n)$. Solo los ciclos anidados multiplican.'
+
+  - id: prog-11-008
+    tipo: numerico
+    dificultad: 3
+    conceptos: [conteo-operaciones, notacion-o-grande]
+    enunciado: |
+      ¿Cuánto vale `pasos` al terminar este fragmento en C?
+
+      ```c
+      int n = 1000, pasos = 0;
+      while (n > 1) {
+          n = n / 2;
+          pasos++;
+      }
+      ```
+    respuesta: 9
+    tolerancia: 0
+    verificar: { python: "(lambda f: f(f, 1000, 0))(lambda f, n, c: c if n <= 1 else f(f, n // 2, c + 1))" }
+    pistas: ["Escribe la secuencia de valores de `n`: 1000, 500, 250, ...", "Recuerda que la división entre enteros en C trunca."]
+    explicacion: '`n` pasa por 1000, 500, 250, 125, 62, 31, 15, 7, 3 y 1: son 9 divisiones. Es $\lfloor \log_2 1000 \rfloor = 9$, porque $2^9 = 512 \le 1000 < 1024 = 2^{10}$. Partir a la mitad da conteos logarítmicos.'
+
+  - id: prog-11-009
+    tipo: opcion_multiple
+    dificultad: 3
+    conceptos: [crecimiento-funciones]
+    enunciado: 'Un programa hace $5n^3 + 2^n$ operaciones y otro $3 \cdot 2^n + n^3$. Para comparar cómo crecen, calcula $\displaystyle\lim_{n\to\infty} \frac{5n^3 + 2^n}{3 \cdot 2^n + n^3}$.'
+    opciones: ['$5$', '$\frac{1}{3}$', '$1$', '$0$']
+    valores: [5, "1/3", 1, 0]
+    correcta: 1
+    verificar: { sympy: "limit((5*n**3 + 2**n)/(3*2**n + n**3), n, oo)" }
+    pistas: ["¿Quién gana a la larga, $n^3$ o $2^n$?", "Divide numerador y denominador entre el término que crece más rápido."]
+    explicacion: 'La exponencial le gana a cualquier potencia: $\lim_{n\to\infty} \frac{n^3}{2^n} = 0$ (con L''Hôpital tres veces). Dividiendo arriba y abajo entre $2^n$ queda $\frac{5n^3/2^n + 1}{3 + n^3/2^n} \to \frac{0 + 1}{3 + 0} = \frac{1}{3}$. Si contestaste 5, supusiste que $n^3$ dominaba: con $n$ grande, en los dos programas manda el término $2^n$.'
+
+  - id: prog-11-010
+    tipo: parsons
+    dificultad: 3
+    conceptos: [busqueda-binaria]
+    lenguaje: python
+    enunciado: 'Ordena las líneas (con su sangría) para que `busqueda_binaria(lista, x)` regrese el índice de `x` en la lista ordenada, o -1 si no está. Sobran dos líneas.'
+    lineas:
+      - "def busqueda_binaria(lista, x):"
+      - "    izq, der = 0, len(lista) - 1"
+      - "    while izq <= der:"
+      - "        medio = (izq + der) // 2"
+      - "        if lista[medio] == x:"
+      - "            return medio"
+      - "        elif lista[medio] < x:"
+      - "            izq = medio + 1"
+      - "        else:"
+      - "            der = medio - 1"
+      - "    return -1"
+    distractores: ["    while izq < der:", "            izq = medio"]
+    tests:
+      - { expr: "busqueda_binaria([1, 3, 5, 7, 9], 7)", esperado: 3 }
+      - { expr: "busqueda_binaria([1, 3, 5, 7, 9], 4)", esperado: -1 }
+      - { expr: "busqueda_binaria([], 4)", esperado: -1 }
+      - { expr: "busqueda_binaria([5], 5)", esperado: 0, oculto: true }
+      - { expr: "busqueda_binaria([1, 3, 5, 7, 9], 9)", esperado: 4, oculto: true }
+      - { expr: "busqueda_binaria([1, 3, 5, 7, 9], 1)", esperado: 0, oculto: true }
+    explicacion: 'El `while` sigue mientras quede al menos un candidato (`izq <= der`). Si el de en medio es menor que `x`, el valor solo puede estar a la derecha y se descarta hasta `medio` incluido (`izq = medio + 1`). Con `while izq < der` se pierde el caso de un solo candidato, y con `izq = medio` el ciclo puede no terminar nunca.'
+
+  - id: prog-11-011
+    tipo: codigo
+    dificultad: 3
+    conceptos: [ordenamiento-basico]
+    lenguaje: c
+    enunciado: 'Completa el programa: lee $n$ ($1 \le n \le 100$) y $n$ enteros, ordénalos de menor a mayor con **ordenamiento por selección** e imprímelos separados por un espacio, con salto de línea al final.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n, a[100];
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &a[i]);
+          }
+          /* ordena aquí con selección */
+          for (int i = 0; i < n; i++) {
+              if (i > 0) printf(" ");
+              printf("%d", a[i]);
+          }
+          printf("\n");
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n, a[100];
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &a[i]);
+          }
+          for (int i = 0; i < n - 1; i++) {
+              int minimo = i;
+              for (int j = i + 1; j < n; j++) {
+                  if (a[j] < a[minimo]) {
+                      minimo = j;
+                  }
+              }
+              int tmp = a[i];
+              a[i] = a[minimo];
+              a[minimo] = tmp;
+          }
+          for (int i = 0; i < n; i++) {
+              if (i > 0) printf(" ");
+              printf("%d", a[i]);
+          }
+          printf("\n");
+          return 0;
+      }
+    tests:
+      - { entrada: "5\n5 2 9 1 7\n", salida: "1 2 5 7 9\n" }
+      - { entrada: "3\n1 2 3\n", salida: "1 2 3\n" }
+      - { entrada: "4\n3 3 1 3\n", salida: "1 3 3 3\n" }
+      - { entrada: "1\n4\n", salida: "4\n", oculto: true }
+      - { entrada: "6\n-2 8 0 -5 3 1\n", salida: "-5 -2 0 1 3 8\n", oculto: true }
+    pistas: ["Para cada posición `i`, busca el índice del menor entre `i` y `n - 1`.", "Después intercambia `a[i]` con ese menor usando una variable temporal."]
+    explicacion: 'En la pasada `i` se busca el índice del menor de `a[i..n-1]` y se intercambia con `a[i]`; así, al terminar la pasada, las posiciones `0..i` ya tienen su valor final. Son $\frac{n(n-1)}{2}$ comparaciones: $O(n^2)$.'
+
+  - id: prog-11-012
+    tipo: numerico
+    dificultad: 4
+    conceptos: [busqueda-binaria, conteo-operaciones]
+    enunciado: 'Usas la búsqueda binaria de la lección sobre una lista ordenada de 1,000 elementos distintos. En el peor caso, ¿cuántas vueltas da el `while` (es decir, cuántos elementos revisa)?'
+    respuesta: 10
+    tolerancia: 0
+    verificar: { python: "max([s(s, t, 0, 999, 0) for r in [range] for s in [lambda s, t, lo, hi, c: c if lo > hi else (c + 1 if 2 * ((lo + hi) // 2) == t else (s(s, t, (lo + hi) // 2 + 1, hi, c + 1) if 2 * ((lo + hi) // 2) < t else s(s, t, lo, (lo + hi) // 2 - 1, c + 1)))] for t in r(-1, 2001)])" }
+    pistas: ["Cada vuelta deja, a lo más, la mitad de los candidatos.", "¿Cuántas veces puedes partir 1000 a la mitad antes de quedarte sin candidatos?"]
+    explicacion: 'El peor caso da $\lfloor \log_2 1000 \rfloor + 1 = 9 + 1 = 10$ vueltas: 1000 candidatos se reducen a 500, 250, 125, 62, 31, 15, 7, 3, 1 y en la décima vuelta se revisa el último. (La verificación simula la búsqueda con todos los valores posibles y toma el máximo.) Una búsqueda lineal podría necesitar 1,000.'
+
+  - id: prog-11-013
+    tipo: numerico
+    dificultad: 4
+    conceptos: [ordenamiento-basico, conteo-operaciones]
+    enunciado: '¿Cuántas veces se ejecuta la comparación `a[j] < a[minimo]` cuando el ordenamiento por selección de la lección ordena una lista de 50 elementos?'
+    respuesta: 1225
+    tolerancia: 0
+    verificar: { python: "sum([1 for r in [range] for i in r(50 - 1) for j in r(i + 1, 50)])" }
+    pistas: ["En la pasada `i`, el ciclo de adentro va de `i + 1` a `n - 1`.", "Suma $49 + 48 + \\dots + 1$."]
+    explicacion: 'La primera pasada compara 49 veces, la segunda 48, y así hasta 1: $\frac{50 \cdot 49}{2} = 1225$. No importa cómo vengan los datos: selección siempre hace $\frac{n(n-1)}{2}$ comparaciones.'
+
+  - id: prog-11-014
+    tipo: depurar
+    dificultad: 4
+    conceptos: [busqueda-binaria]
+    lenguaje: python
+    enunciado: 'Esta búsqueda binaria encuentra algunos valores pero dice que otros "no están", aunque sí están. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      def busqueda_binaria(lista, x):
+          izq, der = 0, len(lista) - 1
+          while izq < der:
+              medio = (izq + der) // 2
+              if lista[medio] == x:
+                  return medio
+              elif lista[medio] < x:
+                  izq = medio + 1
+              else:
+                  der = medio - 1
+          return -1
+    linea_bug: 3
+    solucion: |
+      def busqueda_binaria(lista, x):
+          izq, der = 0, len(lista) - 1
+          while izq <= der:
+              medio = (izq + der) // 2
+              if lista[medio] == x:
+                  return medio
+              elif lista[medio] < x:
+                  izq = medio + 1
+              else:
+                  der = medio - 1
+          return -1
+    tests:
+      - { expr: "busqueda_binaria([1, 3, 5, 7, 9], 5)", esperado: 2 }
+      - { expr: "busqueda_binaria([1, 3, 5, 7, 9], 4)", esperado: -1 }
+      - { expr: "busqueda_binaria([1, 3, 5, 7, 9], 9)", esperado: 4 }
+      - { expr: "busqueda_binaria([5], 5)", esperado: 0, oculto: true }
+    pistas: ["Prueba con una lista de un solo elemento.", "¿Qué pasa cuando `izq` y `der` son iguales? ¿Queda o no queda un candidato por revisar?"]
+    explicacion: 'Cuando `izq == der` todavía queda **un** candidato, pero `while izq < der` sale sin revisarlo. Por eso falla con `[5]` y con los valores que quedan al final de la búsqueda, como el 9. La condición correcta es `izq <= der`.'
+
+  - id: prog-11-015
+    tipo: depurar
+    dificultad: 4
+    conceptos: [ordenamiento-basico]
+    lenguaje: c
+    enunciado: 'Este programa ordena con el método de la burbuja (intercambia vecinos desordenados). Con datos ya ordenados funciona, pero con `3 2 1` imprime `1 1 1`. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n, a[100];
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &a[i]);
+          }
+          for (int i = 0; i < n - 1; i++) {
+              for (int j = 0; j < n - 1 - i; j++) {
+                  if (a[j] > a[j + 1]) {
+                      int tmp = a[j];
+                      a[j] = a[j + 1];
+                      a[j + 1] = a[j];
+                  }
+              }
+          }
+          for (int i = 0; i < n; i++) {
+              if (i > 0) printf(" ");
+              printf("%d", a[i]);
+          }
+          printf("\n");
+          return 0;
+      }
+    linea_bug: 14
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n, a[100];
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &a[i]);
+          }
+          for (int i = 0; i < n - 1; i++) {
+              for (int j = 0; j < n - 1 - i; j++) {
+                  if (a[j] > a[j + 1]) {
+                      int tmp = a[j];
+                      a[j] = a[j + 1];
+                      a[j + 1] = tmp;
+                  }
+              }
+          }
+          for (int i = 0; i < n; i++) {
+              if (i > 0) printf(" ");
+              printf("%d", a[i]);
+          }
+          printf("\n");
+          return 0;
+      }
+    tests:
+      - { entrada: "4\n1 2 3 4\n", salida: "1 2 3 4\n" }
+      - { entrada: "3\n3 2 1\n", salida: "1 2 3\n" }
+      - { entrada: "5\n4 1 3 9 7\n", salida: "1 3 4 7 9\n" }
+      - { entrada: "2\n9 4\n", salida: "4 9\n", oculto: true }
+    pistas: ["Rastrea a mano el intercambio de `a[0] = 3` y `a[1] = 2`.", "¿Para qué se guardó `tmp` si nunca se usa? El compilador también lo nota."]
+    explicacion: 'Para intercambiar se guarda `a[j]` en `tmp`, se copia `a[j + 1]` en `a[j]` y luego `tmp` en `a[j + 1]`. El código copiaba `a[j]`, que **ya** había sido sobrescrito, así que los dos lugares quedaban con el mismo valor. Con datos ordenados nunca hay intercambios y el error no se nota: por eso hay que probar entradas desordenadas.'
+
+  - id: prog-11-016
+    tipo: codigo
+    dificultad: 4
+    conceptos: [busqueda-binaria, conteo-operaciones]
+    lenguaje: python
+    enunciado: 'Escribe `pasos_binaria(lista, x)` que haga la búsqueda binaria de la lección sobre la lista ordenada (con `medio = (izq + der) // 2`, revisando primero si `lista[medio] == x`) y regrese **cuántas vueltas** dio el `while` hasta encontrar `x` o concluir que no está.'
+    plantilla: |
+      def pasos_binaria(lista, x):
+          pass
+    solucion: |
+      def pasos_binaria(lista, x):
+          izq, der = 0, len(lista) - 1
+          pasos = 0
+          while izq <= der:
+              pasos += 1
+              medio = (izq + der) // 2
+              if lista[medio] == x:
+                  return pasos
+              elif lista[medio] < x:
+                  izq = medio + 1
+              else:
+                  der = medio - 1
+          return pasos
+    tests:
+      - { expr: "pasos_binaria([3, 8, 12, 15, 21, 30, 42], 15)", esperado: 1 }
+      - { expr: "pasos_binaria([3, 8, 12, 15, 21, 30, 42], 30)", esperado: 2 }
+      - { expr: "pasos_binaria([3, 8, 12, 15, 21, 30, 42], 5)", esperado: 3 }
+      - { expr: "pasos_binaria([], 7)", esperado: 0, oculto: true }
+      - { expr: "pasos_binaria(list(range(1000)), 999)", esperado: 10, oculto: true }
+      - { expr: "pasos_binaria(list(range(100)), -5)", esperado: 6, oculto: true }
+    pistas: ["Copia la búsqueda binaria y agrega un contador que sume 1 al inicio de cada vuelta.", "Si la lista está vacía, el `while` no da ninguna vuelta."]
+    explicacion: 'Se suma 1 al empezar cada vuelta y se regresa el contador tanto al encontrar `x` como al salir del ciclo. Con 1,000 elementos, buscar el último cuesta 10 vueltas: $\lfloor \log_2 1000 \rfloor + 1$. Con 100 y un valor menor que todos, 6: hacia la izquierda las mitades quedan un poco más chicas.'
+
+  - id: prog-11-017
+    tipo: codigo
+    dificultad: 4
+    conceptos: [busqueda-binaria, notacion-o-grande]
+    lenguaje: c
+    enunciado: 'Escribe un programa en C que lea $n$ ($1 \le n \le 1000$), luego $n$ enteros **ordenados** de menor a mayor y sin repetir, luego $q$ y después $q$ valores. Para cada valor imprime, en su propia línea, el índice donde está o `-1` si no está. Usa búsqueda binaria.'
+    plantilla: |
+      #include <stdio.h>
+
+      int busqueda_binaria(const int a[], int n, int x) {
+          /* tu código aquí */
+          return -1;
+      }
+
+      int main(void) {
+          /* lee los datos y responde cada consulta */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int busqueda_binaria(const int a[], int n, int x) {
+          int izq = 0, der = n - 1;
+          while (izq <= der) {
+              int medio = izq + (der - izq) / 2;
+              if (a[medio] == x) {
+                  return medio;
+              }
+              if (a[medio] < x) {
+                  izq = medio + 1;
+              } else {
+                  der = medio - 1;
+              }
+          }
+          return -1;
+      }
+
+      int main(void) {
+          int n, q, x, a[1000];
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &a[i]);
+          }
+          scanf("%d", &q);
+          for (int k = 0; k < q; k++) {
+              scanf("%d", &x);
+              printf("%d\n", busqueda_binaria(a, n, x));
+          }
+          return 0;
+      }
+    tests:
+      - { entrada: "7\n3 8 12 15 21 30 42\n3\n30 5 3\n", salida: "5\n-1\n0\n" }
+      - { entrada: "1\n10\n2\n10 11\n", salida: "0\n-1\n" }
+      - { entrada: "5\n-9 -4 0 6 11\n2\n11 -10\n", salida: "4\n-1\n", oculto: true }
+      - { entrada: "6\n1 3 5 7 9 11\n4\n1 11 6 12\n", salida: "0\n5\n-1\n-1\n", oculto: true }
+    pistas: ["Escribe la búsqueda en su propia función y llámala una vez por consulta.", "Prueba los extremos: el primer elemento, el último y valores fuera del rango."]
+    explicacion: 'Cada consulta cuesta $O(\log n)$ con búsqueda binaria, así que $q$ consultas cuestan $O(q \log n)$; con búsqueda lineal serían $O(q \cdot n)$. Las pruebas ocultas revisan los extremos (primer y último elemento) y valores menores o mayores que todos.'
+
+  - id: prog-11-018
+    tipo: numerico
+    dificultad: 5
+    conceptos: [conteo-operaciones, crecimiento-funciones]
+    enunciado: |
+      ¿Cuánto vale `cuenta` al final?
+
+      ```python
+      cuenta = 0
+      for i in range(1, 101):
+          j = i
+          while j <= 100:
+              cuenta += 1
+              j = j * 2
+      ```
+    respuesta: 197
+    tolerancia: 0
+    verificar: { python: "sum([g(g, i, 0) for r in [range] for g in [lambda g, j, c: c if j > 100 else g(g, j * 2, c + 1)] for i in r(1, 101)])" }
+    pistas: ["Para cada `i`, el `while` cuenta los valores $i, 2i, 4i, \\dots$ que no pasan de 100.", "Agrupa: los `i` de 51 a 100 dan 1 vuelta; los de 26 a 50, 2 vueltas; ...", "Otra forma: cuenta por potencia. ¿Cuántos `i` cumplen $i \\le 100$? ¿Y $2i \\le 100$? ¿Y $4i \\le 100$?"]
+    explicacion: 'Contando por grupos: 50 valores de `i` dan 1 vuelta, 25 dan 2, 13 dan 3, 6 dan 4, 3 dan 5, 2 dan 6 y 1 da 7: $50 + 50 + 39 + 24 + 15 + 12 + 7 = 197$. Contando por potencia es más elegante: $100 + 50 + 25 + 12 + 6 + 3 + 1 = 197$ (cuántos `i` cumplen $i \le 100$, $2i \le 100$, $4i \le 100$, ...). Esa suma siempre es menor que $2n$, así que este ciclo anidado es $O(n)$: anidar no siempre significa multiplicar.'
+
+  - id: prog-11-019
+    tipo: codigo
+    dificultad: 5
+    conceptos: [ordenamiento-basico, conteo-operaciones]
+    lenguaje: python
+    enunciado: 'Escribe `insercion(lista)` que ordene una **copia** de la lista con ordenamiento por inserción y regrese la pareja `(ordenada, movimientos)`. Inserción: para cada posición `i` desde 1, guarda `actual = a[i]` y recorre un lugar a la derecha cada elemento anterior que sea **mayor** que `actual`; luego pon `actual` en el hueco. `movimientos` cuenta cuántas veces se recorrió un elemento un lugar. La lista original no debe cambiar.'
+    plantilla: |
+      def insercion(lista):
+          pass
+    solucion: |
+      def insercion(lista):
+          a = lista[:]
+          movimientos = 0
+          for i in range(1, len(a)):
+              actual = a[i]
+              j = i - 1
+              while j >= 0 and a[j] > actual:
+                  a[j + 1] = a[j]
+                  movimientos += 1
+                  j -= 1
+              a[j + 1] = actual
+          return a, movimientos
+    tests:
+      - { expr: "insercion([3, 1, 2])", esperado: [[1, 2, 3], 2] }
+      - { expr: "insercion([1, 2, 3, 4])", esperado: [[1, 2, 3, 4], 0] }
+      - { expr: "insercion([4, 3, 2, 1])", esperado: [[1, 2, 3, 4], 6] }
+      - { expr: "insercion([])", esperado: [[], 0], oculto: true }
+      - { expr: "insercion([2, 5, 2, 1])", esperado: [[1, 2, 2, 5], 4], oculto: true }
+      - { expr: "(lambda l: (insercion(l), l)[1])([3, 1, 2])", esperado: [3, 1, 2], oculto: true }
+    pistas: ["Trabaja sobre `a = lista[:]` para no tocar la original.", "El ciclo interno es un `while j >= 0 and a[j] > actual:`.", "Con elementos iguales no se recorre nada: la comparación es estricta."]
+    explicacion: 'Cada movimiento deshace una pareja desordenada (un elemento mayor antes de uno menor), así que `movimientos` es el número de esas parejas. Con la lista ya ordenada no hay ninguno (mejor caso, $O(n)$); al revés hay $\frac{n(n-1)}{2}$ (peor caso, $O(n^2)$): con 4 elementos, 6.'
+
+  - id: prog-11-020
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [notacion-o-grande, busqueda-binaria, ordenamiento-basico]
+    enunciado: 'Tienes una lista **desordenada** de $n = 1{,}000{,}000$ números y vas a hacer $k$ búsquedas. Explica cuándo conviene buscar de forma lineal cada vez y cuándo conviene ordenar primero (con un algoritmo $O(n \log n)$) y luego usar búsqueda binaria. Apóyate en conteos aproximados.'
+    rubrica:
+      - "Calcula el costo de buscar lineal: unas $k \\cdot n$ comparaciones."
+      - "Calcula el costo de ordenar y buscar: unas $n \\log_2 n \\approx 2 \\times 10^7$ para ordenar más unas 20 por cada búsqueda binaria."
+      - "Concluye que con pocas búsquedas gana la lineal y que a partir de unas decenas (del orden de $\\log_2 n \\approx 20$) conviene ordenar primero."
+      - "Menciona que la búsqueda binaria solo funciona si la lista está ordenada."
+    respuesta_modelo: 'Buscar lineal cuesta hasta $n = 10^6$ comparaciones por búsqueda: $k \cdot 10^6$ en total. Ordenar cuesta del orden de $n \log_2 n \approx 2 \times 10^7$ y luego cada búsqueda binaria unas 20. Con una o dos búsquedas gana la lineal (no vale la pena ordenar), pero si $k \cdot 10^6$ supera a $2 \times 10^7$, o sea con más de unas 20 búsquedas, conviene ordenar una vez y usar binaria. La binaria exige la lista ordenada; sobre una desordenada da respuestas equivocadas.'
+    explicacion: 'La idea clave: un costo grande que se paga **una vez** (ordenar) se recupera si después ahorras mucho en cada una de muchas operaciones. Las cuentas son aproximadas: ignoran constantes, como hace la notación $O$.'
+    tarjeta: false

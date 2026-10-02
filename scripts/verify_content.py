@@ -15,6 +15,7 @@ Nota de seguridad: ejecuta código y evalúa expresiones escritas por nosotros
 from __future__ import annotations
 
 import json
+import math
 import re
 import shutil
 import subprocess
@@ -71,7 +72,9 @@ def eval_python(expr: str):
     env = {"math": math, "statistics": statistics, "Fraction": fractions.Fraction,
            "sum": sum, "min": min, "max": max, "len": len, "range": range,
            "round": round, "abs": abs, "sorted": sorted, "pow": pow}
-    return eval(expr, {"__builtins__": {}}, env)  # noqa: S307
+    # Como globales (no locales): así `range`, `sum`... también se ven dentro de
+    # comprensiones y lambdas (en Python 3.11 tienen su propio ámbito).
+    return eval(expr, {"__builtins__": {}, **env})  # noqa: S307
 
 
 def to_float(v) -> float:
@@ -79,6 +82,10 @@ def to_float(v) -> float:
 
 
 def close(a, b, tol: float) -> bool:
+    # Con un valor esperado infinito (o NaN) la tolerancia relativa también sería infinita y
+    # cualquier número "coincidiría": se exige igualdad exacta.
+    if math.isinf(b) or math.isnan(b) or math.isinf(a) or math.isnan(a):
+        return a == b
     return abs(a - b) <= max(tol, 1e-9 * max(1.0, abs(b)))
 
 

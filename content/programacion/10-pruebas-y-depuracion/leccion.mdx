@@ -129,7 +129,7 @@ Las más comunes: `ZeroDivisionError` (dividir entre cero), `ValueError` (valor 
 
 Atrapa **la excepción específica** que esperas. Cuando una excepción se lanza dentro de una función y nadie la atrapa ahí, sube a quien la llamó, y así hasta el `try` más cercano: todo lo que faltaba por ejecutar en medio se salta. Tú también puedes lanzar una: `raise ValueError("la lista está vacía")`.
 
-C no tiene excepciones. Las funciones avisan con su **valor de retorno** y tú lo revisas: `scanf` regresa cuántos datos leyó y `fopen` regresa `NULL` si no pudo abrir.
+C no tiene excepciones. Las funciones avisan con su **valor de retorno** y tú lo revisas: `scanf` regresa cuántos datos leyó (y `EOF`, que vale −1, si ya no hay entrada: por eso el ciclo correcto es `while (scanf("%d", &x) == 1)`, no `!= 0`) y `fopen` regresa `NULL` si no pudo abrir.
 
 ```c
 int x;

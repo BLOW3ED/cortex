@@ -145,6 +145,8 @@ int main(void) {
 - **Apuntador sin inicializar.** `int *p; *p = 3;` escribe en una dirección basura. Inicializa siempre: con `&algo`, con `malloc` o con `NULL`.
 - **Liberar dos veces, o liberar lo que no vino de `malloc`.** `free` solo recibe direcciones que regresó `malloc` (o `realloc`), y una sola vez.
 - **Confundir `p` con `*p`.** `p = &v[i]` mueve la flecha; `*p = v[i]` cambia el valor apuntado.
+- **`v = realloc(v, ...)`.** Si `realloc` falla regresa `NULL` y pierdes (fugas) el bloque original. Guarda el resultado en un apuntador temporal, revisa que no sea `NULL` y luego asígnalo; `realloc` conserva el contenido aunque mueva el bloque de lugar.
+- **`free` dos veces.** Liberar un bloque ya liberado es comportamiento indefinido; `free(NULL)` sí es válido y no hace nada, por eso conviene poner el apuntador en `NULL` después de liberarlo.
 </Ojo>
 
 <Conexion materia="Inteligencia artificial">

@@ -66,7 +66,7 @@ int main(void) {
 }
 ```
 
-Formatos comunes en C: `%d` entero, `%f` decimal, `%c` carácter, `%s` texto. Para fijar decimales o ceros a la izquierda: `%.2f`, `%02d`.
+Formatos comunes en C: `%d` entero, `%f` decimal, `%c` carácter, `%s` texto. Ojo: en `scanf` un `double` se lee con `%lf` (con `%f` se guarda mal); en `printf`, `%f` sirve para `double`. Para fijar decimales o ceros a la izquierda: `%.2f`, `%02d`.
 
 <Ejemplo titulo="Promedio sin perder decimales (C)">
 Quieres el promedio de dos enteros $a$ y $b$.

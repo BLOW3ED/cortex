@@ -31,7 +31,7 @@ print(cal)                # [8, 7, 10, 9, 5, 9]
 print(cal[1:3])           # [7, 10]: rebanada del índice 1 al 2 (el 3 no entra)
 ```
 
-Una lista es un objeto: `b = a` **no** la copia, solo le pone otro nombre. Si cambias `b`, ves el cambio en `a`. Para copiarla usa `a[:]` o `list(a)`. Por lo mismo, una función que recibe una lista y la **modifica** (con `append` o asignando `lista[i]`) cambia la lista original: el parámetro es otro nombre para el mismo objeto.
+Una lista es un objeto: `b = a` **no** la copia, solo le pone otro nombre. Si cambias `b`, ves el cambio en `a`. Para copiarla usa `a[:]` o `list(a)` (copia la lista de afuera; si sus elementos son listas, esas siguen compartidas). Por lo mismo, una función que recibe una lista y la **modifica** (con `append` o asignando `lista[i]`) cambia la lista original: el parámetro es otro nombre para el mismo objeto.
 
 ## Arreglos en C
 
@@ -53,7 +53,7 @@ int main(void) {
 }
 ```
 
-Diferencias con las listas de Python: el tamaño no cambia, todos los elementos son del mismo tipo, no hay `len` (el tamaño lo llevas tú en una variable) y no hay índices negativos. Al pasar un arreglo a una función también pasas su tamaño: `int suma(int v[], int n)`. Y, a diferencia de un `int` suelto, la función **sí** puede modificar los elementos del arreglo original; en la unidad 6 verás por qué.
+Diferencias con las listas de Python: el tamaño no cambia, todos los elementos son del mismo tipo, no hay `len` (el tamaño lo llevas tú en una variable) y `v[-1]` no cuenta desde el final: lee fuera del arreglo (comportamiento indefinido). Al pasar un arreglo a una función también pasas su tamaño: `int suma(int v[], int n)`. Y, a diferencia de un `int` suelto, la función **sí** puede modificar los elementos del arreglo original; en la unidad 6 verás por qué.
 
 ## Recorrer y buscar
 
@@ -183,7 +183,7 @@ int main(void) {
 - **Empezar el máximo en 0.** Si todos los valores son negativos, el "máximo" sale 0. Empieza con el primer elemento.
 - **`return -1` dentro del ciclo.** La búsqueda se rinde en el primer elemento que no coincide.
 - **Creer que `b = a` copia una lista.** Los dos nombres son la misma lista; copia con `a[:]`.
-- **`[[0] * 3] * 3` en Python.** Repite la *misma* lista tres veces: cambiar un renglón cambia los tres. Crea cada renglón por separado, por ejemplo con un ciclo que haga `m.append([0] * 3)`.
+- **`[[0] * 3] * 3` en Python.** Repite la *misma* lista tres veces: `m[0][0] = 7` cambia la primera columna de los tres renglones. Crea cada renglón por separado, por ejemplo con un ciclo que haga `m.append([0] * 3)`.
 - **Olvidar el `'\0'` en C.** Un arreglo de `char` sin lugar para el terminador hace que `printf` y `strlen` sigan leyendo memoria ajena.
 - **Comparar cadenas de C con `==`.** Compara direcciones, no texto; usa `strcmp(a, b) == 0`.
 </Ojo>

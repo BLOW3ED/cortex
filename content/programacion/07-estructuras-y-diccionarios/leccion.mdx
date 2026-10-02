@@ -83,7 +83,7 @@ Pasar un apuntador también evita copiar structs grandes. Si la función solo va
 ## Diccionarios en Python
 
 <Concepto titulo="Diccionario">
-Un diccionario (`dict`) guarda pares **clave → valor**. Buscas por la clave, no por la posición: `edades["Ana"]`. Las claves no se repiten y deben ser inmutables (texto, números, tuplas); los valores pueden ser cualquier cosa.
+Un diccionario (`dict`) guarda pares **clave → valor**. Buscas por la clave, no por la posición: `edades["Ana"]`. Las claves no se repiten y deben ser *hashables*: texto, números o tuplas que solo contengan valores así (una lista no sirve, ni una tupla que tenga una lista adentro); los valores pueden ser cualquier cosa.
 </Concepto>
 
 ```python

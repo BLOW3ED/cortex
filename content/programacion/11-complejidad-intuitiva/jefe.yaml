@@ -1,0 +1,9 @@
+unidad: programacion/11-complejidad-intuitiva
+nombre: "La Hidra Exponencial"
+vidas: 3
+tiempo_segundos: 1200
+aprobado_minimo: 0.8
+preguntas:
+  propias: [prog-11-006, prog-11-007, prog-11-009, prog-11-010, prog-11-012, prog-11-014, prog-11-016, prog-11-018]
+  repaso_de: []
+recompensa: { xp: 300, insignia: "domador-de-o-grande" }

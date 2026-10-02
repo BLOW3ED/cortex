@@ -1,0 +1,628 @@
+unidad: programacion/12-proyecto-integrador
+ejercicios:
+  - id: prog-12-001
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [diseno-programa]
+    enunciado: 'Vas a escribir un programa que lee calificaciones de un archivo (una línea `materia,calificacion` por registro) y reporta el promedio por materia. ¿Qué división en funciones es la más adecuada?'
+    opciones:
+      - '`leer_lineas(ruta)`, `parsear(linea)`, `promedios(registros)` e `imprimir_reporte(promedios)`'
+      - 'Una sola función `hacer_todo(ruta)` que lea, valide, calcule e imprima'
+      - '`leer_y_promediar(ruta)` e `imprimir(ruta)`, que vuelve a leer el archivo para imprimir'
+      - 'Una función por materia: `promedio_calculo()`, `promedio_fisica()`, y así'
+    correcta: 0
+    pistas: ["¿Cuál permite probar cada pieza por separado y sin crear un archivo?"]
+    explicacion: 'Cada función de la primera opción tiene una sola tarea y un contrato claro (qué recibe y qué regresa), así que se prueba sola. Una función que hace todo no se puede probar por partes; leer el archivo dos veces repite trabajo; y una función por materia obliga a cambiar el código cada vez que aparece una materia nueva.'
+
+  - id: prog-12-002
+    tipo: ordenar
+    dificultad: 2
+    conceptos: [diseno-programa]
+    enunciado: 'Ordena los pasos para diseñar y construir un programa completo.'
+    elementos:
+      - "Escribir ejemplos de entrada con la salida que esperas"
+      - "Elegir cómo representar los datos (diccionario o struct)"
+      - "Dividir el problema en funciones con una sola tarea cada una"
+      - "Programar y probar cada función por separado"
+      - "Integrar las funciones y probar el programa completo"
+    explicacion: 'Los ejemplos van primero porque definen qué significa "funciona". Con ellos eliges cómo guardar los datos, partes el problema en funciones, pruebas cada pieza y al final las juntas. Integrar piezas que ya probaste reduce mucho dónde puede estar un error.'
+
+  - id: prog-12-003
+    tipo: completar
+    dificultad: 2
+    conceptos: [validacion-entradas]
+    enunciado: 'Completa con una palabra en cada hueco.'
+    texto: 'Al validar una entrada se revisan tres capas, en este orden: la ___ (que la línea tenga 3 campos), el ___ (que el texto se pueda convertir a número) y el ___ (que el número esté entre los límites permitidos).'
+    respuestas: ["forma", "tipo", "rango"]
+    explicacion: 'Primero la forma (la estructura), luego el tipo (que cada campo se pueda convertir) y al final el rango (que el valor tenga sentido). El orden importa: no puedes revisar el rango de un número que todavía no lograste convertir.'
+
+  - id: prog-12-004
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [validacion-entradas, assert-pruebas]
+    enunciado: '¿Por qué no conviene validar los datos que escribe el usuario con `assert`?'
+    opciones:
+      - 'Porque los `assert` se pueden desactivar (por ejemplo con `python -O`) y, cuando fallan, detienen el programa en vez de manejar el error'
+      - 'Porque `assert` es mucho más lento que un `if`'
+      - 'Porque `assert` solo funciona con números'
+      - 'Porque `assert` imprime el error pero deja seguir al programa con el dato malo'
+    correcta: 0
+    explicacion: '`assert` sirve para revisar suposiciones de **tu** código durante las pruebas. Los datos de afuera pueden venir mal en uso normal, así que se validan con `if` o `try / except` y se responde con un mensaje, un valor como `None` o una excepción que alguien atrapa.'
+
+  - id: prog-12-005
+    tipo: predecir_salida
+    dificultad: 2
+    conceptos: [validacion-entradas, excepciones]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son cinco líneas.'
+    codigo: |
+      def es_monto_valido(texto):
+          try:
+              monto = float(texto)
+          except ValueError:
+              return False
+          return monto > 0
+
+      for t in ["12.5", "-3", "abc", "0", "7"]:
+          print(t, es_monto_valido(t))
+    respuesta: "12.5 True\n-3 False\nabc False\n0 False\n7 True"
+    pistas: ["`float(\"-3\")` sí funciona; lo que falla es la regla de rango."]
+    explicacion: '`"12.5"` y `"7"` pasan la conversión y el rango. `"-3"` y `"0"` se convierten bien pero no son mayores que 0 (falla el rango). `"abc"` no se puede convertir: `float` lanza `ValueError` y la función regresa `False` (falla el tipo).'
+
+  - id: prog-12-006
+    tipo: codigo
+    dificultad: 3
+    conceptos: [validacion-entradas, casos-borde]
+    lenguaje: python
+    enunciado: 'Escribe `parsear_gasto(linea)` que convierta una línea `fecha,categoria,monto` en el diccionario `{"fecha": ..., "categoria": ..., "monto": ...}` (con `monto` como `float`). Quita los espacios alrededor de cada campo. Regresa `None` si la línea no tiene exactamente 3 campos, si la fecha o la categoría quedan vacías, si el monto no se puede convertir con `float` o si no es mayor que 0.'
+    plantilla: |
+      def parsear_gasto(linea):
+          pass
+    solucion: |
+      def parsear_gasto(linea):
+          partes = [p.strip() for p in linea.split(",")]
+          if len(partes) != 3:
+              return None
+          fecha, categoria, texto = partes
+          if fecha == "" or categoria == "":
+              return None
+          try:
+              monto = float(texto)
+          except ValueError:
+              return None
+          if monto <= 0:
+              return None
+          return {"fecha": fecha, "categoria": categoria, "monto": monto}
+    tests:
+      - { expr: "parsear_gasto('2026-09-01,comida,85.5')", esperado: { fecha: "2026-09-01", categoria: "comida", monto: 85.5 } }
+      - { expr: "parsear_gasto('2026-09-02, transporte , 12')", esperado: { fecha: "2026-09-02", categoria: "transporte", monto: 12 } }
+      - { expr: "parsear_gasto('2026-09-03,comida')", esperado: null }
+      - { expr: "parsear_gasto('2026-09-03,comida,abc')", esperado: null }
+      - { expr: "parsear_gasto('a,b,c,d')", esperado: null }
+      - { expr: "parsear_gasto('2026-09-04,comida,-5')", esperado: null, oculto: true }
+      - { expr: "parsear_gasto('2026-09-04,,10')", esperado: null, oculto: true }
+      - { expr: "parsear_gasto('2026-09-04,cine,0')", esperado: null, oculto: true }
+    pistas: ["Separa con `split(\",\")` y limpia cada parte con `strip()`.", "Revisa en orden: forma (3 campos), tipo (`float` dentro de `try`) y rango (mayor que 0)."]
+    explicacion: 'Primero la forma: exactamente tres campos y ninguno de texto vacío. Luego el tipo: `float` dentro de `try`, porque `"abc"` lanza `ValueError`. Al final el rango: un gasto de 0 o negativo no tiene sentido. Los casos borde (campo vacío, monto 0, cuatro campos) son justo los que una prueba descuidada no revisa.'
+
+  - id: prog-12-007
+    tipo: predecir_salida
+    dificultad: 3
+    conceptos: [integracion-modulos, diccionarios]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son tres líneas.'
+    codigo: |
+      def parsear(linea):
+          partes = linea.split(",")
+          if len(partes) != 2:
+              return None
+          nombre, cantidad = partes
+          if not cantidad.isdigit():
+              return None
+          return nombre, int(cantidad)
+
+      def acumular(lineas):
+          totales = {}
+          malas = 0
+          for linea in lineas:
+              dato = parsear(linea)
+              if dato is None:
+                  malas += 1
+                  continue
+              nombre, cantidad = dato
+              totales[nombre] = totales.get(nombre, 0) + cantidad
+          return totales, malas
+
+      totales, malas = acumular(["lapiz,3", "goma,2", "lapiz,x", "regla", "goma,5"])
+      for nombre in sorted(totales):
+          print(nombre, totales[nombre])
+      print("malas:", malas)
+    respuesta: "goma 7\nlapiz 3\nmalas: 2"
+    pistas: ["`\"lapiz,x\"` tiene 2 campos, pero `\"x\".isdigit()` es falso.", "`sorted` sobre un diccionario recorre sus llaves en orden alfabético."]
+    explicacion: '`"lapiz,x"` falla el tipo y `"regla"` falla la forma: 2 líneas malas. Las válidas suman `goma` 2 + 5 = 7 y `lapiz` 3. Se imprimen en orden alfabético (`goma` antes que `lapiz`) y al final el conteo de malas.'
+
+  - id: prog-12-008
+    tipo: parsons
+    dificultad: 3
+    conceptos: [integracion-modulos, diseno-programa]
+    lenguaje: python
+    enunciado: 'Ordena las líneas (con su sangría) para que `resumen_por_categoria(registros)` reciba una lista de diccionarios ya validados (con llaves `"categoria"` y `"monto"`) y regrese un diccionario con el total por categoría. Sobran dos líneas.'
+    lineas:
+      - "def resumen_por_categoria(registros):"
+      - "    totales = {}"
+      - "    for r in registros:"
+      - "        cat = r[\"categoria\"]"
+      - "        if cat not in totales:"
+      - "            totales[cat] = 0"
+      - "        totales[cat] += r[\"monto\"]"
+      - "    return totales"
+    distractores: ["            totales[cat] = r[\"monto\"]", "    return totales[cat]"]
+    tests:
+      - { expr: "resumen_por_categoria([{'categoria': 'comida', 'monto': 10}, {'categoria': 'cine', 'monto': 5}, {'categoria': 'comida', 'monto': 2.5}])", esperado: { comida: 12.5, cine: 5 } }
+      - { expr: "resumen_por_categoria([])", esperado: {} }
+      - { expr: "resumen_por_categoria([{'categoria': 'renta', 'monto': 4000}])", esperado: { renta: 4000 }, oculto: true }
+    explicacion: 'El diccionario empieza vacío; cada categoría nueva se crea en 0 y después se le suma el monto. El `return` va fuera del `for` (con 4 espacios): dentro del ciclo regresaría después del primer registro. Asignar `totales[cat] = r["monto"]` en vez de sumar perdería los montos anteriores, y `return totales[cat]` regresaría un solo número en lugar del diccionario. Esta función no valida: confía en que los registros ya llegan limpios.'
+
+  - id: prog-12-009
+    tipo: depurar
+    dificultad: 3
+    conceptos: [validacion-entradas]
+    lenguaje: python
+    enunciado: '`calificacion_valida(texto)` debe regresar `True` solo si el texto es un número entre 0 y 10 (incluidos). Pero acepta cosas como `"11"`. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      def calificacion_valida(texto):
+          try:
+              c = float(texto)
+          except ValueError:
+              return False
+          return c >= 0 or c <= 10
+    linea_bug: 6
+    solucion: |
+      def calificacion_valida(texto):
+          try:
+              c = float(texto)
+          except ValueError:
+              return False
+          return c >= 0 and c <= 10
+    tests:
+      - { expr: "calificacion_valida('8.5')", esperado: true }
+      - { expr: "calificacion_valida('abc')", esperado: false }
+      - { expr: "calificacion_valida('11')", esperado: false }
+      - { expr: "calificacion_valida('0')", esperado: true }
+      - { expr: "calificacion_valida('-1')", esperado: false, oculto: true }
+      - { expr: "calificacion_valida('10')", esperado: true, oculto: true }
+    pistas: ["¿Existe algún número que NO cumpla `c >= 0 or c <= 10`?"]
+    explicacion: 'Con `or` basta que se cumpla una de las dos condiciones, y **todo** número es mayor o igual que 0 o menor o igual que 10: la validación de rango no rechaza nada. Un rango se valida con `and` (o con `0 <= c <= 10`).'
+
+  - id: prog-12-010
+    tipo: opcion_multiple
+    dificultad: 3
+    conceptos: [integracion-modulos, diseno-programa]
+    enunciado: 'En un programa de gastos, `parsear(linea)` convierte una línea en un registro y `procesar(lineas)` la llama para cada línea. ¿Qué debe hacer `parsear` cuando la línea es inválida para que la integración sea limpia?'
+    opciones:
+      - 'Regresar un valor que no se confunda con un registro válido, como `None`, y que `procesar` lo revise'
+      - 'Imprimir "error" ahí mismo y regresar 0'
+      - 'Terminar todo el programa con `exit()`'
+      - 'Regresar la línea tal cual para que la siguiente función decida qué hacer'
+    correcta: 0
+    explicacion: 'El contrato debe ser claro: un registro o `None` (o lanzar una excepción que `procesar` atrape). Imprimir dentro de `parsear` mezcla tareas y regresar 0 se confunde con un dato; `exit()` no deja que el programa siga con las líneas buenas; y regresar la línea cruda pasa el problema a funciones que esperan datos limpios.'
+
+  - id: prog-12-011
+    tipo: codigo
+    dificultad: 4
+    conceptos: [validacion-entradas, integracion-modulos]
+    lenguaje: c
+    enunciado: 'Escribe un programa en C que lea líneas `nombre calificacion` hasta que se acabe la entrada (usa `fgets`). Una línea es válida si tiene **exactamente** dos datos: un nombre sin espacios y una calificación entera de 0 a 10. Ignora las líneas vacías. Imprime `validas: V invalidas: I` y en otra línea `promedio: P` con dos decimales, o `promedio: -` si no hubo válidas.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          char linea[128];
+          while (fgets(linea, sizeof linea, stdin) != NULL) {
+              /* valida y acumula */
+          }
+          /* imprime el reporte */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          char linea[128], nombre[50], extra;
+          int cal, validas = 0, invalidas = 0;
+          double suma = 0;
+          while (fgets(linea, sizeof linea, stdin) != NULL) {
+              if (linea[0] == '\n') {
+                  continue;
+              }
+              if (sscanf(linea, "%49s %d %c", nombre, &cal, &extra) == 2 && cal >= 0 && cal <= 10) {
+                  validas++;
+                  suma += cal;
+              } else {
+                  invalidas++;
+              }
+          }
+          printf("validas: %d invalidas: %d\n", validas, invalidas);
+          if (validas > 0) {
+              printf("promedio: %.2f\n", suma / validas);
+          } else {
+              printf("promedio: -\n");
+          }
+          return 0;
+      }
+    tests:
+      - { entrada: "ana 9\nbeto 7\n", salida: "validas: 2 invalidas: 0\npromedio: 8.00\n" }
+      - { entrada: "ana 9\nbeto 11\ncarla x\ndiego 6\n", salida: "validas: 2 invalidas: 2\npromedio: 7.50\n" }
+      - { entrada: "ana 9\n\nbeto 7\n", salida: "validas: 2 invalidas: 0\npromedio: 8.00\n" }
+      - { entrada: "", salida: "validas: 0 invalidas: 0\npromedio: -\n", oculto: true }
+      - { entrada: "eva 10 extra\nfer -1\ngil 0\nhugo 9.5\n", salida: "validas: 1 invalidas: 3\npromedio: 0.00\n", oculto: true }
+    pistas: ["`sscanf` regresa cuántos datos logró leer. Con el formato `\"%49s %d %c\"`, una línea correcta da exactamente 2.", "Si `sscanf` logra leer el `%c`, había algo de más después de la calificación.", "Cuidado con dividir entre cero si no hubo válidas."]
+    explicacion: '`fgets` lee una línea completa y `sscanf` la revisa: forma y tipo de un golpe (debe regresar exactamente 2; con `"carla x"` regresa 1 y con `"eva 10 extra"` o `"hugo 9.5"` regresa 3 porque el `%c` encuentra basura). Luego el rango de 0 a 10. El caso sin válidas se atiende aparte para no dividir entre cero.'
+
+  - id: prog-12-012
+    tipo: depurar
+    dificultad: 4
+    conceptos: [integracion-modulos, validacion-entradas, structs-c]
+    lenguaje: c
+    enunciado: 'Este programa suma el valor (cantidad por precio) de los productos válidos de un inventario y cuenta los inválidos. Pero con un inventario totalmente correcto imprime `total: 0.00` y dice que todos son inválidos. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      #include <stdio.h>
+
+      struct Producto {
+          char nombre[32];
+          int cantidad;
+          double precio;
+      };
+
+      /* Regresa 1 si el registro es válido y 0 si no. */
+      int es_valido(struct Producto p) {
+          return p.cantidad >= 0 && p.precio > 0;
+      }
+
+      double valor(struct Producto p) {
+          return p.cantidad * p.precio;
+      }
+
+      int main(void) {
+          struct Producto inv[50];
+          int n, invalidos = 0;
+          double total = 0;
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%31s %d %lf", inv[i].nombre, &inv[i].cantidad, &inv[i].precio);
+          }
+          for (int i = 0; i < n; i++) {
+              if (es_valido(inv[i]) == 0) {
+                  total += valor(inv[i]);
+              } else {
+                  invalidos++;
+              }
+          }
+          printf("total: %.2f\n", total);
+          printf("invalidos: %d\n", invalidos);
+          return 0;
+      }
+    linea_bug: 27
+    solucion: |
+      #include <stdio.h>
+
+      struct Producto {
+          char nombre[32];
+          int cantidad;
+          double precio;
+      };
+
+      /* Regresa 1 si el registro es válido y 0 si no. */
+      int es_valido(struct Producto p) {
+          return p.cantidad >= 0 && p.precio > 0;
+      }
+
+      double valor(struct Producto p) {
+          return p.cantidad * p.precio;
+      }
+
+      int main(void) {
+          struct Producto inv[50];
+          int n, invalidos = 0;
+          double total = 0;
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%31s %d %lf", inv[i].nombre, &inv[i].cantidad, &inv[i].precio);
+          }
+          for (int i = 0; i < n; i++) {
+              if (es_valido(inv[i]) == 1) {
+                  total += valor(inv[i]);
+              } else {
+                  invalidos++;
+              }
+          }
+          printf("total: %.2f\n", total);
+          printf("invalidos: %d\n", invalidos);
+          return 0;
+      }
+    tests:
+      - { entrada: "3\nlapiz 10 4.50\ngoma 4 3.25\nregla 2 12\n", salida: "total: 82.00\ninvalidos: 0\n" }
+      - { entrada: "3\nlapiz 10 4.50\ncuaderno -2 30\nplumon 3 0\n", salida: "total: 45.00\ninvalidos: 2\n" }
+      - { entrada: "1\nbolsa 0 15\n", salida: "total: 0.00\ninvalidos: 0\n", oculto: true }
+      - { entrada: "2\na 1 0.10\nb 3 0.20\n", salida: "total: 0.70\ninvalidos: 0\n", oculto: true }
+    pistas: ["Lee el comentario de `es_valido`: ¿qué número regresa para un producto válido?", "Compara esa convención con la condición del `if` en `main`."]
+    explicacion: '`es_valido` regresa 1 para válido y 0 para inválido, pero `main` preguntaba `== 0`, o sea, sumaba los inválidos y contaba como inválidos a los buenos. Es un error de **integración**: cada función está bien por separado, pero una no respeta el contrato de la otra. (Cuidado con confundirla con la convención de `main` o `strcmp`, donde 0 significa "todo bien" o "iguales".)'
+
+  - id: prog-12-013
+    tipo: codigo
+    dificultad: 4
+    conceptos: [integracion-modulos, diseno-programa]
+    lenguaje: python
+    enunciado: 'Escribe `reporte_gastos(lineas)` que reciba las líneas de un archivo de gastos (`fecha,categoria,monto`) y regrese `{"totales": ..., "invalidas": ..., "total": ...}`: el total por categoría (diccionario), la lista de números de línea inválidos (empezando en 1) y el total general. Usa las reglas de `parsear_gasto` del ejercicio anterior (escribe también esa función). Si la **primera** línea es exactamente `fecha,categoria,monto`, es un encabezado: no se procesa ni cuenta como inválida, pero sí cuenta para numerar. Redondea cada total y el total general a 2 decimales con `round`.'
+    plantilla: |
+      def parsear_gasto(linea):
+          pass
+
+      def reporte_gastos(lineas):
+          pass
+    solucion: |
+      def parsear_gasto(linea):
+          partes = [p.strip() for p in linea.split(",")]
+          if len(partes) != 3:
+              return None
+          fecha, categoria, texto = partes
+          if fecha == "" or categoria == "":
+              return None
+          try:
+              monto = float(texto)
+          except ValueError:
+              return None
+          if monto <= 0:
+              return None
+          return {"fecha": fecha, "categoria": categoria, "monto": monto}
+
+      def reporte_gastos(lineas):
+          totales = {}
+          invalidas = []
+          for numero, linea in enumerate(lineas, start=1):
+              if numero == 1 and linea.strip() == "fecha,categoria,monto":
+                  continue
+              gasto = parsear_gasto(linea)
+              if gasto is None:
+                  invalidas.append(numero)
+                  continue
+              cat = gasto["categoria"]
+              totales[cat] = totales.get(cat, 0) + gasto["monto"]
+          for cat in totales:
+              totales[cat] = round(totales[cat], 2)
+          total = round(sum(totales.values()), 2)
+          return {"totales": totales, "invalidas": invalidas, "total": total}
+    tests:
+      - { expr: "reporte_gastos(['fecha,categoria,monto', '2026-09-01,comida,85.5', '2026-09-01,transporte,12', '2026-09-02,comida,40.25'])", esperado: { totales: { comida: 125.75, transporte: 12 }, invalidas: [], total: 137.75 } }
+      - { expr: "reporte_gastos(['fecha,categoria,monto', '2026-09-01,cine,50', '2026-09-02,comida', '2026-09-02,cine,x', '2026-09-03,cine,25.5', '2026-09-03,renta,-100'])", esperado: { totales: { cine: 75.5 }, invalidas: [3, 4, 6], total: 75.5 } }
+      - { expr: "reporte_gastos([])", esperado: { totales: {}, invalidas: [], total: 0 }, oculto: true }
+      - { expr: "reporte_gastos(['2026-09-01,cafe,30', '2026-09-02,cafe,15.75'])", esperado: { totales: { cafe: 45.75 }, invalidas: [], total: 45.75 }, oculto: true }
+      - { expr: "reporte_gastos(['2026-09-01,cafe,30', 'fecha,categoria,monto'])", esperado: { totales: { cafe: 30 }, invalidas: [2], total: 30 }, oculto: true }
+      - { expr: "reporte_gastos(['x,a,0.1', 'x,a,0.2'])", esperado: { totales: { a: 0.3 }, invalidas: [], total: 0.3 }, oculto: true }
+    pistas: ["`enumerate(lineas, start=1)` te da el número de línea junto con la línea.", "Deja que `parsear_gasto` decida si una línea es válida; `reporte_gastos` solo coordina y acumula.", "Redondea al final: `0.1 + 0.2` no da exactamente `0.3`."]
+    explicacion: '`reporte_gastos` no valida nada por su cuenta: delega en `parsear_gasto` y solo coordina (numerar, acumular, juntar el resultado). El encabezado solo se reconoce en la línea 1; más abajo es una línea inválida más. Se redondea al final porque los decimales binarios acumulan error (`0.1 + 0.2` da `0.30000000000000004`). Con una lista vacía todo queda en cero sin tronar.'
+
+  - id: prog-12-014
+    tipo: codigo
+    dificultad: 4
+    conceptos: [integracion-modulos, procesar-lineas, manejo-errores-archivos]
+    lenguaje: python
+    enunciado: 'Escribe `resumen_archivo(ruta)` que lea un archivo de texto donde cada línea es `nombre,calificacion` y regrese la tupla `(validas, invalidas, promedio)`. Una línea es válida si tiene exactamente 2 campos y la calificación es un entero (según `int`) de 0 a 10. Las líneas vacías se ignoran. `promedio` es el de las válidas redondeado a 2 decimales, o `None` si no hubo válidas. Si el archivo no existe, regresa `None`. (Las pruebas crean el archivo antes de llamar a tu función.)'
+    plantilla: |
+      def resumen_archivo(ruta):
+          pass
+    solucion: |
+      def resumen_archivo(ruta):
+          try:
+              with open(ruta, encoding="utf-8") as f:
+                  lineas = f.read().splitlines()
+          except FileNotFoundError:
+              return None
+          validas, invalidas, suma = 0, 0, 0
+          for linea in lineas:
+              if linea.strip() == "":
+                  continue
+              partes = linea.split(",")
+              if len(partes) != 2:
+                  invalidas += 1
+                  continue
+              try:
+                  cal = int(partes[1])
+              except ValueError:
+                  invalidas += 1
+                  continue
+              if 0 <= cal <= 10:
+                  validas += 1
+                  suma += cal
+              else:
+                  invalidas += 1
+          promedio = round(suma / validas, 2) if validas > 0 else None
+          return (validas, invalidas, promedio)
+    tests:
+      - { expr: '(open("g1.txt", "w").write("ana,9\nbeto,7\ncarla,8\n"), resumen_archivo("g1.txt"))[1]', esperado: [3, 0, 8.0] }
+      - { expr: '(open("g2.txt", "w").write("ana,9\nbeto,once\n\ncarla,11\ndiego,6\n"), resumen_archivo("g2.txt"))[1]', esperado: [2, 2, 7.5] }
+      - { expr: 'resumen_archivo("no_existe.txt")', esperado: null }
+      - { expr: '(open("g3.txt", "w").write(""), resumen_archivo("g3.txt"))[1]', esperado: [0, 0, null], oculto: true }
+      - { expr: '(open("g4.txt", "w").write("eva,10\nfer\ngil,0\nhugo,7,extra\n"), resumen_archivo("g4.txt"))[1]', esperado: [2, 2, 5.0], oculto: true }
+      - { expr: '(open("g5.txt", "w").write("ana,9\nbeto,8"), resumen_archivo("g5.txt"))[1]', esperado: [2, 0, 8.5], oculto: true }
+    pistas: ["Abre el archivo con `with` dentro de un `try` que atrape `FileNotFoundError`.", "`f.read().splitlines()` separa las líneas sin dejar el `\\n` al final.", "Antes de dividir, revisa que haya al menos una válida."]
+    explicacion: 'Se integran tres piezas: abrir el archivo con manejo de error (`FileNotFoundError` → `None`), validar cada línea en capas (forma, tipo con `int`, rango) y calcular el resumen cuidando el caso sin válidas para no dividir entre cero. `splitlines()` funciona igual si la última línea no trae salto de línea.'
+
+  - id: prog-12-015
+    tipo: codigo
+    dificultad: 5
+    conceptos: [integracion-modulos, diseno-programa, structs-c]
+    lenguaje: c
+    enunciado: 'Escribe un programa en C que lea líneas `categoria monto` hasta el fin de la entrada (con `fgets`). Una línea es válida si tiene exactamente dos datos: la categoría (sin espacios, a lo más 31 caracteres) y un monto mayor que 0. Ignora las líneas vacías. Imprime cada categoría **en el orden en que apareció por primera vez**, con su total a 2 decimales (`comida 125.75`), y al final `invalidas: K`. Hay a lo más 20 categorías distintas. Usa un arreglo de `struct`.'
+    plantilla: |
+      #include <stdio.h>
+      #include <string.h>
+
+      struct Categoria {
+          char nombre[32];
+          double total;
+      };
+
+      int main(void) {
+          struct Categoria cats[20];
+          char linea[128];
+          while (fgets(linea, sizeof linea, stdin) != NULL) {
+              /* valida la línea y acumula en su categoría */
+          }
+          /* imprime el reporte */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+      #include <string.h>
+
+      struct Categoria {
+          char nombre[32];
+          double total;
+      };
+
+      int buscar(struct Categoria cats[], int n, const char *nombre) {
+          for (int i = 0; i < n; i++) {
+              if (strcmp(cats[i].nombre, nombre) == 0) {
+                  return i;
+              }
+          }
+          return -1;
+      }
+
+      int main(void) {
+          struct Categoria cats[20];
+          int n = 0, invalidas = 0;
+          char linea[128], nombre[32], extra;
+          double monto;
+          while (fgets(linea, sizeof linea, stdin) != NULL) {
+              if (linea[0] == '\n') {
+                  continue;
+              }
+              if (sscanf(linea, "%31s %lf %c", nombre, &monto, &extra) != 2 || monto <= 0) {
+                  invalidas++;
+                  continue;
+              }
+              int i = buscar(cats, n, nombre);
+              if (i == -1) {
+                  i = n;
+                  strcpy(cats[n].nombre, nombre);
+                  cats[n].total = 0;
+                  n++;
+              }
+              cats[i].total += monto;
+          }
+          for (int i = 0; i < n; i++) {
+              printf("%s %.2f\n", cats[i].nombre, cats[i].total);
+          }
+          printf("invalidas: %d\n", invalidas);
+          return 0;
+      }
+    tests:
+      - { entrada: "comida 85.5\ntransporte 12\ncomida 40.25\n", salida: "comida 125.75\ntransporte 12.00\ninvalidas: 0\n" }
+      - { entrada: "cine 50\ncomida x\nrenta -100\ncine 25.5\n", salida: "cine 75.50\ninvalidas: 2\n" }
+      - { entrada: "", salida: "invalidas: 0\n", oculto: true }
+      - { entrada: "libros 120 extra\ncafe 30\n\ncafe 15\n", salida: "cafe 45.00\ninvalidas: 1\n", oculto: true }
+      - { entrada: "b 1\na 2\nb 3\nc 0\n", salida: "b 4.00\na 2.00\ninvalidas: 1\n", oculto: true }
+    pistas: ["Separa en funciones: una que busque la categoría en el arreglo (regresa su índice o -1) y el `main` que coordina.", "Valida con `sscanf(linea, \"%31s %lf %c\", ...)`: una línea correcta da exactamente 2.", "Si la categoría es nueva, cópiala con `strcpy` al siguiente lugar libre y empieza su total en 0."]
+    explicacion: 'Es el programa completo en miniatura: un `struct` modela cada categoría, `buscar` resuelve una sola tarea (encontrar el índice o regresar -1) y `main` coordina la lectura, la validación (forma y tipo con `sscanf`, rango con `monto > 0`) y la acumulación. Guardar las categorías en el orden en que llegan da el reporte en orden de aparición. Con la entrada vacía solo se imprime el conteo.'
+
+  - id: prog-12-016
+    tipo: depurar
+    dificultad: 5
+    conceptos: [integracion-modulos]
+    lenguaje: python
+    enunciado: '`reporte(montos)` debe regresar la mediana de los gastos y el primero y el último **en el orden en que se registraron**. `mediana` funciona bien por sí sola, pero dentro de `reporte` los valores de `primero` y `ultimo` salen mal. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      def mediana(montos):
+          ordenados = montos
+          ordenados.sort()
+          n = len(ordenados)
+          medio = n // 2
+          if n % 2 == 1:
+              return ordenados[medio]
+          return (ordenados[medio - 1] + ordenados[medio]) / 2
+
+      def reporte(montos):
+          return {"mediana": mediana(montos), "primero": montos[0], "ultimo": montos[-1]}
+    linea_bug: 2
+    solucion: |
+      def mediana(montos):
+          ordenados = montos[:]
+          ordenados.sort()
+          n = len(ordenados)
+          medio = n // 2
+          if n % 2 == 1:
+              return ordenados[medio]
+          return (ordenados[medio - 1] + ordenados[medio]) / 2
+
+      def reporte(montos):
+          return {"mediana": mediana(montos), "primero": montos[0], "ultimo": montos[-1]}
+    tests:
+      - { expr: "mediana([4, 1, 3, 2])", esperado: 2.5 }
+      - { expr: "mediana([5])", esperado: 5 }
+      - { expr: "reporte([30, 10, 20])", esperado: { mediana: 20, primero: 30, ultimo: 20 } }
+      - { expr: "(lambda m: (mediana(m), m)[1])([3, 1, 2])", esperado: [3, 1, 2], oculto: true }
+      - { expr: "reporte([7, 7, 1, 9])", esperado: { mediana: 7, primero: 7, ultimo: 9 }, oculto: true }
+    pistas: ["Imprime `montos` antes y después de llamar a `mediana`.", "¿`ordenados = montos` crea una lista nueva?"]
+    explicacion: '`ordenados = montos` no copia la lista: los dos nombres apuntan a la **misma** lista, así que `ordenados.sort()` también reordena la lista de quien llamó. `mediana` regresa el valor correcto, pero deja "desordenados" los datos de `reporte`. Copiar con `montos[:]` (o usar `sorted(montos)`) hace que la función no toque lo que no es suyo: un error típico al integrar módulos.'
+
+  - id: prog-12-017
+    tipo: codigo
+    dificultad: 5
+    conceptos: [diseno-programa, validacion-entradas, integracion-modulos]
+    lenguaje: python
+    enunciado: 'Escribe `aplicar_movimientos(inventario, movimientos)`. `inventario` es un diccionario producto → existencias; `movimientos` es una lista de textos como `"entra lapiz 5"` o `"sale goma 2"`. Regresa la pareja `(nuevo_inventario, rechazados)`, donde `rechazados` son los números (desde 1) de los movimientos inválidos, que no se aplican. Un movimiento es inválido si no tiene exactamente 3 palabras, si la acción no es `entra` ni `sale`, si la cantidad no es un entero (según `int`) mayor que 0, o si es una salida mayor que las existencias (un producto que no está tiene 0). Una entrada puede crear un producto nuevo. **No modifiques** el diccionario original.'
+    plantilla: |
+      def aplicar_movimientos(inventario, movimientos):
+          pass
+    solucion: |
+      def aplicar_movimientos(inventario, movimientos):
+          inv = dict(inventario)
+          rechazados = []
+          for numero, mov in enumerate(movimientos, start=1):
+              partes = mov.split()
+              if len(partes) != 3 or partes[0] not in ("entra", "sale"):
+                  rechazados.append(numero)
+                  continue
+              accion, producto, texto = partes
+              try:
+                  cantidad = int(texto)
+              except ValueError:
+                  rechazados.append(numero)
+                  continue
+              if cantidad <= 0:
+                  rechazados.append(numero)
+                  continue
+              actual = inv.get(producto, 0)
+              if accion == "entra":
+                  inv[producto] = actual + cantidad
+              elif cantidad <= actual:
+                  inv[producto] = actual - cantidad
+              else:
+                  rechazados.append(numero)
+          return inv, rechazados
+    tests:
+      - { expr: "aplicar_movimientos({'lapiz': 10, 'goma': 3}, ['entra lapiz 5', 'sale goma 2'])", esperado: [{ lapiz: 15, goma: 1 }, []] }
+      - { expr: "aplicar_movimientos({'lapiz': 10}, ['sale lapiz 11', 'entra regla 4', 'vende lapiz 1', 'entra lapiz dos', 'sale lapiz 0'])", esperado: [{ lapiz: 10, regla: 4 }, [1, 3, 4, 5]] }
+      - { expr: "aplicar_movimientos({}, [])", esperado: [{}, []] }
+      - { expr: "aplicar_movimientos({'goma': 2}, ['sale goma 2', 'sale borrador 1'])", esperado: [{ goma: 0 }, [2]], oculto: true }
+      - { expr: "aplicar_movimientos({'lapiz': 1}, ['entra lapiz 5 extra', 'entra lapiz -3', 'entra  lapiz   2'])", esperado: [{ lapiz: 3 }, [1, 2]], oculto: true }
+      - { expr: "(lambda inv: (aplicar_movimientos(inv, ['sale lapiz 1']), inv)[1])({'lapiz': 2})", esperado: { lapiz: 2 }, oculto: true }
+    pistas: ["Trabaja sobre una copia: `inv = dict(inventario)`.", "Valida en capas: forma (3 palabras y acción conocida), tipo (`int` dentro de `try`) y rango (mayor que 0 y, si sale, que alcance).", "`split()` sin argumentos separa por cualquier cantidad de espacios."]
+    explicacion: 'El diseño separa validar de aplicar: cada movimiento pasa por forma, tipo y rango, y solo si sobrevive se toca la copia del inventario. Las existencias de un producto inexistente se leen con `inv.get(producto, 0)`, así que una salida de algo que no hay se rechaza sin tronar. Trabajar sobre `dict(inventario)` deja intacto el original, para que quien llamó pueda comparar antes y después.'
+
+  - id: prog-12-018
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [diseno-programa, validacion-entradas, integracion-modulos]
+    enunciado: 'Diseña (sin programarlo) un programa de "biblioteca personal" que lea un archivo con una línea por libro (`titulo,autor,anio,paginas`) y reporte cuántas páginas has leído por autor y qué líneas venían mal. Describe tus ejemplos de prueba, cómo representarías los datos, qué funciones harías (con lo que recibe y regresa cada una) y qué validarías.'
+    rubrica:
+      - "Da ejemplos concretos de entrada con su salida esperada, incluidos casos borde (archivo vacío, línea con campos de menos, páginas no numéricas o negativas)."
+      - "Elige una representación clara para cada libro (diccionario o struct) y para el resultado (diccionario autor → páginas)."
+      - "Propone funciones de una sola tarea con su contrato (por ejemplo: leer líneas, parsear una línea a registro o None, acumular por autor, imprimir reporte)."
+      - "Valida en capas (forma, tipo y rango) y en un solo lugar, decidiendo qué pasa con las líneas inválidas."
+      - "Menciona cómo probaría cada función por separado y luego el programa completo."
+    respuesta_modelo: 'Ejemplos: con `Rayuela,Cortázar,1963,600` y `Ficciones,Borges,1944,200` espero `Cortázar: 600` y `Borges: 200`; con `Aura,Fuentes,1962` (faltan campos) y `Pedro Páramo,Rulfo,1955,muchas` (páginas no numéricas) espero que se reporten como inválidas; con un archivo vacío, un reporte vacío sin tronar. Datos: cada libro como diccionario `{"titulo", "autor", "anio", "paginas"}` y el resultado como diccionario autor → páginas. Funciones: `leer_lineas(ruta)` (lista de textos o error si no existe), `parsear(linea)` (registro o `None`; valida forma: 4 campos; tipo: `anio` y `paginas` enteros; rango: páginas mayores que 0 y año razonable), `acumular(registros)` (diccionario por autor), `procesar(lineas)` (totales y números de línea inválidos) e `imprimir_reporte(...)`. Probaría `parsear` con un `assert` por cada regla, `acumular` con listas pequeñas y luego `procesar` con una lista que mezcle líneas buenas, malas y vacías.'
+    explicacion: 'Si tu diseño junta leer, validar y calcular en una sola función, o no dice qué regresa `parsear` cuando la línea es mala, vuelve a la sección "Las piezas y cómo se conectan".'
+    tarjeta: false

@@ -1,0 +1,9 @@
+unidad: programacion/12-proyecto-integrador
+nombre: "El Arquitecto del Caos"
+vidas: 3
+tiempo_segundos: 1800
+aprobado_minimo: 0.8
+preguntas:
+  propias: [prog-12-007, prog-12-009, prog-12-010, prog-12-011, prog-12-012, prog-12-013, prog-12-015, prog-12-016, prog-12-017]
+  repaso_de: []
+recompensa: { xp: 400, insignia: "arquitecto-de-programas" }

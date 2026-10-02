@@ -655,7 +655,7 @@ ejercicios:
     dificultad: 4
     conceptos: [aritmetica-apuntadores, paso-por-referencia]
     lenguaje: c
-    enunciado: 'Completa `invierte(inicio, fin)` para que invierta, en su lugar, los elementos que van desde `*inicio` hasta `*fin` (inclusive). Usa dos apuntadores que se acercan: intercambia lo apuntado, avanza `inicio`, retrocede `fin` y repite mientras `inicio < fin`. El `main` ya lee el arreglo, llama `invierte(v, v + n - 1)` e imprime el resultado.'
+    enunciado: 'Con $n \ge 1$, completa `invierte(inicio, fin)` para que invierta, en su lugar, los elementos que van desde `*inicio` hasta `*fin` (inclusive). Usa dos apuntadores que se acercan: intercambia lo apuntado, avanza `inicio`, retrocede `fin` y repite mientras `inicio < fin`. El `main` ya lee el arreglo, llama `invierte(v, v + n - 1)` e imprime el resultado.'
     plantilla: |
       #include <stdio.h>
 

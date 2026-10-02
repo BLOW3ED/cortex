@@ -71,7 +71,7 @@ print(cambia())   # 99
 print(x)          # 10: la global no se tocó
 ```
 
-En Python, si una función **asigna** a un nombre, ese nombre es local en toda la función. Por eso este código falla con `UnboundLocalError`: intenta leer la `contador` local antes de darle valor.
+En Python, si una función **asigna** a un nombre, ese nombre es local en toda la función. Por eso, al **llamar** `suma_uno()` este código falla con `UnboundLocalError`: intenta leer la `contador` local antes de darle valor.
 
 ```python
 contador = 0
@@ -81,7 +81,7 @@ def suma_uno():
     return contador
 ```
 
-La salida limpia es pasar el valor como parámetro y regresar el nuevo: `contador = suma_uno(contador)`. En C pasa lo mismo con las variables declaradas dentro de un bloque `{ ... }`: solo existen dentro de ese bloque.
+La salida limpia es pasar el valor como parámetro y regresar el nuevo: define `def suma_uno(c): return c + 1` y llama `contador = suma_uno(contador)`. En C, además, las variables declaradas dentro de un bloque `{ ... }` (un `if`, un `for`) solo existen dentro de ese bloque; en Python no: `if` y `for` no crean alcance propio, solo las funciones.
 
 ## Paso por valor
 

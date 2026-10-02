@@ -488,7 +488,7 @@ ejercicios:
     dificultad: 4
     conceptos: [descomposicion, prototipos-c, parametros-retorno]
     lenguaje: c
-    enunciado: 'Completa `mcd(a, b)` con el algoritmo de Euclides (mientras `b` no sea 0, el par `(a, b)` se vuelve `(b, a % b)`; al final el máximo común divisor es `a`) y `mcm(a, b)`, que debe usar `mcd`: $\operatorname{mcm}(a,b) = \dfrac{a}{\operatorname{mcd}(a,b)}\cdot b$. Los dos números son enteros positivos.'
+    enunciado: 'Completa `mcd(a, b)` con el algoritmo de Euclides (mientras `b` no sea 0, el par `(a, b)` se vuelve `(b, a % b)`; al final el máximo común divisor es `a`) y `mcm(a, b)`, que debe usar `mcd`: $\operatorname{mcm}(a,b) = \dfrac{a}{\operatorname{mcd}(a,b)}\cdot b$. Los dos números son enteros positivos menores que 10 000 (así el mcm cabe en un `int`).'
     plantilla: |
       #include <stdio.h>
 

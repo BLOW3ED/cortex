@@ -85,7 +85,7 @@ for (int i = 1; i <= 5; i++) {
 printf("%d\n", suma);    /* 15 */
 ```
 
-El `for` de C es un `while` en una sola línea. Este fragmento hace exactamente lo mismo que el anterior:
+El `for` de C es casi un `while` en una sola línea. Este fragmento hace lo mismo que el anterior:
 
 ```c
 int suma = 0;
@@ -143,7 +143,7 @@ printf("%d\n", suma);
 ## Salir antes o saltar una vuelta: break y continue
 
 <Concepto titulo="break y continue">
-`break` termina el ciclo de inmediato y el programa sigue con lo que está después del ciclo. `continue` se salta lo que falta de la vuelta actual y pasa a la siguiente. Funcionan igual en Python y en C, dentro de `for` y de `while`.
+`break` termina el ciclo de inmediato y el programa sigue con lo que está después del ciclo. `continue` se salta lo que falta de la vuelta actual y pasa a la siguiente. Existen en Python y en C, dentro de `for` y de `while`. Ojo con una diferencia: en el `for` de C, `continue` sí ejecuta la actualización (`i++`); en un `while` escrito a mano, la salta si `i++` va al final del cuerpo, y el ciclo puede volverse infinito.
 </Concepto>
 
 ```python

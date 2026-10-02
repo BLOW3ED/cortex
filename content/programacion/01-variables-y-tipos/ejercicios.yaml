@@ -106,7 +106,7 @@ ejercicios:
     dificultad: 4
     conceptos: [aritmetica-entera, formato-salida, entrada-salida]
     lenguaje: c
-    enunciado: 'Lee un entero $n \ge 0$ (segundos) e imprime la duración en formato `HH:MM:SS` con dos dígitos cada campo y un salto de línea. Ejemplo: 3661 → `01:01:01`.'
+    enunciado: 'Lee un entero $n$ con $0 \le n < 86400$ (segundos de un día) e imprime la duración en formato `HH:MM:SS` con dos dígitos cada campo y un salto de línea. Ejemplo: 3661 → `01:01:01`.'
     plantilla: |
       #include <stdio.h>
 

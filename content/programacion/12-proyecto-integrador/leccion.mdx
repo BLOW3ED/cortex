@@ -1,0 +1,211 @@
+---
+titulo: "Proyecto integrador: de la idea al programa completo"
+materia: programacion
+unidad: 12-proyecto-integrador
+duracion_min: 25
+prerrequisitos: [descomposicion, diccionarios, structs-c, procesar-lineas, manejo-errores-archivos, casos-borde, assert-pruebas, excepciones]
+conceptos: [diseno-programa, integracion-modulos, validacion-entradas]
+programa_ref: "pendiente"
+---
+
+## El problema
+
+Supón que registras tus entrenamientos en un archivo `entrenamientos.csv`, una línea por sesión: fecha, actividad y minutos. Quieres saber cuántos minutos llevas por actividad. El archivo lo llenaste a mano durante semanas, así que trae de todo: líneas vacías, un `cuarenta` escrito con letras, una sesión de 0 minutos.
+
+```text
+2026-09-01,correr,35
+2026-09-01,nadar,cuarenta
+
+2026-09-02,correr,20
+2026-09-03,pesas,0
+```
+
+Ya sabes todo lo necesario: funciones, listas, diccionarios, `struct`, archivos, excepciones y pruebas. Lo nuevo es **juntarlo** sin que se vuelva una función de 80 líneas imposible de depurar.
+
+<Predice pregunta="Si tuvieras que partir este programa en 3 o 4 funciones, ¿cuáles serían y qué recibiría y regresaría cada una? Escríbelo antes de seguir." revela="Una partición que funciona: leer las líneas del archivo; convertir UNA línea en un registro (o avisar que es inválida); juntar los registros en totales por actividad; e imprimir el reporte. Cada pieza se puede probar sola con ejemplos pequeños, sin archivo." />
+
+## Diseñar antes de programar
+
+<Concepto titulo="Diseñar un programa">
+1. **Escribe ejemplos** de entrada con la salida que esperas (tus casos de prueba, incluidos los raros).
+2. **Elige cómo representar los datos**: un registro por línea, como diccionario en Python o `struct` en C.
+3. **Divide en funciones** con una sola tarea cada una y decide qué recibe y qué regresa cada una.
+4. **Programa y prueba cada función por separado.**
+5. **Integra** las funciones y prueba el programa completo.
+</Concepto>
+
+Para el problema de arriba, los ejemplos del paso 1 ya dicen casi todo:
+
+| Línea | ¿Válida? | Por qué |
+|---|---|---|
+| `2026-09-01,correr,35` | sí | 3 campos, minutos enteros entre 1 y 600 |
+| `2026-09-01,nadar,cuarenta` | no | los minutos no son un número |
+| (vacía) | se ignora | no es un error, solo espacio |
+| `2026-09-03,pesas,0` | no | 0 minutos está fuera del rango |
+| `2026-09-01,correr` | no | le falta un campo |
+
+Y la salida esperada: `correr: 55 min` y la lista de líneas inválidas `[2, 5]`.
+
+## Validar entradas
+
+<Concepto titulo="Validar una entrada">
+Todo dato que llega de afuera (un archivo, el teclado, otra persona) puede venir mal. Se revisa en tres capas, en este orden:
+- **Forma:** ¿tiene la estructura esperada? (3 campos separados por comas).
+- **Tipo:** ¿cada campo se puede convertir a lo que necesitas? (`int("cuarenta")` falla).
+- **Rango:** ¿el valor tiene sentido? (entre 1 y 600 minutos, actividad no vacía).
+
+Además, decide **qué hacer** con lo inválido (rechazarlo, contarlo, avisar) y valida **una sola vez, donde el dato entra**. Así el resto del programa puede confiar en lo que recibe.
+</Concepto>
+
+Validar no es lo mismo que `assert`: un `assert` revisa **tu** código y detiene el programa; una validación espera errores en los **datos** y los maneja sin tronar.
+
+## Las piezas y cómo se conectan
+
+<Concepto titulo="Integrar funciones">
+Cada función cumple un **contrato**: qué recibe, qué regresa y cómo avisa que algo salió mal (en Python, `None` o una excepción; en C, un valor de retorno como 1 o 0). Integrar es encadenar esos contratos: archivo → líneas → registros → totales → reporte. Una función de "arriba" (`main`) coordina y no hace el trabajo de las demás.
+</Concepto>
+
+```python
+def parsear(linea):
+    """'2026-09-01,correr,35' -> diccionario con el registro, o None si es inválida."""
+    partes = [p.strip() for p in linea.split(",")]
+    if len(partes) != 3:                             # forma
+        return None
+    fecha, actividad, texto = partes
+    try:
+        minutos = int(texto)                         # tipo
+    except ValueError:
+        return None
+    if actividad == "" or not 1 <= minutos <= 600:   # rango
+        return None
+    return {"fecha": fecha, "actividad": actividad, "minutos": minutos}
+
+def resumir(registros):
+    totales = {}
+    for r in registros:
+        totales[r["actividad"]] = totales.get(r["actividad"], 0) + r["minutos"]
+    return totales
+
+def procesar(lineas):
+    registros, invalidas = [], []
+    for numero, linea in enumerate(lineas, start=1):
+        if linea.strip() == "":
+            continue                                 # las vacías se ignoran
+        r = parsear(linea)
+        if r is None:
+            invalidas.append(numero)
+        else:
+            registros.append(r)
+    return resumir(registros), invalidas
+
+def leer_lineas(ruta):
+    with open(ruta, encoding="utf-8") as f:
+        return f.read().splitlines()
+
+def main(ruta):
+    try:
+        lineas = leer_lineas(ruta)
+    except FileNotFoundError:
+        print("No encontré", ruta)
+        return
+    totales, invalidas = procesar(lineas)
+    for actividad in sorted(totales):
+        print(f"{actividad}: {totales[actividad]} min")
+    if invalidas:
+        print("Líneas inválidas:", invalidas)
+```
+
+Fíjate en lo que **no** hace cada pieza: `parsear` no abre archivos ni imprime; `resumir` no valida (confía en que ya le llegan registros buenos); `procesar` recibe una lista de textos, así que se prueba sin crear ningún archivo:
+
+```python
+assert parsear("2026-09-01,correr,35") == {"fecha": "2026-09-01", "actividad": "correr", "minutos": 35}
+assert parsear("2026-09-01,correr") is None              # forma
+assert parsear("2026-09-01,correr,media hora") is None   # tipo
+assert parsear("2026-09-01,correr,0") is None            # rango
+assert resumir([]) == {}
+assert procesar(["2026-09-01,correr,35", "x", "", "2026-09-02,correr,20"]) == ({"correr": 55}, [2])
+```
+
+<Ejemplo titulo="El flujo de los datos, línea por línea">
+`procesar` recibe las cinco líneas del archivo de arriba.
+
+1. Línea 1, `2026-09-01,correr,35`: `parsear` ve 3 campos, `int("35")` funciona y 35 está en rango. Se agrega el registro.
+2. Línea 2, `2026-09-01,nadar,cuarenta`: la forma está bien, pero `int("cuarenta")` lanza `ValueError` y `parsear` regresa `None`. `invalidas` queda `[2]`.
+3. Línea 3, vacía: se salta antes de llamar a `parsear`. No es error, pero el contador `numero` sí avanza, para que los números coincidan con el archivo.
+4. Línea 4, `2026-09-02,correr,20`: válida.
+5. Línea 5, `2026-09-03,pesas,0`: forma y tipo bien, rango no. `invalidas` queda `[2, 5]`.
+6. `resumir` recibe dos registros de `correr` y regresa `{"correr": 55}`. `main` imprime `correr: 55 min` y `Líneas inválidas: [2, 5]`, justo lo que pedían los ejemplos del paso 1.
+</Ejemplo>
+
+En C la idea es la misma con un `struct` y funciones que avisan con 1 o 0. El truco `" %c"` al final del `sscanf` detecta basura después del número: si logra leer un carácter extra, `sscanf` regresa 4 y la línea no es válida.
+
+```c
+#include <stdio.h>
+
+struct Registro {
+    char fecha[11];
+    char actividad[32];
+    int minutos;
+};
+
+/* Regresa 1 si la línea es válida (y llena *r); 0 si no. */
+int parsear(const char *linea, struct Registro *r) {
+    char extra;
+    int leidos = sscanf(linea, " %10[^,],%31[^,],%d %c",
+                        r->fecha, r->actividad, &r->minutos, &extra);
+    if (leidos != 3) return 0;                          /* forma y tipo */
+    if (r->minutos < 1 || r->minutos > 600) return 0;   /* rango */
+    return 1;
+}
+
+int main(void) {
+    FILE *f = fopen("entrenamientos.csv", "r");
+    if (f == NULL) {
+        printf("No encontré el archivo\n");
+        return 1;
+    }
+    char linea[128];
+    struct Registro r;
+    int numero = 0, total = 0;
+    while (fgets(linea, sizeof linea, f) != NULL) {
+        numero++;
+        if (linea[0] == '\n') continue;                 /* vacía */
+        if (parsear(linea, &r)) total += r.minutos;
+        else printf("Línea %d inválida\n", numero);
+    }
+    fclose(f);
+    printf("Total: %d min\n", total);
+    return 0;
+}
+```
+
+Los anchos `%10[^,]` y `%31[^,]` limitan cuántos caracteres se copian, para no escribir fuera de los arreglos `fecha` y `actividad`.
+
+<Desvanecido titulo="Tu turno: sigue una línea por el programa" pasos={[
+  "La línea `2026-09-05,yoga,-20` se separa por comas en ___ campos.",
+  "El tercer campo se convierte con `int` sin error y vale ___ .",
+  "Falla la regla de rango; si es la línea 7 del archivo, `invalidas` termina con el número ___ ."
+]} respuestas={["3", "-20", "7"]} />
+
+<Ojo>
+- **Mezclar todo en una función.** Leer, validar, calcular e imprimir en el mismo lugar hace imposible probar una parte sin las demás.
+- **Validar en todas partes (o en ninguna).** Valida donde el dato entra y confía después; repetir la validación en cada función la vuelve inconsistente.
+- **Avisar errores con un valor que parece válido.** Si `parsear` regresara 0 para "inválida", 0 podría confundirse con un dato real. Usa `None` (o una excepción) en Python y una convención clara (1 válido, 0 inválido) en C, y respétala del otro lado.
+- **Compartir una lista sin querer.** `copia = lista` no copia: ambas variables apuntan a la misma lista y ordenar una "desordena" la otra. Usa `lista[:]` o `sorted(lista)`.
+- **Olvidar los casos borde del programa completo:** archivo inexistente, archivo vacío, cero registros válidos (cuidado con dividir entre cero), la última línea sin salto de línea.
+- **Usar `assert` para los datos.** `assert` es para pruebas de tu código; los datos inválidos se manejan con `if`, `try / except` o valores de retorno.
+</Ojo>
+
+<Conexion materia="Inteligencia artificial">
+Un sistema de aprendizaje automático real es justo esto en grande: leer datos, validarlos y limpiarlos, transformarlos, entrenar y reportar, cada etapa con su contrato. Si la validación falla, el modelo aprende de datos malos y sus predicciones heredan el error ("basura entra, basura sale"). Separar las etapas permite probar cada una por su lado, como hiciste aquí.
+</Conexion>
+
+<Resumen>
+- Diseña antes de programar: ejemplos con salida esperada, modelo de datos y funciones de una sola tarea con contratos claros.
+- Valida una vez, donde entra el dato, en tres capas: forma, tipo y rango; decide qué hacer con lo inválido.
+- Integra encadenando funciones que ya probaste por separado, y prueba al final el programa completo con sus casos borde.
+</Resumen>
+
+<Feynman>
+Explícale a alguien que sabe programar funciones sueltas pero nunca ha hecho un programa completo cómo partirías el problema de los entrenamientos, por qué `parsear` no debe abrir el archivo ni imprimir nada, y qué casos le pondrías para estar seguro de que todo funciona junto.
+</Feynman>

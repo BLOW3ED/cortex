@@ -186,10 +186,12 @@ Si a un `case` de C le falta su `break`, el programa **se sigue de largo** al si
 - **Olvidar el `break`.** En un `switch`, el `case` sin `break` se sigue de largo al siguiente.
 - **Bordes.** "60 o más" es `>= 60`, no `> 60`. Prueba siempre el valor exacto del límite.
 - **Decimales con `==`.** Como viste en la unidad 1, `0.1 + 0.2 == 0.3` es falso: compara decimales con una tolerancia.
+- **Pares e impares con negativos en C.** En C, `-7 % 2` vale `-1` (el residuo lleva el signo del dividendo), así que `n % 2 == 1` falla con impares negativos; pregunta `n % 2 != 0`. En Python `-7 % 2` vale `1`.
+- **`if x == 1 or 2:` en Python.** Se lee `(x == 1) or 2`, y `2` siempre es verdadero; escribe `x == 1 or x == 2`.
 </Ojo>
 
 <Conexion materia="Matemáticas discretas">
-`and`, `or` y `not` son los conectivos de la lógica proposicional, y sus tablas de verdad son las de esta lección. Las leyes de De Morgan te ayudan a negar condiciones: `not (a and b)` equivale a `(not a) or (not b)`. Por ejemplo, "no está en el rango" es `x < 10 or x > 20`.
+`and`, `or` y `not` son los conectivos de la lógica proposicional, y sus tablas de verdad son las de esta lección. Las leyes de De Morgan te ayudan a negar condiciones: `not (a and b)` equivale a `(not a) or (not b)`. Por ejemplo, si "estar en el rango" es `10 < x < 20` (estricto), "no estar en el rango" es `x <= 10 or x >= 20`: al negar, `<` se vuelve `>=`.
 </Conexion>
 
 <Conexion materia="Inteligencia artificial">

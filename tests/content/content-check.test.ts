@@ -51,6 +51,17 @@ describe("pnpm content:check", () => {
     expect(r.out).toContain("falló en la(s) capa(s): 2");
   });
 
+  it("verify_content.py: un valor infinito no se acepta por tolerancia y `range` se ve en comprensiones", () => {
+    const root = makeRoot();
+    const extra = (id: string, body: string) => `\n  - id: ${id}\n    tipo: numerico\n    dificultad: 2\n    conceptos: [limite-infinito]\n    enunciado: 'x'\n    explicacion: 'x'\n${body}`;
+    edit(root, `${CALC}/ejercicios.yaml`, (t) => `${t}${extra("calc-01-090", '    respuesta: 45\n    tolerancia: 0\n    verificar: { python: "sum([1 for i in range(10) for j in range(i)])" }\n')}`);
+    expect(contentCheck(root, [CALC]).status).toBe(0);
+    edit(root, `${CALC}/ejercicios.yaml`, (t) => `${t}${extra("calc-01-091", '    respuesta: 5\n    tolerancia: 0\n    verificar: { sympy: "limit(x, x, oo)" }\n')}`);
+    const r = contentCheck(root, [CALC]);
+    expect(r.status).toBe(1);
+    expect(r.out).toContain("[calc-01-091]: respuesta 5 pero la verificación da inf");
+  });
+
   it("un id duplicado falla en las capas 1 y 4", () => {
     const root = makeRoot();
     edit(root, `${PROG}/ejercicios.yaml`, (t) => t.replace("  - id: prog-01-002\n", "  - id: prog-01-001\n"));

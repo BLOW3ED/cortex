@@ -301,7 +301,7 @@ ejercicios:
     dificultad: 4
     conceptos: [tipos-de-error, depuracion-sistematica]
     lenguaje: c
-    enunciado: 'Este programa lee $n \ge 1$ y luego $n$ enteros, y debe imprimir su promedio con dos decimales. Con `3` y `1 2 2` imprime `1.00` en vez de `1.67`. Encuentra la línea con el error y corrígela.'
+    enunciado: 'Este programa lee $n \ge 1$ y luego $n$ enteros, y debe imprimir su promedio con dos decimales. Con `3` y `1 2 2` imprime `1.00` en vez de `1.67`. Encuentra la línea con el error y corrígela sin cambiar los tipos de las variables declaradas.'
     codigo: |
       #include <stdio.h>
 
