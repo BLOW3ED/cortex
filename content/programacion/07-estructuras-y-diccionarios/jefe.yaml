@@ -1,0 +1,9 @@
+unidad: programacion/07-estructuras-y-diccionarios
+nombre: "La Archivista de Mil Registros"
+vidas: 3
+tiempo_segundos: 1080
+aprobado_minimo: 0.8
+preguntas:
+  propias: [prog-07-005, prog-07-006, prog-07-007, prog-07-009, prog-07-011, prog-07-014, prog-07-015, prog-07-017]
+  repaso_de: []
+recompensa: { xp: 250, insignia: "guardiana-de-registros" }

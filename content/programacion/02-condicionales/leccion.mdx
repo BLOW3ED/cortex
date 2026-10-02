@@ -1,0 +1,207 @@
+---
+titulo: "Condicionales: programas que deciden"
+materia: programacion
+unidad: 02-condicionales
+duracion_min: 22
+prerrequisitos: [tipos-basicos, entrada-salida, aritmetica-entera]
+conceptos: [operadores-relacionales, operadores-logicos, if-else, condiciones-anidadas, seleccion-multiple]
+programa_ref: "pendiente"
+---
+
+## El problema
+
+Supón que un cine cobra \$90 la entrada general, \$45 a menores de 12 años y \$50 a personas de 60 años o más. Hasta ahora tus programas hacían siempre lo mismo, de arriba abajo. Para cobrar bien, el programa tiene que **preguntar** algo sobre los datos y **elegir** qué hacer según la respuesta. Eso es una condicional: una bifurcación en el camino del programa.
+
+<Predice pregunta="Si `x = 15`, ¿qué crees que imprime `print(10 < x < 20)` en Python? ¿Y si `x = 50`? Ahora piensa en C: ¿crees que `10 < x < 20` significa lo mismo? Anota tus respuestas antes de seguir." revela="En Python da True y luego False: Python lee `10 < x < 20` como `10 < x and x < 20`. En C no: primero calcula `10 < x`, que vale 1 o 0, y luego compara ese 1 o 0 con 20. Como 0 y 1 son menores que 20, el resultado es 1 (verdadero) para cualquier x. En C se escribe `10 < x && x < 20`." />
+
+## Comparar: operadores relacionales
+
+<Concepto titulo="Operador relacional">
+Compara dos valores y responde sí o no. En Python el resultado es un `bool` (`True` o `False`); en C es un `int`: 1 si se cumple y 0 si no.
+</Concepto>
+
+| Significado | Python y C | Ejemplo con `a = 7` y `b = 10` |
+|---|---|---|
+| igual a | `==` | `a == b` es falso |
+| distinto de | `!=` | `a != b` es verdadero |
+| menor que | `<` | `a < b` es verdadero |
+| menor o igual que | `<=` | `a <= 7` es verdadero |
+| mayor que | `>` | `a > b` es falso |
+| mayor o igual que | `>=` | `b >= 10` es verdadero |
+
+Un solo `=` **asigna**; dos `==` **comparan**. Confundirlos es el error más común de esta unidad.
+
+## Combinar: operadores lógicos
+
+<Concepto titulo="Operadores lógicos">
+Unen o invierten condiciones. **Y**: verdadero solo si las dos partes lo son. **O**: verdadero si al menos una lo es. **No**: invierte el valor. En Python se escriben `and`, `or` y `not`; en C, `&&`, `||` y `!`.
+</Concepto>
+
+| `p` | `q` | `p and q` | `p or q` | `not p` |
+|---|---|---|---|---|
+| verdadero | verdadero | verdadero | verdadero | falso |
+| verdadero | falso | falso | verdadero | falso |
+| falso | verdadero | falso | verdadero | verdadero |
+| falso | falso | falso | falso | verdadero |
+
+Tres detalles que importan:
+
+- **Precedencia.** Primero se evalúan las comparaciones, luego `not`, luego `and` y al final `or` (en C: `!` antes que las comparaciones, luego `&&` y al final `||`). Cuando dudes, pon paréntesis.
+- **Cortocircuito.** `and` deja de evaluar en cuanto encuentra algo falso, y `or` en cuanto encuentra algo verdadero (igual `&&` y `||` en C). Por eso `d != 0 and n / d > 2` nunca divide entre cero: si `d` vale 0, la segunda parte ni se revisa.
+- **Verdad sin comparar.** En C cualquier número distinto de 0 cuenta como verdadero. En Python también, y además el texto vacío `""` cuenta como falso.
+
+## Decidir: if / else
+
+<Concepto titulo="if / else">
+`if` ejecuta un bloque solo si su condición es verdadera; `else` (opcional) ejecuta otro bloque cuando es falsa. Python marca el bloque con sangría (4 espacios); C, con llaves y la condición entre paréntesis.
+</Concepto>
+
+```python
+edad = 15
+if edad >= 18:
+    print("mayor de edad")
+else:
+    print("menor de edad")
+print("listo")    # sin sangría: está fuera del if y siempre se ejecuta
+```
+
+```c
+int edad = 15;
+if (edad >= 18) {
+    printf("mayor de edad\n");
+} else {
+    printf("menor de edad\n");
+}
+printf("listo\n");
+```
+
+En C las llaves son opcionales si el bloque tiene una sola instrucción, pero ponlas siempre: sin ellas, el `if` controla **solo la primera** instrucción y las demás se ejecutan siempre.
+
+## Varias opciones: elif, else if y anidación
+
+<Concepto titulo="Cadena de condiciones">
+Con `elif` (Python) o `else if` (C) encadenas varias preguntas. Se revisan **en orden** y se ejecuta **solo el primer bloque** cuya condición sea verdadera; las de abajo ya no se revisan. El `else` final atrapa todo lo que no cumplió ninguna.
+</Concepto>
+
+Anidar es poner un `if` dentro de otro. Sirve cuando una pregunta solo tiene sentido si otra ya se cumplió:
+
+```python
+if tiene_boleto:
+    if edad >= 18:
+        print("pasa a la función")
+    else:
+        print("pasa con un adulto")
+else:
+    print("primero compra tu boleto")
+```
+
+<Ejemplo titulo="El cine, en Python y en C">
+Precios: menores de 12 años, \$45; de 60 años o más, \$50; los demás, \$90.
+
+1. Hay tres casos que no se enciman, así que basta una cadena `if / elif / else`.
+2. Empieza por un extremo: `edad < 12`. Si no se cumple, en las ramas de abajo ya sabes que la edad es 12 o más.
+3. Luego `edad >= 60`. Si tampoco se cumple, la edad está entre 12 y 59: es el `else`.
+4. Revisa los bordes: 12 debe pagar 90 (no cumple `edad < 12` ni `edad >= 60`) y 60 debe pagar 50 (`>=` incluye al 60).
+
+```python
+def precio(edad):
+    if edad < 12:
+        return 45
+    elif edad >= 60:
+        return 50
+    else:
+        return 90
+```
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    int edad;
+    scanf("%d", &edad);
+    if (edad < 12) {
+        printf("45\n");
+    } else if (edad >= 60) {
+        printf("50\n");
+    } else {
+        printf("90\n");
+    }
+    return 0;
+}
+```
+</Ejemplo>
+
+<Desvanecido titulo="¿Año bisiesto?" pasos={[
+  "Regla del calendario gregoriano: un año es bisiesto si es divisible entre 4 y no entre 100, o si es divisible entre 400. En Python: `(a % 4 == 0 and a % 100 != 0) or a % 400 == 0`.",
+  "Con `a = 2024`: `2024 % 4 == 0` es True y `2024 % 100 != 0` es ___ , así que el paréntesis es True y 2024 es bisiesto.",
+  "Con `a = 1900`: el paréntesis da False porque `1900 % 100 != 0` es False. Además, `1900 % 400 == 0` es ___ .",
+  "Entonces, ¿1900 es bisiesto? Responde sí o no: ___ .",
+  "Con `a = 2000`: el paréntesis da False, pero `2000 % 400 == 0` es True. Como a `or` le basta una parte verdadera, el resultado completo es ___ ."
+]} respuestas={["True", "False", "no", "True"]} />
+
+## Selección múltiple: switch y match
+
+Cuando **una sola variable** se compara contra varios valores fijos, una cadena larga de `else if` se vuelve tediosa. Para eso existen `switch` en C y `match` en Python (desde la versión 3.10).
+
+<Concepto titulo="switch y match">
+`switch` evalúa una expresión entera (un `int` o un `char`) y salta al `case` con ese valor; desde ahí ejecuta **todo lo que sigue** hasta encontrar un `break`. Si ningún `case` coincide, va a `default`. `match` en Python compara contra cada `case` en orden y ejecuta solo el primero que coincide; `case _` es el comodín y `|` junta varias opciones en un mismo caso.
+</Concepto>
+
+```c
+switch (opcion) {
+    case 1:
+        printf("Nuevo juego\n");
+        break;
+    case 2:
+        printf("Cargar partida\n");
+        break;
+    case 3:
+    case 4:
+        printf("Opciones\n");    /* 3 y 4 hacen lo mismo */
+        break;
+    default:
+        printf("Opción inválida\n");
+}
+```
+
+```python
+match opcion:
+    case 1:
+        print("Nuevo juego")
+    case 2:
+        print("Cargar partida")
+    case 3 | 4:
+        print("Opciones")
+    case _:
+        print("Opción inválida")
+```
+
+Si a un `case` de C le falta su `break`, el programa **se sigue de largo** al siguiente `case` (en inglés, *fall-through*). A veces se hace a propósito, como con el 3 y el 4; casi siempre es un error. Además, `switch` no sirve para rangos (`edad < 12`) ni para comparar textos: para eso usa `if / else if`.
+
+<Ojo>
+- **`=` en vez de `==` en C.** `if (x = 5)` no compara: asigna 5 a `x`, y como 5 es distinto de 0, la condición siempre es verdadera. Compila (con `-Wall` el compilador te avisa). En Python, `if x = 5:` es error de sintaxis.
+- **`10 < x < 20` en C.** Siempre da 1. Escribe `10 < x && x < 20`.
+- **Punto y coma tras el `if` en C.** `if (x > 0);` termina el `if` en ese `;`, y el bloque de abajo se ejecuta siempre.
+- **Orden de la cadena.** Si pones `nota >= 6` antes que `nota >= 9`, el caso de 9 nunca se alcanza: va primero la condición más estricta.
+- **Olvidar el `break`.** En un `switch`, el `case` sin `break` se sigue de largo al siguiente.
+- **Bordes.** "60 o más" es `>= 60`, no `> 60`. Prueba siempre el valor exacto del límite.
+- **Decimales con `==`.** Como viste en la unidad 1, `0.1 + 0.2 == 0.3` es falso: compara decimales con una tolerancia.
+</Ojo>
+
+<Conexion materia="Matemáticas discretas">
+`and`, `or` y `not` son los conectivos de la lógica proposicional, y sus tablas de verdad son las de esta lección. Las leyes de De Morgan te ayudan a negar condiciones: `not (a and b)` equivale a `(not a) or (not b)`. Por ejemplo, "no está en el rango" es `x < 10 or x > 20`.
+</Conexion>
+
+<Conexion materia="Inteligencia artificial">
+Un árbol de decisión, uno de los modelos clásicos de aprendizaje automático, es literalmente una cadena de `if` anidados cuyas condiciones (como `edad < 30`) se aprenden de los datos. Y la función ReLU de las redes neuronales es un `if`: si la entrada es positiva la deja pasar; si no, regresa 0.
+</Conexion>
+
+<Resumen>
+- Los operadores relacionales comparan (`==`, `!=`, `<`, `<=`, `>`, `>=`) y los lógicos combinan (`and`/`&&`, `or`/`||`, `not`/`!`), con cortocircuito.
+- En una cadena `if / elif / else` se ejecuta solo el primer bloque verdadero: el orden importa.
+- `switch` (C) y `match` (Python) eligen entre valores fijos de una variable; en `switch` no olvides el `break`.
+</Resumen>
+
+<Feynman>
+Explícale a un amigo por qué en C `if (x = 0)` nunca entra al bloque y por qué `10 < x < 20` siempre es verdadero, y cómo escribirías bien cada uno. Si te trabas, vuelve a la sección de operadores.
+</Feynman>

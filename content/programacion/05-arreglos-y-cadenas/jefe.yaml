@@ -1,0 +1,9 @@
+unidad: programacion/05-arreglos-y-cadenas
+nombre: "La Bibliotecaria del Índice Cero"
+vidas: 3
+tiempo_segundos: 1080
+aprobado_minimo: 0.8
+preguntas:
+  propias: [prog-05-004, prog-05-008, prog-05-010, prog-05-011, prog-05-014, prog-05-015, prog-05-017, prog-05-019]
+  repaso_de: []
+recompensa: { xp: 250, insignia: "indice-cero" }

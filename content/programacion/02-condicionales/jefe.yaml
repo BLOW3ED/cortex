@@ -1,0 +1,9 @@
+unidad: programacion/02-condicionales
+nombre: "La Esfinge Booleana"
+vidas: 3
+tiempo_segundos: 1080
+aprobado_minimo: 0.8
+preguntas:
+  propias: [prog-02-005, prog-02-009, prog-02-010, prog-02-013, prog-02-014, prog-02-015, prog-02-017, prog-02-019]
+  repaso_de: []
+recompensa: { xp: 250, insignia: "domador-de-condiciones" }

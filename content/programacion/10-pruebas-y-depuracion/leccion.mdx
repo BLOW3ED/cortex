@@ -1,0 +1,196 @@
+---
+titulo: "Pruebas y depuración: cazar errores con método"
+materia: programacion
+unidad: 10-pruebas-y-depuracion
+duracion_min: 25
+prerrequisitos: [funciones-definicion, parametros-retorno, if-else, ciclo-for, listas-python]
+conceptos: [casos-de-prueba, assert-pruebas, casos-borde, tipos-de-error, depuracion-sistematica, excepciones]
+programa_ref: "pendiente"
+---
+
+## El problema
+
+Escribiste esta función para encontrar la temperatura más alta de una lista y la probaste con `[3, 8, 2]` (dio 8) y con `[10, 4]` (dio 10). Todo bien, ¿no?
+
+```python
+def maximo(lista):
+    mayor = 0
+    for x in lista:
+        if x > mayor:
+            mayor = x
+    return mayor
+```
+
+Supón que ahora la usas con las temperaturas de una madrugada helada. Que un programa funcione con los dos ejemplos que se te ocurrieron no significa que funcione. Esta lección es sobre cómo **buscar** los casos que lo rompen y cómo **arreglarlo con método**, no a ciegas.
+
+<Predice pregunta="La función `maximo` de arriba pasó tus dos pruebas. ¿Con qué lista crees que falla y qué regresaría?" revela="Falla con una lista de puros negativos: con `[-3, -8, -1]` regresa 0, un valor que ni siquiera está en la lista. La causa es la primera línea: `mayor` empieza en 0 en vez de empezar en el primer elemento. Dos pruebas que pasan no demuestran nada si las dos se parecen." />
+
+## Tres tipos de error
+
+<Concepto titulo="Tipos de error">
+- **De sintaxis:** el código no respeta las reglas del lenguaje. Python no ejecuta nada (`SyntaxError`, `IndentationError`) y C no compila.
+- **De ejecución:** el programa arranca, pero algo imposible pasa a la mitad: dividir entre cero, pedir el elemento 10 de una lista de 3, convertir `"hola"` a número.
+- **De lógica:** el programa corre sin quejarse y da un resultado equivocado. Son los más peligrosos porque nadie te avisa.
+</Concepto>
+
+| Tipo | Python | C |
+|---|---|---|
+| Sintaxis | `if x > 0` sin `:` | `printf("hola")` sin `;` |
+| Ejecución | `10 / 0` lanza `ZeroDivisionError` | `10 / 0` con enteros: comportamiento indefinido |
+| Lógica | `mayor = 0` en `maximo` | `if (x = 0)` en vez de `if (x == 0)` |
+
+En C, un error de ejecución **no siempre avisa**. Dividir un entero entre cero o leer fuera de un arreglo es *comportamiento indefinido*: según la máquina, el programa se detiene o sigue con un valor sin sentido. Por eso en C se previene antes (revisando el divisor o el índice) en lugar de esperar a que truene.
+
+Y una pista gratis: compila con `gcc -Wall`. El caso `if (x = 0)` compila, pero el compilador te advierte que estás usando una asignación como condición. Las advertencias suelen ser errores de lógica avisados de antemano.
+
+## Casos de prueba
+
+<Concepto titulo="Caso de prueba">
+Una entrada concreta junto con la salida que **debe** dar. La salida esperada se decide antes de correr el código: a mano o a partir de lo que pide el problema, nunca copiando lo que tu programa imprime.
+</Concepto>
+
+Un buen conjunto de casos mezcla tres clases:
+
+1. **Típicos:** entradas normales, como `[3, 8, 2]`.
+2. **Borde:** los extremos donde los programas suelen fallar.
+3. **Inválidos:** entradas que no deberían aceptarse, como el texto `"abc"` donde se espera un número.
+
+<Concepto titulo="Caso borde">
+Una entrada en el límite de lo permitido o con una forma especial: lista vacía, un solo elemento, todos iguales, puros negativos, el cero, el primer y el último elemento, el texto vacío, o el valor exacto de una frontera (si se aprueba con 6 o más, prueba **exactamente** 6).
+</Concepto>
+
+La regla práctica: por cada condición del problema (`>=`, "entre 1 y 31", "no vacía") prueba el valor justo en la frontera y uno a cada lado.
+
+## Pruebas automáticas con `assert`
+
+Probar a mano cada vez que cambias algo cansa y se olvida. `assert` revisa una condición: si es verdadera no hace nada; si es falsa detiene el programa con `AssertionError` (y el mensaje opcional que le pongas).
+
+```python
+def maximo(lista):
+    mayor = lista[0]
+    for x in lista[1:]:
+        if x > mayor:
+            mayor = x
+    return mayor
+
+def probar_maximo():
+    assert maximo([3, 8, 2]) == 8
+    assert maximo([-3, -8, -1]) == -1, "puros negativos"
+    assert maximo([5]) == 5, "un solo elemento"
+    assert maximo([2, 2, 2]) == 2, "todos iguales"
+    assert maximo([1, 2, 9]) == 9, "el mayor al final"
+    print("todas las pruebas pasaron")
+
+probar_maximo()
+```
+
+En C existe la macro `assert` de `assert.h`; si la condición falla, el programa se detiene e imprime el archivo y la línea:
+
+```c
+#include <assert.h>
+#include <stdio.h>
+
+int maximo(const int a[], int n) {
+    int mayor = a[0];
+    for (int i = 1; i < n; i++) {
+        if (a[i] > mayor) mayor = a[i];
+    }
+    return mayor;
+}
+
+int main(void) {
+    int t1[] = {3, 8, 2};
+    int t2[] = {-3, -8, -1};
+    assert(maximo(t1, 3) == 8);
+    assert(maximo(t2, 3) == -1);
+    printf("todas las pruebas pasaron\n");
+    return 0;
+}
+```
+
+Para decimales no uses `==`: compara con tolerancia, por ejemplo `assert abs(promedio([1, 2]) - 1.5) < 1e-9`.
+
+## Excepciones en Python
+
+Cuando ocurre un error de ejecución, Python **lanza una excepción**. Si nadie la atrapa, el programa se detiene. Con `try / except` decides qué hacer:
+
+```python
+def a_entero(texto):
+    try:
+        return int(texto)      # puede lanzar ValueError
+    except ValueError:
+        return None            # el texto no era un entero
+
+print(a_entero("42"))    # 42
+print(a_entero("4.5"))   # None
+```
+
+Las más comunes: `ZeroDivisionError` (dividir entre cero), `ValueError` (valor con el tipo correcto pero contenido inválido, como `int("hola")`), `TypeError` (tipo equivocado, como `"a" + 1`), `IndexError` (índice fuera de la lista) y `KeyError` (llave que no está en el diccionario).
+
+Atrapa **la excepción específica** que esperas. Cuando una excepción se lanza dentro de una función y nadie la atrapa ahí, sube a quien la llamó, y así hasta el `try` más cercano: todo lo que faltaba por ejecutar en medio se salta. Tú también puedes lanzar una: `raise ValueError("la lista está vacía")`.
+
+C no tiene excepciones. Las funciones avisan con su **valor de retorno** y tú lo revisas: `scanf` regresa cuántos datos leyó y `fopen` regresa `NULL` si no pudo abrir.
+
+```c
+int x;
+if (scanf("%d", &x) != 1) {
+    printf("entrada invalida\n");
+    return 1;
+}
+```
+
+## Depuración sistemática
+
+<Concepto titulo="Depurar con método">
+1. **Reproduce:** escribe el caso que falla como prueba y confirma que falla.
+2. **Ubica:** sigue los valores (con `print` o con un depurador) y compara contra lo que esperabas, hasta encontrar la **primera** línea donde se desvían.
+3. **Corrige la causa**, no el síntoma.
+4. **Vuelve a correr todas las pruebas**, también las que ya pasaban.
+</Concepto>
+
+<Ejemplo titulo="¿Cuántos días subió la temperatura?">
+Esta función debe contar cuántas veces un valor es mayor que el anterior.
+
+```python
+def dias_que_subio(temps):
+    cuenta = 0
+    for i in range(1, len(temps) - 1):
+        if temps[i] > temps[i - 1]:
+            cuenta += 1
+    return cuenta
+```
+
+1. **Reproduce.** Con `[10, 12, 11, 15]` esperamos 2 (sube a 12 y sube a 15). La función da 1. Ya tenemos un caso que falla: lo guardamos como `assert dias_que_subio([10, 12, 11, 15]) == 2`.
+2. **Ubica.** Agregamos `print(i, temps[i])` dentro del ciclo. Salen `1 12` y `2 11`, y nunca aparece `i = 3`: el último día no se revisa.
+3. **Causa.** `range` ya excluye su tope. Con tope `len(temps) - 1`, el último índice válido (`len(temps) - 1`) queda fuera. La corrección es `range(1, len(temps))`. Parchar el síntoma, como sumar 1 al final, rompería otros casos.
+4. **Vuelve a probar todo.** `[10, 12, 11, 15]` da 2; `[5]` y `[]` dan 0 (el `range` queda vacío); `[3, 2, 1]` da 0. Quitamos el `print` y dejamos los `assert`.
+</Ejemplo>
+
+<Desvanecido titulo="Tu turno: el factorial que siempre da cero" pasos={[
+  "La función hace `r = 0` y luego, para `i` de 1 a `n`, `r = r * i`. La prueba `factorial(3)` espera 6, pero obtiene ___ .",
+  "Rastreo: antes del ciclo `r` vale 0; después de la vuelta con `i = 1`, `r` vale ___ , y ya nunca cambia.",
+  "Causa: un acumulador de productos debe empezar en el neutro de la multiplicación, o sea en ___ ."
+]} respuestas={["0", "0", "1"]} />
+
+<Ojo>
+- **Probar solo lo que ya sabes que funciona.** Si todos tus casos se parecen, no encuentran nada. Busca los bordes a propósito.
+- **Sacar el "esperado" de tu propio programa.** Si copias lo que imprime tu código, la prueba siempre pasa, aunque esté mal.
+- **`except:` sin tipo.** Atrapa todo, incluso tus errores de dedo (`NameError`), y los esconde. Escribe la excepción que esperas.
+- **Usar `assert` para validar datos del usuario.** Los `assert` se pueden apagar (`python -O`, o `NDEBUG` en C). Para validar entradas usa `if` y responde con un mensaje o una excepción.
+- **Corregir el síntoma.** Un `if n == 3: return 6` hace pasar una prueba y deja el error vivo para todas las demás.
+- **Ignorar las advertencias del compilador.** `if (x = 0)` compila, pero casi siempre es un `==` que se te olvidó.
+</Ojo>
+
+<Conexion materia="Inteligencia artificial">
+Un modelo de aprendizaje automático se evalúa con datos que **no vio** al entrenar (el conjunto de prueba), por la misma razón que existen las pruebas ocultas: si solo lo revisas con lo que ya conoce, te engañas. Y al programar redes neuronales, poner `assert` sobre las dimensiones de los arreglos atrapa muy temprano errores que de otro modo solo se verían como un entrenamiento que no aprende.
+</Conexion>
+
+<Resumen>
+- Hay errores de sintaxis (no corre), de ejecución (truena a la mitad) y de lógica (corre y miente); los de lógica solo se cazan con buenas pruebas.
+- Un caso de prueba es entrada + salida esperada decidida de antemano; los casos borde (vacío, uno, negativos, fronteras) son los que más errores encuentran, y `assert` los vuelve automáticos.
+- Para depurar: reproduce, ubica la primera línea que se desvía, corrige la causa y vuelve a correr todo; en Python, atrapa excepciones específicas con `try / except`.
+</Resumen>
+
+<Feynman>
+Explícale a alguien que empieza a programar por qué la función `maximo` del inicio pasó dos pruebas y aun así estaba mal, qué casos de prueba le habrías puesto tú y cómo habrías encontrado la línea culpable sin adivinar.
+</Feynman>

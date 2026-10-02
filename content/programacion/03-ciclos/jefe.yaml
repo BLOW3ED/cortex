@@ -1,0 +1,9 @@
+unidad: programacion/03-ciclos
+nombre: "El Uróboro Incansable"
+vidas: 3
+tiempo_segundos: 1200
+aprobado_minimo: 0.8
+preguntas:
+  propias: [prog-03-006, prog-03-008, prog-03-011, prog-03-012, prog-03-013, prog-03-014, prog-03-017, prog-03-019]
+  repaso_de: []
+recompensa: { xp: 300, insignia: "rompe-bucles" }

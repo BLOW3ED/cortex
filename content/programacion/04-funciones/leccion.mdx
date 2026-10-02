@@ -1,0 +1,227 @@
+---
+titulo: "Funciones: escribe una vez, úsala muchas"
+materia: programacion
+unidad: 04-funciones
+duracion_min: 22
+prerrequisitos: [variables-asignacion, if-else, ciclo-for, acumuladores-contadores]
+conceptos: [funciones-definicion, parametros-retorno, alcance-variables, paso-por-valor, prototipos-c, descomposicion]
+programa_ref: "pendiente"
+---
+
+## El problema
+
+Necesitas saber cuántos números primos hay hasta 100, hasta 1 000 y hasta 10 000. Sin funciones copiarías tres veces el mismo ciclo de "¿este número es primo?". Si un día descubres un error en ese ciclo, tienes que corregirlo en tres lugares, y casi seguro olvidas uno. Una **función** le pone nombre a un pedazo de código para escribirlo una sola vez y usarlo cuantas veces quieras.
+
+<Predice pregunta="Lee este programa de Python: `def duplica(x): x = x * 2; return x`, luego `n = 5`, después `duplica(n)` y al final `print(n)`. ¿Qué imprime?" revela="Imprime 5. La función sí regresa 10, pero nadie guardó ese valor, y cambiar `x` adentro de la función no cambia `n` afuera." />
+
+## Definir y llamar
+
+<Concepto titulo="Función">
+Un bloque de código con nombre que recibe datos (**parámetros**), hace un trabajo y puede **regresar** un resultado. Definirla no la ejecuta: solo corre cuando la **llamas**.
+</Concepto>
+
+```python
+def area_rectangulo(base, altura):   # definición: base y altura son parámetros
+    return base * altura              # return entrega el resultado
+
+a = area_rectangulo(3, 4)             # llamada: 3 y 4 son argumentos
+print(a)                              # 12
+```
+
+```c
+#include <stdio.h>
+
+int area_rectangulo(int base, int altura) {   /* tipo de retorno, nombre y parámetros con tipo */
+    return base * altura;
+}
+
+int main(void) {
+    int a = area_rectangulo(3, 4);
+    printf("%d\n", a);                          /* 12 */
+    return 0;
+}
+```
+
+Vocabulario: los **parámetros** son los nombres de la definición (`base`, `altura`); los **argumentos** son los valores de la llamada (`3`, `4`). Al llamar, cada parámetro recibe su argumento en el mismo orden.
+
+## `return` no es `print`
+
+`return` termina la función y le entrega un valor a quien la llamó; `print` solo muestra texto en pantalla. Una función que imprime pero no regresa no sirve para seguir calculando: `area_rectangulo(3, 4) + 1` necesita un número, no un letrero.
+
+| Situación | Python | C |
+|---|---|---|
+| Regresa un valor | `return x` | `return x;` (del tipo declarado) |
+| No regresa nada | sin `return`: regresa `None` | tipo de retorno `void` |
+| No recibe nada | `def f():` | `int f(void)` |
+
+## Alcance: quién ve a quién
+
+<Concepto titulo="Alcance (scope)">
+Una variable creada dentro de una función es **local**: nace cuando se llama la función, muere cuando termina y nadie de afuera la ve. Una variable definida fuera de toda función es **global**.
+</Concepto>
+
+```python
+x = 10            # global
+
+def cambia():
+    x = 99        # otra x, local de cambia
+    return x
+
+print(cambia())   # 99
+print(x)          # 10: la global no se tocó
+```
+
+En Python, si una función **asigna** a un nombre, ese nombre es local en toda la función. Por eso este código falla con `UnboundLocalError`: intenta leer la `contador` local antes de darle valor.
+
+```python
+contador = 0
+
+def suma_uno():
+    contador = contador + 1   # error: la local se lee antes de asignarse
+    return contador
+```
+
+La salida limpia es pasar el valor como parámetro y regresar el nuevo: `contador = suma_uno(contador)`. En C pasa lo mismo con las variables declaradas dentro de un bloque `{ ... }`: solo existen dentro de ese bloque.
+
+## Paso por valor
+
+<Concepto titulo="Paso por valor">
+En C, al llamar una función cada parámetro recibe una **copia** del argumento. Cambiar el parámetro adentro no cambia la variable de afuera.
+</Concepto>
+
+```c
+void incrementa(int n) {
+    n = n + 1;            /* cambia la copia */
+}
+
+int main(void) {
+    int a = 4;
+    incrementa(a);
+    printf("%d\n", a);    /* 4 */
+    return 0;
+}
+```
+
+Si quieres el valor nuevo, regrésalo y guárdalo: `a = siguiente(a);`. En la unidad 6 verás cómo una función de C puede modificar la variable original usando apuntadores.
+
+En Python el parámetro es un nombre nuevo para el mismo objeto. Con números y textos el efecto es igual que en C: reasignar el parámetro (`n = n + 1`) no toca la variable de afuera. Con listas hay una diferencia que verás en la unidad 5: si la función **modifica** la lista (por ejemplo con `append`), el cambio sí se ve afuera.
+
+## Prototipos en C
+
+C lee el archivo de arriba hacia abajo. Si `main` llama a `cubo` y la definición de `cubo` está más abajo, el compilador necesita saber antes cómo es: eso es un **prototipo**, la primera línea de la función terminada en punto y coma.
+
+```c
+#include <stdio.h>
+
+int cubo(int x);                /* prototipo: tipo de retorno, nombre y tipos de los parámetros */
+
+int main(void) {
+    printf("%d\n", cubo(3));    /* 27 */
+    return 0;
+}
+
+int cubo(int x) {               /* definición */
+    return x * x * x;
+}
+```
+
+Desde C99 ya no se permite llamar una función sin declararla antes; los compiladores actuales lo marcan como error o, como mínimo, con un aviso que no debes ignorar. El prototipo además le permite al compilador revisar que pases el número y el tipo correctos de argumentos.
+
+## Descomponer un problema
+
+<Concepto titulo="Descomposición">
+Partir un problema grande en funciones pequeñas, cada una con un solo trabajo y un nombre que lo diga. Cada pieza se prueba por separado y se puede reutilizar.
+</Concepto>
+
+<Ejemplo titulo="Contar primos hasta n">
+Problema: ¿cuántos primos hay entre 1 y n?
+
+1. **Separa la pregunta pequeña.** "¿k es primo?" tiene entrada (k) y salida (sí o no): será la función `es_primo(k)`.
+2. **Resuelve la pequeña.** k es primo si k ≥ 2 y ningún d entre 2 y k − 1 lo divide. Basta probar hasta $\sqrt{k}$: si $k = a \cdot b$, uno de los dos factores es menor o igual que $\sqrt{k}$. Con enteros, esa condición se escribe `d * d <= k`.
+3. **Usa la pequeña para la grande.** `contar_primos(n)` recorre de 1 a n y cuenta cuántos pasan `es_primo`.
+4. **Prueba cada pieza.** `es_primo(2)` da verdadero, `es_primo(9)` da falso y `contar_primos(10)` da 4 (son 2, 3, 5 y 7).
+</Ejemplo>
+
+```python
+def es_primo(k):
+    if k < 2:
+        return False
+    d = 2
+    while d * d <= k:
+        if k % d == 0:
+            return False
+        d += 1
+    return True
+
+def contar_primos(n):
+    cuenta = 0
+    for k in range(1, n + 1):
+        if es_primo(k):
+            cuenta += 1
+    return cuenta
+
+print(contar_primos(10))   # 4
+```
+
+```c
+#include <stdio.h>
+
+int es_primo(int k);
+int contar_primos(int n);
+
+int main(void) {
+    printf("%d\n", contar_primos(10));   /* 4 */
+    return 0;
+}
+
+int es_primo(int k) {
+    if (k < 2) {
+        return 0;
+    }
+    for (int d = 2; d * d <= k; d++) {
+        if (k % d == 0) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int contar_primos(int n) {
+    int cuenta = 0;
+    for (int k = 1; k <= n; k++) {
+        if (es_primo(k)) {
+            cuenta++;
+        }
+    }
+    return cuenta;
+}
+```
+
+<Desvanecido titulo="Llamadas anidadas" pasos={[
+  "Con `def f(a, b): return 2 * a + b`, evalúa `f(3, f(1, 1))`.",
+  "Primero se evalúa el argumento de adentro: `f(1, 1)` vale ___ .",
+  "Con ese valor se hace la llamada de afuera: `f(3, 3)` vale ___ ."
+]} respuestas={["3", "9"]} />
+
+<Ojo>
+- **Imprimir en vez de regresar.** Si la función hace `print(total)` y no tiene `return`, quien la llama recibe `None` y ya no puede usar el resultado.
+- **Olvidar guardar el resultado.** `duplica(n)` sola no cambia `n`; escribe `n = duplica(n)`.
+- **Creer que el parámetro modifica el argumento.** En C la función trabaja con una copia; en Python, reasignar el parámetro solo cambia el nombre local.
+- **Leer y asignar una global en la misma función (Python).** Provoca `UnboundLocalError`; pásala como parámetro y regresa el valor nuevo.
+- **Llamar en C antes de declarar.** Pon el prototipo arriba de `main` o define la función antes de usarla.
+- **Tipo de retorno equivocado en C.** `int promedio(int a, int b)` pierde los decimales; si el resultado es decimal, declara `double` y divide entre `2.0`.
+</Ojo>
+
+<Conexion materia="Inteligencia artificial">
+Una red neuronal se programa como una composición de funciones: cada capa recibe un arreglo de números y regresa otro. En PyTorch, por ejemplo, tú escribes el método `forward` de cada capa y la biblioteca se encarga de llamarlo. Descomponer bien es lo que permite leer y probar por partes un modelo grande.
+</Conexion>
+
+<Resumen>
+- Una función recibe parámetros, hace un trabajo y entrega su resultado con `return`; definirla no la ejecuta.
+- Las variables de una función son locales, y en C los argumentos llegan como copias (paso por valor).
+- En C el prototipo anuncia la función antes de usarla; descomponer en funciones pequeñas hace el código reutilizable y fácil de probar.
+</Resumen>
+
+<Feynman>
+Explícale a alguien que empieza a programar por qué, después de `incrementa(a);`, la variable `a` de `main` sigue valiendo lo mismo, y qué cambiarías para que sí cambie usando solo `return`. Si te trabas, vuelve a la sección "Paso por valor".
+</Feynman>

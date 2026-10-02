@@ -1,0 +1,9 @@
+unidad: programacion/04-funciones
+nombre: "La Operadora de la Centralita"
+vidas: 3
+tiempo_segundos: 900
+aprobado_minimo: 0.8
+preguntas:
+  propias: [prog-04-006, prog-04-009, prog-04-011, prog-04-013, prog-04-016, prog-04-017, prog-04-019]
+  repaso_de: []
+recompensa: { xp: 220, insignia: "llamada-devuelta" }

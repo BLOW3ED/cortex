@@ -1,0 +1,515 @@
+unidad: programacion/02-condicionales
+ejercicios:
+  - id: prog-02-001
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [operadores-relacionales]
+    enunciado: 'Si `x = 5`, ¿cuál de estas expresiones de Python vale `True`?'
+    opciones: ["`x > 5`", "`x >= 5`", "`x != 5`", "`x == 4`"]
+    correcta: 1
+    pistas: ["`>=` significa mayor **o igual** que."]
+    explicacion: '`x >= 5` se cumple porque 5 es igual a 5. `x > 5` es falso (5 no es mayor que sí mismo), `x != 5` es falso porque sí son iguales y `x == 4` es falso.'
+
+  - id: prog-02-002
+    tipo: predecir_salida
+    dificultad: 1
+    conceptos: [operadores-relacionales, operadores-logicos]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Escribe la salida exacta.'
+    codigo: |
+      a = 7
+      b = 10
+      print(a < b, a == b, not a > b)
+    respuesta: "True False True"
+    pistas: ["En Python, `not` se aplica después de la comparación: `not a > b` es `not (a > b)`."]
+    explicacion: '`a < b` es True porque 7 es menor que 10. `a == b` es False. `a > b` es False y `not` lo invierte, así que da True. `print` separa los tres valores con un espacio.'
+
+  - id: prog-02-003
+    tipo: completar
+    dificultad: 1
+    conceptos: [operadores-relacionales, operadores-logicos]
+    enunciado: 'Completa las equivalencias entre Python y C.'
+    texto: '"Distinto de" se escribe `___` en los dos lenguajes. El "y" lógico es `___` en Python y `___` en C. La negación es `___` en Python y `___` en C.'
+    respuestas: ["!=", "and", "&&", "not", "!"]
+    explicacion: 'Los operadores relacionales son iguales en Python y en C (`==`, `!=`, `<`, `<=`, `>`, `>=`). Los lógicos cambian: Python usa palabras (`and`, `or`, `not`) y C usa símbolos (`&&`, `||`, `!`).'
+
+  - id: prog-02-004
+    tipo: codigo
+    dificultad: 1
+    conceptos: [if-else, operadores-relacionales]
+    lenguaje: python
+    enunciado: 'Escribe `valor_absoluto(x)` que regrese el valor absoluto de `x` **sin** usar la función `abs`: si `x` es negativo, regresa `-x`; si no, regresa `x`.'
+    plantilla: |
+      def valor_absoluto(x):
+          pass
+    solucion: |
+      def valor_absoluto(x):
+          if x < 0:
+              return -x
+          else:
+              return x
+    tests:
+      - { expr: "valor_absoluto(-7)", esperado: 7 }
+      - { expr: "valor_absoluto(4)", esperado: 4 }
+      - { expr: "valor_absoluto(-2.5)", esperado: 2.5, tolerancia: 0 }
+      - { expr: "valor_absoluto(0)", esperado: 0, oculto: true }
+    pistas: ["Usa `if x < 0:` con un `return` en cada rama."]
+    explicacion: 'Si `x < 0`, cambiarle el signo con `-x` lo vuelve positivo; en cualquier otro caso (incluido el 0) `x` ya es su propio valor absoluto. Con `else` cubres todo lo que no cumplió la condición.'
+
+  - id: prog-02-005
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [operadores-logicos, operadores-relacionales]
+    enunciado: 'En C, ¿qué valor tiene la expresión `!(3 > 2) || (5 == 5 && 0)`?'
+    opciones: ["0", "1", "3", "5"]
+    valores: [0, 1, 3, 5]
+    correcta: 0
+    verificar: { sympy: "Integer((not (3 > 2)) or (5 == 5 and 0))" }
+    pistas: ["En C una comparación vale 1 si se cumple y 0 si no.", "Resuelve por partes: primero lo de adentro de cada paréntesis."]
+    explicacion: '`3 > 2` vale 1, así que `!(3 > 2)` vale 0. `5 == 5` vale 1, y `1 && 0` vale 0. Al final, `0 || 0` vale 0. En C los operadores lógicos siempre dan 0 o 1.'
+
+  - id: prog-02-006
+    tipo: predecir_salida
+    dificultad: 2
+    conceptos: [if-else, condiciones-anidadas]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son dos líneas.'
+    codigo: |
+      nota = 9.5
+      if nota >= 6:
+          print("aprobado")
+      elif nota >= 9:
+          print("excelente")
+      else:
+          print("reprobado")
+      print("fin")
+    respuesta: "aprobado\nfin"
+    pistas: ["En una cadena `if / elif / else` solo se ejecuta el primer bloque cuya condición sea verdadera."]
+    explicacion: 'Las condiciones se revisan en orden. Como `9.5 >= 6` ya se cumple, se imprime `aprobado` y el `elif` ni se revisa. De hecho, `excelente` nunca podría imprimirse: todo lo que es mayor o igual a 9 también es mayor o igual a 6. Para arreglarlo, va primero la condición más estricta (`nota >= 9`). `fin` está fuera del `if`, así que siempre se imprime.'
+
+  - id: prog-02-007
+    tipo: codigo
+    dificultad: 2
+    conceptos: [if-else, operadores-relacionales]
+    lenguaje: c
+    enunciado: 'Escribe un programa en C que lea un entero e imprima `par` o `impar`, seguido de un salto de línea. Ojo: el entero puede ser negativo.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          if (n % 2 == 0) {
+              printf("par\n");
+          } else {
+              printf("impar\n");
+          }
+          return 0;
+      }
+    tests:
+      - { entrada: "4\n", salida: "par\n" }
+      - { entrada: "7\n", salida: "impar\n" }
+      - { entrada: "0\n", salida: "par\n" }
+      - { entrada: "-3\n", salida: "impar\n", oculto: true }
+    pistas: ["Un número es par si el residuo de dividirlo entre 2 es 0.", "¿Qué residuo da un impar negativo en C? Compara contra el caso que no cambia con el signo."]
+    explicacion: 'Si `n % 2 == 0`, `n` es par; si no, es impar. Ojo con la prueba `n % 2 == 1`: en C (desde C99) el residuo lleva el signo del dividendo, así que `-3 % 2` vale `-1` y esa prueba diría que -3 no es impar. Comparar contra 0 funciona con cualquier signo.'
+
+  - id: prog-02-008
+    tipo: ordenar
+    dificultad: 2
+    conceptos: [condiciones-anidadas, operadores-relacionales]
+    enunciado: 'Supón que una beca clasifica el promedio `p` (de 0 a 10) así: 9 o más, excelencia; 8 o más, alto; 6 o más, regular; menos de 6, sin beca. Ordena las condiciones como deben ir en una cadena `if / elif / else` para que cada promedio caiga en su nivel.'
+    elementos:
+      - "`p >= 9`: excelencia"
+      - "`p >= 8`: alto"
+      - "`p >= 6`: regular"
+      - "`else`: sin beca"
+    explicacion: 'Con `>=` se va de la condición más estricta a la más amplia. Si `p >= 6` fuera primero, un 9.5 caería en "regular" y las ramas de "alto" y "excelencia" nunca se alcanzarían. El `else` siempre va al final porque atrapa todo lo que no cumplió ninguna condición.'
+
+  - id: prog-02-009
+    tipo: depurar
+    dificultad: 2
+    conceptos: [operadores-relacionales, condiciones-anidadas]
+    lenguaje: python
+    enunciado: 'Supón que un museo cobra \$80 la entrada; los menores de 12 años pagan \$40 y las personas de 65 años **o más** entran gratis. La función `precio_entrada(edad)` tiene un error. Encuentra la línea y corrígela.'
+    codigo: |
+      def precio_entrada(edad):
+          if edad > 65:
+              return 0
+          elif edad < 12:
+              return 40
+          else:
+              return 80
+    linea_bug: 2
+    solucion: |
+      def precio_entrada(edad):
+          if edad >= 65:
+              return 0
+          elif edad < 12:
+              return 40
+          else:
+              return 80
+    tests:
+      - { expr: "precio_entrada(70)", esperado: 0 }
+      - { expr: "precio_entrada(30)", esperado: 80 }
+      - { expr: "precio_entrada(8)", esperado: 40 }
+      - { expr: "precio_entrada(65)", esperado: 0, oculto: true }
+      - { expr: "precio_entrada(12)", esperado: 80, oculto: true }
+    pistas: ["Prueba los bordes: ¿cuánto paga alguien de exactamente 65 años?"]
+    explicacion: '"65 años o más" incluye al 65, así que la comparación correcta es `edad >= 65`. Con `>`, una persona de 65 pagaba \$80. Confundir `>` con `>=` es de los errores más comunes: prueba siempre el valor exacto del límite.'
+
+  - id: prog-02-010
+    tipo: parsons
+    dificultad: 3
+    conceptos: [condiciones-anidadas, operadores-logicos]
+    lenguaje: python
+    enunciado: 'Ordena las líneas para que `tipo_triangulo(a, b, c)` regrese `"equilátero"` si los tres lados son iguales, `"isósceles"` si exactamente dos lo son y `"escaleno"` si los tres son distintos. Sobra una línea.'
+    lineas:
+      - "def tipo_triangulo(a, b, c):"
+      - "    if a == b and b == c:"
+      - '        return "equilátero"'
+      - "    elif a == b or b == c or a == c:"
+      - '        return "isósceles"'
+      - "    else:"
+      - '        return "escaleno"'
+    distractores: ["    elif a == b and b == c:"]
+    tests:
+      - { expr: "tipo_triangulo(3, 3, 3)", esperado: "equilátero" }
+      - { expr: "tipo_triangulo(3, 3, 5)", esperado: "isósceles" }
+      - { expr: "tipo_triangulo(3, 4, 5)", esperado: "escaleno" }
+      - { expr: "tipo_triangulo(5, 3, 5)", esperado: "isósceles", oculto: true }
+    pistas: ["Un triángulo equilátero también tiene dos lados iguales: ¿cuál prueba debe ir primero?"]
+    explicacion: 'Primero va la condición más estricta (los tres lados iguales). Si fuera al revés, un equilátero también cumpliría "algún par igual" y saldría "isósceles". Después, `or` revisa los tres pares posibles; como los equiláteros ya se descartaron, ahí caen los que tienen exactamente dos lados iguales. La línea que sobra repite la prueba del equilátero como `elif`: solo tendría sentido si fuera la primera.'
+
+  - id: prog-02-011
+    tipo: codigo
+    dificultad: 3
+    conceptos: [operadores-logicos, condiciones-anidadas]
+    lenguaje: python
+    enunciado: 'Escribe `es_bisiesto(anio)` que regrese `True` si el año es bisiesto en el calendario gregoriano y `False` si no. Regla: es bisiesto si es divisible entre 4 pero no entre 100, **o** si es divisible entre 400.'
+    plantilla: |
+      def es_bisiesto(anio):
+          pass
+    solucion: |
+      def es_bisiesto(anio):
+          return (anio % 4 == 0 and anio % 100 != 0) or anio % 400 == 0
+    tests:
+      - { expr: "es_bisiesto(2024)", esperado: true }
+      - { expr: "es_bisiesto(2023)", esperado: false }
+      - { expr: "es_bisiesto(2000)", esperado: true }
+      - { expr: "es_bisiesto(1900)", esperado: false }
+      - { expr: "es_bisiesto(2100)", esperado: false, oculto: true }
+      - { expr: "es_bisiesto(2400)", esperado: true, oculto: true }
+    pistas: ["\"Divisible entre 4\" es `anio % 4 == 0`.", "Traduce la regla tal cual: `(... and ...) or ...`."]
+    explicacion: 'La regla se traduce directo: `(anio % 4 == 0 and anio % 100 != 0) or anio % 400 == 0`. Una comparación ya es un booleano, así que puedes regresarla sin `if`. También vale una cadena `if / elif`: si es divisible entre 400, True; si lo es entre 100, False; si lo es entre 4, True; si no, False (en ese orden, de lo más estricto a lo más amplio).'
+
+  - id: prog-02-012
+    tipo: predecir_salida
+    dificultad: 3
+    conceptos: [seleccion-multiple]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son dos líneas.'
+    codigo: |
+      comando = "salir"
+      match comando:
+          case "abrir":
+              print("abriendo archivo")
+          case "guardar" | "salir":
+              print("guardando cambios")
+          case _:
+              print("no entiendo")
+      print("fin")
+    respuesta: "guardando cambios\nfin"
+    pistas: ["En un `case`, `|` significa \"cualquiera de estos valores\"."]
+    explicacion: '`"salir"` no coincide con `"abrir"`, pero sí con el patrón `"guardar" | "salir"`, así que se imprime `guardando cambios`. `match` ejecuta solo el primer caso que coincide (no se sigue de largo como `switch`), y `case _` solo se usa si nada coincidió. `fin` está fuera del `match`.'
+
+  - id: prog-02-013
+    tipo: opcion_multiple
+    dificultad: 3
+    conceptos: [seleccion-multiple]
+    enunciado: |
+      ¿Qué imprime este fragmento de C?
+
+      ```c
+      int n = 2;
+      switch (n) {
+          case 1: printf("uno ");
+          case 2: printf("dos ");
+          case 3: printf("tres ");
+              break;
+          default: printf("otro ");
+      }
+      ```
+    opciones: ["dos", "dos tres", "dos tres otro", "uno dos tres"]
+    correcta: 1
+    pistas: ["¿Qué hace `switch` cuando un `case` no tiene `break`?"]
+    explicacion: '`switch` salta directo a `case 2` e imprime `dos`. Como ese caso no tiene `break`, se sigue de largo (fall-through) y ejecuta también `case 3`, que imprime `tres`; ahí el `break` lo saca del `switch`, así que `default` no se ejecuta. `case 1` nunca se ejecutó porque el salto fue directo a `case 2`.'
+
+  - id: prog-02-014
+    tipo: depurar
+    dificultad: 3
+    conceptos: [operadores-relacionales, if-else, condiciones-anidadas]
+    lenguaje: c
+    enunciado: 'Este programa lee el saldo de una tarjeta (negativo si debes) e imprime un mensaje. Pero siempre dice `tienes 0`, sin importar la entrada. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      #include <stdio.h>
+
+      int main(void) {
+          int saldo;
+          scanf("%d", &saldo);
+          if (saldo = 0) {
+              printf("sin saldo\n");
+          } else if (saldo < 0) {
+              printf("debes %d\n", -saldo);
+          } else {
+              printf("tienes %d\n", saldo);
+          }
+          return 0;
+      }
+    linea_bug: 6
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int saldo;
+          scanf("%d", &saldo);
+          if (saldo == 0) {
+              printf("sin saldo\n");
+          } else if (saldo < 0) {
+              printf("debes %d\n", -saldo);
+          } else {
+              printf("tienes %d\n", saldo);
+          }
+          return 0;
+      }
+    tests:
+      - { entrada: "0\n", salida: "sin saldo\n" }
+      - { entrada: "150\n", salida: "tienes 150\n" }
+      - { entrada: "-40\n", salida: "debes 40\n", oculto: true }
+    pistas: ["¿Esa línea compara o asigna?", "Compila con `-Wall` y lee el aviso."]
+    explicacion: '`saldo = 0` no compara: **asigna** 0 a `saldo`, y la expresión completa vale 0 (falso). El primer bloque nunca se ejecuta, `saldo < 0` también es falso (ya vale 0) y se llega al `else` con `tienes 0`. Con `==` se compara sin modificar la variable. Con `-Wall`, el compilador avisa de una asignación usada como condición: lee siempre los avisos.'
+
+  - id: prog-02-015
+    tipo: codigo
+    dificultad: 3
+    conceptos: [condiciones-anidadas, operadores-logicos]
+    lenguaje: c
+    enunciado: 'Escribe un programa en C que lea una calificación entera e imprima su letra: `A` de 90 a 100, `B` de 80 a 89, `C` de 70 a 79 y `F` de 0 a 69. Si el número está fuera del rango de 0 a 100, imprime `invalida`. Cada salida termina en salto de línea.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          if (n < 0 || n > 100) {
+              printf("invalida\n");
+          } else if (n >= 90) {
+              printf("A\n");
+          } else if (n >= 80) {
+              printf("B\n");
+          } else if (n >= 70) {
+              printf("C\n");
+          } else {
+              printf("F\n");
+          }
+          return 0;
+      }
+    tests:
+      - { entrada: "95\n", salida: "A\n" }
+      - { entrada: "80\n", salida: "B\n" }
+      - { entrada: "79\n", salida: "C\n" }
+      - { entrada: "0\n", salida: "F\n" }
+      - { entrada: "-5\n", salida: "invalida\n" }
+      - { entrada: "100\n", salida: "A\n", oculto: true }
+      - { entrada: "101\n", salida: "invalida\n", oculto: true }
+    pistas: ["Revisa primero si el dato es inválido: `n < 0 || n > 100`.", "Luego baja de la letra más alta a la más baja con `else if`."]
+    explicacion: 'Primero se descarta lo inválido con `||`: basta que se cumpla un lado. Después, como en la cadena ya sabes que `n` está entre 0 y 100, cada `else if` solo necesita el límite inferior: si no fue `n >= 90`, el siguiente `n >= 80` ya implica que está entre 80 y 89. El `else` final es la F.'
+
+  - id: prog-02-016
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [if-else, condiciones-anidadas, seleccion-multiple]
+    enunciado: 'Explica con tus palabras cuándo conviene una cadena `if / elif / else` y cuándo un `switch` (C) o un `match` (Python). Incluye por qué importa el orden de las condiciones en la cadena.'
+    rubrica:
+      - "Dice que la cadena revisa las condiciones en orden y ejecuta solo el primer bloque verdadero."
+      - "Explica que la condición más estricta va antes que la más amplia; si no, la estricta nunca se alcanza."
+      - "Dice que `switch` o `match` convienen cuando una sola variable se compara contra varios valores fijos."
+      - "Menciona que `switch` de C no sirve para rangos (como `edad < 12`) y que cada `case` necesita `break` para no seguirse de largo."
+    respuesta_modelo: 'Una cadena `if / elif / else` sirve para cualquier condición: rangos, combinaciones con `and` u `or`, comparaciones entre variables. Se revisa de arriba abajo y solo se ejecuta el primer bloque verdadero, así que el orden importa: si pongo `nota >= 6` antes que `nota >= 9`, el caso de 9 jamás se alcanza; por eso va primero lo más estricto. `switch` en C (o `match` en Python) conviene cuando comparo una sola variable contra varios valores fijos, como las opciones de un menú: queda más claro que muchos `else if`. Pero `switch` solo compara contra constantes enteras (no sirve para `edad < 12` ni para textos en C) y cada `case` necesita su `break`, o el programa se sigue de largo al siguiente.'
+    explicacion: 'Si no mencionaste el `break` o la limitación de los rangos, repasa la sección de selección múltiple; si no hablaste del orden, repasa el ejemplo del cine.'
+    tarjeta: false
+
+  - id: prog-02-017
+    tipo: predecir_salida
+    dificultad: 4
+    conceptos: [operadores-logicos]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Fíjate en cuáles llamadas a `revisa` se ejecutan de verdad.'
+    codigo: |
+      def revisa(n):
+          print("revisando", n)
+          return n > 0
+
+      if revisa(0) and revisa(5):
+          print("ambos")
+      elif revisa(-1) or revisa(3):
+          print("alguno")
+      else:
+          print("ninguno")
+    respuesta: "revisando 0\nrevisando -1\nrevisando 3\nalguno"
+    pistas: ["Cortocircuito: si la parte izquierda de un `and` es falsa, ¿hace falta mirar la derecha?"]
+    explicacion: '`revisa(0)` imprime `revisando 0` y regresa False. Como `False and ...` ya es falso, Python **no** llama a `revisa(5)` (cortocircuito). En el `elif`, `revisa(-1)` imprime y regresa False, así que `or` necesita revisar la derecha: `revisa(3)` imprime y regresa True. La condición es verdadera y se imprime `alguno`.'
+
+  - id: prog-02-018
+    tipo: codigo
+    dificultad: 4
+    conceptos: [operadores-logicos, operadores-relacionales, condiciones-anidadas]
+    lenguaje: python
+    enunciado: 'Supón que una tienda en línea da envío gratis si la compra es de \$500 o más, o si el cliente es premium y la compra es de al menos \$200. Pero a zonas remotas **nunca** hay envío gratis. Escribe `envio_gratis(total, premium, remota)`, donde `premium` y `remota` son booleanos, que regrese `True` o `False`.'
+    plantilla: |
+      def envio_gratis(total, premium, remota):
+          pass
+    solucion: |
+      def envio_gratis(total, premium, remota):
+          if remota:
+              return False
+          return total >= 500 or (premium and total >= 200)
+    tests:
+      - { expr: "envio_gratis(600, False, False)", esperado: true }
+      - { expr: "envio_gratis(250, True, False)", esperado: true }
+      - { expr: "envio_gratis(250, False, False)", esperado: false }
+      - { expr: "envio_gratis(150, True, False)", esperado: false }
+      - { expr: "envio_gratis(800, True, True)", esperado: false, oculto: true }
+      - { expr: "envio_gratis(500, False, False)", esperado: true, oculto: true }
+      - { expr: "envio_gratis(200, True, False)", esperado: true, oculto: true }
+    pistas: ["Atiende primero la regla que gana siempre: la zona remota.", "\"Al menos \\$200\" es `total >= 200`."]
+    explicacion: 'La zona remota anula todo, así que conviene revisarla primero y salir con `False`. Si no es remota, hay envío gratis cuando `total >= 500` **o** cuando `premium and total >= 200`. Los paréntesis dejan clara la intención (aunque `and` ya se evalúa antes que `or`). Los bordes 500 y 200 cuentan porque la regla dice "o más" y "al menos": `>=`.'
+
+  - id: prog-02-019
+    tipo: codigo
+    dificultad: 4
+    conceptos: [seleccion-multiple, condiciones-anidadas]
+    lenguaje: c
+    enunciado: 'Escribe una calculadora en C usando `switch`. Lee una operación con el formato `a op b`, donde `a` y `b` son enteros y `op` es uno de `+`, `-`, `*`, `/` o `%`. Imprime el resultado entero (la división es entera). Si la operación es `/` o `%` y `b` vale 0, imprime `error`. Si `op` es cualquier otro carácter, imprime `operador invalido`. Cada salida termina en salto de línea.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int a, b;
+          char op;
+          scanf("%d %c %d", &a, &op, &b);
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int a, b;
+          char op;
+          scanf("%d %c %d", &a, &op, &b);
+          switch (op) {
+              case '+':
+                  printf("%d\n", a + b);
+                  break;
+              case '-':
+                  printf("%d\n", a - b);
+                  break;
+              case '*':
+                  printf("%d\n", a * b);
+                  break;
+              case '/':
+              case '%':
+                  if (b == 0) {
+                      printf("error\n");
+                  } else if (op == '/') {
+                      printf("%d\n", a / b);
+                  } else {
+                      printf("%d\n", a % b);
+                  }
+                  break;
+              default:
+                  printf("operador invalido\n");
+          }
+          return 0;
+      }
+    tests:
+      - { entrada: "7 + 3\n", salida: "10\n" }
+      - { entrada: "9 - 12\n", salida: "-3\n" }
+      - { entrada: "6 * -2\n", salida: "-12\n" }
+      - { entrada: "7 / 2\n", salida: "3\n" }
+      - { entrada: "17 % 5\n", salida: "2\n" }
+      - { entrada: "5 / 0\n", salida: "error\n", oculto: true }
+      - { entrada: "4 ^ 2\n", salida: "operador invalido\n", oculto: true }
+    pistas: ["Los `case` de un `char` se escriben con comillas simples: `case '+':`.", "Dentro de un `case` puedes poner un `if` para revisar que `b` no sea 0."]
+    explicacion: '`switch (op)` salta al `case` del carácter leído. Cada caso termina en `break` para no seguirse de largo. `/` y `%` comparten bloque (dos `case` seguidos) porque ambos deben revisar `b == 0` antes de operar: dividir entre cero en C es un error grave. Lo que no coincide con ningún `case` cae en `default`.'
+
+  - id: prog-02-020
+    tipo: codigo
+    dificultad: 5
+    conceptos: [seleccion-multiple, condiciones-anidadas, operadores-logicos]
+    lenguaje: c
+    enunciado: 'Escribe un programa en C que lea un mes (1 a 12) y un año, e imprima cuántos días tiene ese mes. Febrero tiene 29 días en año bisiesto y 28 si no (bisiesto: divisible entre 4 y no entre 100, o divisible entre 400). Si el mes no está entre 1 y 12, imprime `mes invalido`. Usa `switch` y aprovecha que varios `case` pueden compartir un mismo bloque. Cada salida termina en salto de línea.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int mes, anio;
+          scanf("%d %d", &mes, &anio);
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int mes, anio;
+          scanf("%d %d", &mes, &anio);
+          switch (mes) {
+              case 1: case 3: case 5: case 7: case 8: case 10: case 12:
+                  printf("31\n");
+                  break;
+              case 4: case 6: case 9: case 11:
+                  printf("30\n");
+                  break;
+              case 2:
+                  if ((anio % 4 == 0 && anio % 100 != 0) || anio % 400 == 0) {
+                      printf("29\n");
+                  } else {
+                      printf("28\n");
+                  }
+                  break;
+              default:
+                  printf("mes invalido\n");
+          }
+          return 0;
+      }
+    tests:
+      - { entrada: "1 2023\n", salida: "31\n" }
+      - { entrada: "4 2023\n", salida: "30\n" }
+      - { entrada: "12 1999\n", salida: "31\n" }
+      - { entrada: "2 2024\n", salida: "29\n" }
+      - { entrada: "2 2023\n", salida: "28\n" }
+      - { entrada: "2 1900\n", salida: "28\n", oculto: true }
+      - { entrada: "2 2000\n", salida: "29\n", oculto: true }
+      - { entrada: "13 2024\n", salida: "mes invalido\n", oculto: true }
+    pistas: ["Agrupa los meses de 31 días poniendo varios `case` seguidos antes de un solo bloque.", "Febrero necesita un `if` dentro de su `case`.", "`default` atrapa los meses fuera de 1 a 12."]
+    explicacion: 'Los meses de 31 días (1, 3, 5, 7, 8, 10, 12) comparten un bloque: como sus `case` no tienen instrucciones propias, el *fall-through* los lleva al mismo `printf`. Igual con los de 30 (4, 6, 9, 11). Febrero es el único que depende del año: dentro de su `case` va la regla del bisiesto con `&&` y `||`. Todo lo demás cae en `default`. Los años 1900 (no bisiesto) y 2000 (bisiesto) prueban las dos excepciones de la regla.'

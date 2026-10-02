@@ -1,0 +1,203 @@
+---
+titulo: "Arreglos, listas y cadenas"
+materia: programacion
+unidad: 05-arreglos-y-cadenas
+duracion_min: 25
+prerrequisitos: [ciclo-for, ciclos-anidados, funciones-definicion, paso-por-valor]
+conceptos: [arreglos-c, listas-python, recorrido-busqueda, cadenas, cadenas-c, matrices]
+programa_ref: "pendiente"
+---
+
+## El problema
+
+Un grupo tiene 40 alumnos y quieres el promedio, la calificación más alta y cuántos reprobaron. Con 40 variables sueltas (`c1`, `c2`, …, `c40`) no puedes usar un ciclo: tendrías que escribir 40 sumas a mano. Lo que necesitas es **una sola variable que guarde muchos valores en fila**, numerados, para recorrerlos con un ciclo. En Python eso es una **lista**; en C, un **arreglo**. Y un texto es justo eso: una fila de caracteres.
+
+<Predice pregunta="Tienes 5 calificaciones guardadas en fila. ¿Qué número (índice) tiene la última? ¿Qué crees que pasa si pides la posición 5 en Python? ¿Y en C?" revela="La última es la 4, porque se cuenta desde 0. Python se detiene con `IndexError`. C no revisa nada: lee memoria que no es del arreglo y el resultado es impredecible (comportamiento indefinido)." />
+
+## Listas en Python
+
+<Concepto titulo="Lista">
+Una secuencia ordenada de valores con un solo nombre. Cada valor tiene un **índice**: el primero es 0 y el último es `len(lista) - 1`. Las listas pueden crecer y sus elementos se pueden cambiar.
+</Concepto>
+
+```python
+cal = [8, 6, 10, 9, 5]
+print(cal[0], cal[4])     # 8 5
+print(cal[-1])            # 5: los índices negativos cuentan desde el final
+print(len(cal))           # 5
+cal[1] = 7                # se puede cambiar un elemento
+cal.append(9)             # y agregar al final
+print(cal)                # [8, 7, 10, 9, 5, 9]
+print(cal[1:3])           # [7, 10]: rebanada del índice 1 al 2 (el 3 no entra)
+```
+
+Una lista es un objeto: `b = a` **no** la copia, solo le pone otro nombre. Si cambias `b`, ves el cambio en `a`. Para copiarla usa `a[:]` o `list(a)`. Por lo mismo, una función que recibe una lista y la **modifica** (con `append` o asignando `lista[i]`) cambia la lista original: el parámetro es otro nombre para el mismo objeto.
+
+## Arreglos en C
+
+<Concepto titulo="Arreglo">
+Un bloque de memoria con lugar para un número **fijo** de valores del mismo tipo, uno junto a otro. Se declara con su tamaño, como `int cal[5];`. Los índices válidos van de 0 a tamaño − 1, y C **no revisa** que te quedes dentro.
+</Concepto>
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    int cal[5] = {8, 6, 10, 9, 5};
+    int suma = 0;
+    for (int i = 0; i < 5; i++) {     /* i < 5, no i <= 5 */
+        suma += cal[i];
+    }
+    printf("%.1f\n", suma / 5.0);       /* 7.6 */
+    return 0;
+}
+```
+
+Diferencias con las listas de Python: el tamaño no cambia, todos los elementos son del mismo tipo, no hay `len` (el tamaño lo llevas tú en una variable) y no hay índices negativos. Al pasar un arreglo a una función también pasas su tamaño: `int suma(int v[], int n)`. Y, a diferencia de un `int` suelto, la función **sí** puede modificar los elementos del arreglo original; en la unidad 6 verás por qué.
+
+## Recorrer y buscar
+
+Casi todo lo que harás con secuencias es un **recorrido**: visitar cada elemento una vez con un ciclo. Tres patrones cubren la mayoría de los casos.
+
+| Patrón | Idea | Cuidado |
+|---|---|---|
+| Acumular | `total += v[i]` | el acumulador empieza en 0 (suma) o en 1 (producto) |
+| Máximo o mínimo | comparar con el mejor hasta ahora | empieza con el primer elemento, no con 0 |
+| Búsqueda lineal | regresar el índice al encontrarlo | si no está, regresa `-1` **después** del ciclo |
+
+<Ejemplo titulo="Buscar un valor y su posición">
+Problema: ¿en qué posición está el 9 dentro de `[8, 6, 10, 9, 5]`? Si no está, la respuesta debe ser −1.
+
+1. Recorre los índices `i = 0, 1, 2, ...` en orden: así la primera coincidencia que encuentres es la de menor índice.
+2. En cada paso compara `v[i]` con el valor buscado. Con `i = 3`, `v[3]` es 9: regresa 3 de inmediato, no hace falta seguir.
+3. Si el ciclo termina sin regresar, el valor no estaba: regresa −1. Ese `return -1` va **fuera** del ciclo; adentro, cortaría la búsqueda en el primer elemento distinto.
+</Ejemplo>
+
+```python
+def busca(v, x):
+    for i in range(len(v)):
+        if v[i] == x:
+            return i
+    return -1
+
+print(busca([8, 6, 10, 9, 5], 9))   # 3
+print(busca([8, 6, 10, 9, 5], 4))   # -1
+```
+
+```c
+int busca(int v[], int n, int x) {
+    for (int i = 0; i < n; i++) {
+        if (v[i] == x) {
+            return i;
+        }
+    }
+    return -1;
+}
+```
+
+## Cadenas en Python
+
+<Concepto titulo="Cadena (str)">
+Una secuencia de caracteres. Se indexa y se rebana como una lista, pero es **inmutable**: no puedes cambiar un carácter, solo crear una cadena nueva.
+</Concepto>
+
+```python
+s = "Cortex"
+print(s[0], s[-1], len(s))     # C x 6
+print(s[1:4])                  # ort
+print(s.upper(), s.lower())    # CORTEX cortex
+print("tex" in s)              # True
+print("a,b,c".split(","))      # ['a', 'b', 'c']
+print("-".join(["a", "b"]))    # a-b
+# s[0] = "K" daría TypeError: las cadenas no se modifican
+s = "K" + s[1:]                # se crea una cadena nueva
+print(s)                       # Kortex
+```
+
+## Cadenas en C
+
+<Concepto titulo="Cadena en C">
+Un arreglo de `char` que termina con el carácter nulo `'\0'`. Ese terminador es la única forma de saber dónde acaba el texto, así que siempre ocupa un lugar extra: `char s[] = "sol";` reserva 4 bytes.
+</Concepto>
+
+```c
+#include <stdio.h>
+#include <string.h>
+
+int main(void) {
+    char s[] = "sol";               /* 's' 'o' 'l' '\0' */
+    char copia[20];
+    printf("%zu\n", strlen(s));     /* 3: strlen no cuenta el '\0' */
+    strcpy(copia, s);               /* copiar: no se puede con = */
+    if (strcmp(copia, s) == 0) {    /* comparar el texto: no se puede con == */
+        printf("iguales\n");
+    }
+    for (int i = 0; s[i] != '\0'; i++) {
+        printf("%c-", s[i]);        /* s-o-l- */
+    }
+    printf("\n");
+    return 0;
+}
+```
+
+Para leer una palabra se usa `scanf("%99s", palabra)`: el 99 evita escribir más allá de un arreglo de 100 lugares (uno se queda para el `'\0'`). Y recuerda que `==` entre dos cadenas compara **dónde están** en memoria, no su texto; para eso está `strcmp`, que regresa 0 si son iguales.
+
+## Matrices
+
+<Concepto titulo="Matriz">
+Una tabla de renglones y columnas. En Python es una lista de listas: `m[i][j]` es el renglón `i`, columna `j`. En C es un arreglo de dos dimensiones, como `int m[2][3];`, que se guarda en memoria renglón por renglón.
+</Concepto>
+
+```python
+m = [[1, 2, 3],
+     [4, 5, 6]]
+print(m[1][0])            # 4
+for renglon in m:
+    print(sum(renglon))   # 6 y luego 15
+```
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    int m[2][3] = {{1, 2, 3}, {4, 5, 6}};
+    for (int i = 0; i < 2; i++) {         /* renglones */
+        for (int j = 0; j < 3; j++) {     /* columnas */
+            printf("%d ", m[i][j]);
+        }
+        printf("\n");
+    }
+    return 0;
+}
+```
+
+<Desvanecido titulo="Índices sin miedo" pasos={[
+  "Con `a = [3, 1, 4, 1, 5]`:",
+  "`a[2]` vale ___ .",
+  "`a[-2]` vale ___ .",
+  "`a.index(1)`, la posición de la primera aparición de 1, vale ___ ."
+]} respuestas={["4", "1", "1"]} />
+
+<Ojo>
+- **Salirse por uno.** Con n elementos, el último índice es n − 1. En C, `for (i = 0; i <= n; i++)` lee un elemento que no existe y nadie te avisa.
+- **Empezar el máximo en 0.** Si todos los valores son negativos, el "máximo" sale 0. Empieza con el primer elemento.
+- **`return -1` dentro del ciclo.** La búsqueda se rinde en el primer elemento que no coincide.
+- **Creer que `b = a` copia una lista.** Los dos nombres son la misma lista; copia con `a[:]`.
+- **`[[0] * 3] * 3` en Python.** Repite la *misma* lista tres veces: cambiar un renglón cambia los tres. Crea cada renglón por separado, por ejemplo con un ciclo que haga `m.append([0] * 3)`.
+- **Olvidar el `'\0'` en C.** Un arreglo de `char` sin lugar para el terminador hace que `printf` y `strlen` sigan leyendo memoria ajena.
+- **Comparar cadenas de C con `==`.** Compara direcciones, no texto; usa `strcmp(a, b) == 0`.
+</Ojo>
+
+<Conexion materia="Inteligencia artificial">
+Una imagen en escala de grises es una matriz de números (la intensidad de cada píxel), y un lote de imágenes es un arreglo de matrices. Bibliotecas como NumPy guardan esos datos como arreglos al estilo de C: contiguos en memoria y de un solo tipo. Eso es lo que las hace mucho más rápidas que las listas de Python para hacer cuentas.
+</Conexion>
+
+<Resumen>
+- Listas (Python) y arreglos (C) guardan muchos valores con un solo nombre y se indexan desde 0; C no revisa los límites.
+- Un recorrido con un ciclo resuelve sumas, máximos y búsquedas; cuida el valor inicial y dónde va el `return -1`.
+- Las cadenas son secuencias de caracteres (inmutables en Python, arreglos de `char` con `'\0'` en C), y las matrices son listas de listas o arreglos de dos dimensiones.
+</Resumen>
+
+<Feynman>
+Explica con tus palabras por qué `char s[] = "hola";` ocupa 5 bytes y no 4, y qué pasaría si recorres esa cadena en C sin fijarte en el `'\0'`. Si te trabas, vuelve a la sección "Cadenas en C".
+</Feynman>

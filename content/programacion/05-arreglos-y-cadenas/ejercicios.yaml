@@ -1,0 +1,496 @@
+unidad: programacion/05-arreglos-y-cadenas
+ejercicios:
+  - id: prog-05-001
+    tipo: predecir_salida
+    dificultad: 1
+    conceptos: [listas-python]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa?'
+    codigo: |
+      a = [10, 20, 30, 40]
+      print(a[0], a[-1], len(a))
+    respuesta: "10 40 4"
+    pistas: ["El primer índice es 0 y el índice -1 es el último elemento."]
+    explicacion: '`a[0]` es el primer elemento (10), `a[-1]` el último (40) y `len(a)` cuenta los elementos: 4. Ojo: el último índice positivo es 3, no 4.'
+
+  - id: prog-05-002
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [arreglos-c]
+    enunciado: 'En C declaras `int v[5];`. ¿Cuáles son los índices válidos?'
+    opciones: ["Del `0` al `4`", "Del `1` al `5`", "Del `0` al `5`", "Del `1` al `4`"]
+    correcta: 0
+    explicacion: 'Un arreglo de 5 elementos tiene los índices 0, 1, 2, 3 y 4. `v[5]` ya está fuera del arreglo, y C no te avisa si lo usas.'
+
+  - id: prog-05-003
+    tipo: completar
+    dificultad: 1
+    conceptos: [cadenas-c]
+    enunciado: 'Completa sobre las cadenas en C.'
+    texto: 'Toda cadena de C termina con el carácter nulo, que se escribe ___ . Por eso `char s[] = "sol";` ocupa ___ bytes.'
+    respuestas: ['\0', "4"]
+    explicacion: 'El terminador `''\0''` marca dónde acaba el texto. "sol" tiene 3 letras más el terminador: 4 bytes. `strlen(s)` da 3 porque no cuenta el `''\0''`.'
+
+  - id: prog-05-004
+    tipo: predecir_salida
+    dificultad: 2
+    conceptos: [cadenas]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa?'
+    codigo: |
+      s = "Programar"
+      print(s[0], s[-1], s[3:6], len(s))
+    respuesta: "P r gra 9"
+    pistas: ["Numera las letras desde 0: P=0, r=1, o=2, g=3...", "En `s[3:6]` entran los índices 3, 4 y 5; el 6 no."]
+    explicacion: '`s[0]` es "P" y `s[-1]` es la última letra, "r". La rebanada `s[3:6]` toma los índices 3, 4 y 5: "gra". La palabra tiene 9 letras.'
+
+  - id: prog-05-005
+    tipo: codigo
+    dificultad: 2
+    conceptos: [listas-python, recorrido-busqueda]
+    lenguaje: python
+    enunciado: 'Escribe `suma_pares(nums)` que regrese la suma de los números pares de la lista `nums`. Si no hay ninguno (o la lista está vacía), regresa 0.'
+    plantilla: |
+      def suma_pares(nums):
+          pass
+    solucion: |
+      def suma_pares(nums):
+          total = 0
+          for x in nums:
+              if x % 2 == 0:
+                  total += x
+          return total
+    tests:
+      - { expr: "suma_pares([1, 2, 3, 4])", esperado: 6 }
+      - { expr: "suma_pares([5, 7])", esperado: 0 }
+      - { expr: "suma_pares([-4, 3, 10])", esperado: 6 }
+      - { expr: "suma_pares([])", esperado: 0, oculto: true }
+    pistas: ["Un número es par si `x % 2 == 0` (también funciona con negativos)."]
+    explicacion: 'Es el patrón acumulador: `total` empieza en 0 y en el recorrido se le suma cada `x` par. Con la lista vacía el ciclo no da vueltas y se regresa 0.'
+
+  - id: prog-05-006
+    tipo: codigo
+    dificultad: 2
+    conceptos: [arreglos-c, recorrido-busqueda]
+    lenguaje: c
+    enunciado: 'El programa ya lee `n` (1 ≤ n ≤ 100) y luego `n` enteros en el arreglo `v`. Complétalo para que imprima el mayor de ellos.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          int v[100];
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &v[i]);
+          }
+          /* calcula e imprime el mayor */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          int v[100];
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &v[i]);
+          }
+          int mayor = v[0];
+          for (int i = 1; i < n; i++) {
+              if (v[i] > mayor) {
+                  mayor = v[i];
+              }
+          }
+          printf("%d\n", mayor);
+          return 0;
+      }
+    tests:
+      - { entrada: "5\n3 9 2 9 1\n", salida: "9\n" }
+      - { entrada: "1\n-7\n", salida: "-7\n" }
+      - { entrada: "6\n4 8 15 16 23 42\n", salida: "42\n" }
+      - { entrada: "4\n-5 -2 -9 -3\n", salida: "-2\n", oculto: true }
+    pistas: ["Empieza con `mayor = v[0]` y recorre desde el índice 1."]
+    explicacion: 'Se toma el primer elemento como mayor provisional y se compara con cada uno de los demás. Empezar en 0 fallaría con puros negativos (caso oculto). El ciclo usa `i < n`: el último índice es `n - 1`.'
+
+  - id: prog-05-007
+    tipo: parsons
+    dificultad: 2
+    conceptos: [listas-python, recorrido-busqueda]
+    lenguaje: python
+    enunciado: 'Ordena las líneas (con su sangría) para que `busca(lista, x)` regrese el índice de la primera aparición de `x`, o `-1` si no está. Sobran dos líneas.'
+    lineas:
+      - "def busca(lista, x):"
+      - "    for i in range(len(lista)):"
+      - "        if lista[i] == x:"
+      - "            return i"
+      - "    return -1"
+    distractores: ["        else:", "    for i in range(1, len(lista)):"]
+    tests:
+      - { expr: "busca([4, 7, 9], 9)", esperado: 2 }
+      - { expr: "busca([4, 7, 9], 5)", esperado: -1 }
+      - { expr: "busca([3, 8, 3], 3)", esperado: 0, oculto: true }
+      - { expr: "busca([], 1)", esperado: -1, oculto: true }
+    explicacion: 'El recorrido va de 0 a `len(lista) - 1` (empezar en 1 se saltaría el primer elemento). Al encontrar `x` se regresa su índice de inmediato. El `return -1` va fuera del ciclo, alineado con el `for`: solo se llega ahí si ninguna posición coincidió. Un `else` con `return -1` adentro cortaría la búsqueda en el primer elemento distinto.'
+
+  - id: prog-05-008
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [cadenas-c]
+    enunciado: 'En C tienes dos cadenas, `a` y `b`. ¿Cómo revisas si tienen el mismo texto?'
+    opciones: ["`strcmp(a, b) == 0`", "`a == b`", "`strlen(a) == strlen(b)`", "`a = b`"]
+    correcta: 0
+    pistas: ["Una cadena de C es un arreglo; su nombre representa la dirección donde empieza."]
+    explicacion: '`strcmp` compara carácter por carácter y regresa 0 si son iguales. `a == b` compara las direcciones de los dos arreglos (casi siempre distintas aunque el texto sea igual). Igual longitud no significa igual texto, y `a = b` ni siquiera compila con arreglos.'
+
+  - id: prog-05-009
+    tipo: ordenar
+    dificultad: 2
+    conceptos: [matrices, arreglos-c]
+    enunciado: 'C guarda las matrices renglón por renglón. Ordena los elementos de `int m[2][3];` según su posición en memoria, del primero al último.'
+    elementos: ["`m[0][0]`", "`m[0][1]`", "`m[0][2]`", "`m[1][0]`", "`m[1][1]`", "`m[1][2]`"]
+    explicacion: 'Primero va completo el renglón 0 (columnas 0, 1 y 2) y después el renglón 1. Por eso recorrer con el índice de renglón en el ciclo de afuera y el de columna en el de adentro visita la memoria en orden.'
+
+  - id: prog-05-010
+    tipo: depurar
+    dificultad: 3
+    conceptos: [recorrido-busqueda, listas-python]
+    lenguaje: python
+    enunciado: '`maximo(temps)` debería regresar la temperatura más alta de una lista no vacía. Funciona en verano, pero en invierno, cuando todas están bajo cero, regresa 0. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      def maximo(temps):
+          mayor = 0
+          for t in temps:
+              if t > mayor:
+                  mayor = t
+          return mayor
+    linea_bug: 2
+    solucion: |
+      def maximo(temps):
+          mayor = temps[0]
+          for t in temps:
+              if t > mayor:
+                  mayor = t
+          return mayor
+    tests:
+      - { expr: "maximo([3, 8, 2])", esperado: 8 }
+      - { expr: "maximo([-5, -2, -9])", esperado: -2 }
+      - { expr: "maximo([-1])", esperado: -1, oculto: true }
+    pistas: ["¿Qué pasa si ningún elemento es mayor que el valor inicial de `mayor`?"]
+    explicacion: 'Con `mayor = 0`, si todos los valores son negativos ninguno supera al 0 y la función inventa un máximo que no está en la lista. El valor inicial debe ser un elemento real: `temps[0]`.'
+
+  - id: prog-05-011
+    tipo: predecir_salida
+    dificultad: 3
+    conceptos: [listas-python]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son dos líneas.'
+    codigo: |
+      a = [1, 2, 3]
+      b = a
+      c = a[:]
+      b.append(4)
+      c.append(5)
+      print(a)
+      print(len(b), len(c))
+    respuesta: "[1, 2, 3, 4]\n4 4"
+    pistas: ["`b = a` no copia: los dos nombres son la misma lista. `a[:]` sí crea una copia."]
+    explicacion: '`b` es otro nombre para la misma lista que `a`, así que `b.append(4)` cambia `a`. `c` es una copia independiente: el 5 solo va a `c`. Al final `a` y `b` son `[1, 2, 3, 4]` (4 elementos) y `c` es `[1, 2, 3, 5]` (también 4).'
+
+  - id: prog-05-012
+    tipo: codigo
+    dificultad: 3
+    conceptos: [cadenas]
+    lenguaje: python
+    enunciado: 'Escribe `es_palindromo(frase)` que regrese `True` si la frase se lee igual al derecho y al revés **ignorando espacios y mayúsculas**, y `False` si no. Por ejemplo, "Anita lava la tina" es palíndromo.'
+    plantilla: |
+      def es_palindromo(frase):
+          pass
+    solucion: |
+      def es_palindromo(frase):
+          limpia = frase.replace(" ", "").lower()
+          return limpia == limpia[::-1]
+    tests:
+      - { expr: "es_palindromo('Anita lava la tina')", esperado: true }
+      - { expr: "es_palindromo('hola')", esperado: false }
+      - { expr: "es_palindromo('Oso')", esperado: true }
+      - { expr: "es_palindromo('Somos o no somos')", esperado: true }
+      - { expr: "es_palindromo('abca')", esperado: false, oculto: true }
+      - { expr: "es_palindromo('')", esperado: true, oculto: true }
+    pistas: ["Primero limpia: `replace(\" \", \"\")` quita espacios y `lower()` pasa a minúsculas.", "`s[::-1]` es la cadena al revés."]
+    explicacion: 'Se construye una versión limpia (sin espacios y en minúsculas) y se compara con su reverso, `limpia[::-1]`. También sirve recorrer con dos índices desde los extremos hacia el centro. La cadena vacía se lee igual al revés, así que es palíndromo.'
+
+  - id: prog-05-013
+    tipo: codigo
+    dificultad: 3
+    conceptos: [cadenas-c, arreglos-c]
+    lenguaje: c
+    enunciado: 'Lee una palabra (sin espacios, máximo 100 caracteres) e imprímela al revés, seguida de un salto de línea.'
+    plantilla: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int main(void) {
+          char palabra[101];
+          scanf("%100s", palabra);
+          /* imprime la palabra al revés */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+      #include <string.h>
+
+      int main(void) {
+          char palabra[101];
+          scanf("%100s", palabra);
+          int n = (int)strlen(palabra);
+          for (int i = n - 1; i >= 0; i--) {
+              printf("%c", palabra[i]);
+          }
+          printf("\n");
+          return 0;
+      }
+    tests:
+      - { entrada: "hola\n", salida: "aloh\n" }
+      - { entrada: "C99\n", salida: "99C\n" }
+      - { entrada: "a\n", salida: "a\n" }
+      - { entrada: "Python\n", salida: "nohtyP\n", oculto: true }
+      - { entrada: "reconocer\n", salida: "reconocer\n", oculto: true }
+    pistas: ["`strlen(palabra)` te da cuántas letras hay antes del `'\\0'`.", "El último carácter está en el índice `n - 1`."]
+    explicacion: 'Con `n = strlen(palabra)` se sabe dónde termina el texto. El ciclo va de `n - 1` hasta 0 imprimiendo cada carácter con `%c`. Empezar en `n` imprimiría primero el `''\0''`. El arreglo mide 101 para que quepan 100 letras más el terminador.'
+
+  - id: prog-05-014
+    tipo: depurar
+    dificultad: 3
+    conceptos: [cadenas-c, recorrido-busqueda]
+    lenguaje: c
+    enunciado: 'Este programa lee una palabra y una letra, y debería contar cuántas veces aparece la letra en la palabra. Con `banana a` acierta (3), pero con `ana a` dice 1 en lugar de 2. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      #include <stdio.h>
+
+      int main(void) {
+          char palabra[101];
+          char letra;
+          int cuenta = 0;
+          scanf("%100s %c", palabra, &letra);
+          for (int i = 1; palabra[i] != '\0'; i++) {
+              if (palabra[i] == letra) {
+                  cuenta++;
+              }
+          }
+          printf("%d\n", cuenta);
+          return 0;
+      }
+    linea_bug: 8
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          char palabra[101];
+          char letra;
+          int cuenta = 0;
+          scanf("%100s %c", palabra, &letra);
+          for (int i = 0; palabra[i] != '\0'; i++) {
+              if (palabra[i] == letra) {
+                  cuenta++;
+              }
+          }
+          printf("%d\n", cuenta);
+          return 0;
+      }
+    tests:
+      - { entrada: "banana a\n", salida: "3\n" }
+      - { entrada: "ana a\n", salida: "2\n" }
+      - { entrada: "oso o\n", salida: "2\n", oculto: true }
+      - { entrada: "x y\n", salida: "0\n", oculto: true }
+    pistas: ["¿Qué letra de la palabra nunca se revisa?"]
+    explicacion: 'El recorrido empieza en `i = 1` y se salta el primer carácter, que está en el índice 0. Con "banana" no se nota porque empieza con "b", pero con "ana" se pierde una "a". La condición `palabra[i] != ''\0''` sí está bien: detiene el ciclo al final del texto.'
+
+  - id: prog-05-015
+    tipo: codigo
+    dificultad: 3
+    conceptos: [matrices, arreglos-c]
+    lenguaje: c
+    enunciado: 'El programa ya lee `n` (1 ≤ n ≤ 10) y una matriz de n × n. Complétalo para que imprima la suma de la diagonal principal (de arriba a la izquierda hacia abajo a la derecha) y la de la diagonal secundaria (de arriba a la derecha hacia abajo a la izquierda), separadas por un espacio.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          int m[10][10];
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              for (int j = 0; j < n; j++) {
+                  scanf("%d", &m[i][j]);
+              }
+          }
+          /* suma las dos diagonales */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          int m[10][10];
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              for (int j = 0; j < n; j++) {
+                  scanf("%d", &m[i][j]);
+              }
+          }
+          int principal = 0;
+          int secundaria = 0;
+          for (int i = 0; i < n; i++) {
+              principal += m[i][i];
+              secundaria += m[i][n - 1 - i];
+          }
+          printf("%d %d\n", principal, secundaria);
+          return 0;
+      }
+    tests:
+      - { entrada: "3\n1 2 3\n4 5 6\n7 8 9\n", salida: "15 15\n" }
+      - { entrada: "2\n1 2\n3 4\n", salida: "5 5\n" }
+      - { entrada: "3\n2 0 1\n0 3 0\n4 0 5\n", salida: "10 8\n" }
+      - { entrada: "1\n7\n", salida: "7 7\n", oculto: true }
+      - { entrada: "4\n1 0 0 2\n0 1 2 0\n0 2 1 0\n2 0 0 1\n", salida: "4 8\n", oculto: true }
+    pistas: ["En la diagonal principal el renglón y la columna son iguales: `m[i][i]`.", "En la secundaria, cuando el renglón es `i` la columna es `n - 1 - i`."]
+    explicacion: 'Basta un solo ciclo: en el renglón `i`, la diagonal principal está en la columna `i` y la secundaria en la columna `n - 1 - i`. Con n = 1 las dos diagonales son el mismo elemento.'
+
+  - id: prog-05-016
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [cadenas-c, arreglos-c, cadenas]
+    enunciado: 'Compara una cadena de Python con una cadena de C. Explica cómo sabe cada lenguaje dónde termina el texto, qué pasa si te sales de los índices válidos y por qué en C no puedes copiar ni comparar cadenas con `=` y `==`.'
+    rubrica:
+      - "Explica que en C la cadena es un arreglo de `char` terminado en `'\\0'` y que el terminador ocupa un lugar."
+      - "Dice que Python guarda la longitud (`len`) y lanza `IndexError` fuera de rango, mientras que C no revisa los límites."
+      - "Explica que `==` compara direcciones y que se usan `strcpy` y `strcmp`."
+      - "Menciona que las cadenas de Python son inmutables."
+    respuesta_modelo: 'En Python una cadena es un objeto que conoce su longitud (`len(s)`) y es inmutable: para cambiarla se crea otra. Si pides un índice fuera de rango, lanza `IndexError`. En C una cadena es un arreglo de `char` y el fin del texto se marca con `''\0''`, que ocupa un byte extra; funciones como `strlen` y `printf` avanzan hasta encontrarlo. C no revisa límites: leer fuera del arreglo da comportamiento indefinido. El nombre de un arreglo representa su dirección, por eso `a == b` compara direcciones y `a = b` no compila con arreglos; se usa `strcpy(destino, origen)` para copiar y `strcmp(a, b) == 0` para comparar.'
+    explicacion: 'Si te faltó el terminador `''\0''` o la diferencia en la revisión de límites, repasa las secciones "Arreglos en C" y "Cadenas en C".'
+    tarjeta: false
+
+  - id: prog-05-017
+    tipo: predecir_salida
+    dificultad: 4
+    conceptos: [matrices, listas-python]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa?'
+    codigo: |
+      m = [[0] * 3] * 3
+      m[0][0] = 7
+      print(m)
+    respuesta: "[[7, 0, 0], [7, 0, 0], [7, 0, 0]]"
+    pistas: ["`[[0] * 3] * 3` repite tres veces la referencia a una lista. ¿Cuántas listas interiores distintas hay?"]
+    explicacion: '`[0] * 3` crea una sola lista `[0, 0, 0]`, y `* 3` pone tres referencias a esa misma lista. Cambiar `m[0][0]` cambia la única lista interior, que se ve en los tres renglones. Para tres renglones independientes, crea cada uno por separado (por ejemplo, con un ciclo que haga `m.append([0] * 3)`).'
+
+  - id: prog-05-018
+    tipo: codigo
+    dificultad: 4
+    conceptos: [matrices, listas-python]
+    lenguaje: python
+    enunciado: 'Escribe `transpuesta(m)` que regrese una matriz **nueva** cuyos renglones sean las columnas de `m`. La matriz `m` tiene al menos un renglón y todos sus renglones miden lo mismo, pero no tiene que ser cuadrada: si `m` es de 2 × 3, el resultado es de 3 × 2.'
+    plantilla: |
+      def transpuesta(m):
+          pass
+    solucion: |
+      def transpuesta(m):
+          renglones = len(m)
+          columnas = len(m[0])
+          t = []
+          for j in range(columnas):
+              nuevo = []
+              for i in range(renglones):
+                  nuevo.append(m[i][j])
+              t.append(nuevo)
+          return t
+    tests:
+      - { expr: "transpuesta([[1, 2, 3], [4, 5, 6]])", esperado: [[1, 4], [2, 5], [3, 6]] }
+      - { expr: "transpuesta([[1, 2], [3, 4]])", esperado: [[1, 3], [2, 4]] }
+      - { expr: "transpuesta([[7]])", esperado: [[7]], oculto: true }
+      - { expr: "transpuesta([[1, 2, 3]])", esperado: [[1], [2], [3]], oculto: true }
+    pistas: ["El elemento del renglón `i`, columna `j` de `m` va al renglón `j`, columna `i` del resultado.", "El ciclo de afuera recorre las columnas de `m`: cada una se vuelve un renglón nuevo."]
+    explicacion: 'La transpuesta tiene tantos renglones como columnas tiene `m`. Para cada columna `j` se arma un renglón nuevo con `m[0][j], m[1][j], ...`. Crear cada renglón con su propio `nuevo = []` evita compartir listas, y `m` no se modifica.'
+
+  - id: prog-05-019
+    tipo: codigo
+    dificultad: 4
+    conceptos: [cadenas, recorrido-busqueda]
+    lenguaje: python
+    enunciado: 'Escribe `comprime(s)` que resuma las rachas de caracteres iguales seguidos: cada racha se escribe como el carácter y cuántas veces se repite. Por ejemplo, `comprime("aaabcc")` regresa `"a3b1c2"` y `comprime("abca")` regresa `"a1b1c1a1"`. La cadena vacía se comprime a la cadena vacía.'
+    plantilla: |
+      def comprime(s):
+          pass
+    solucion: |
+      def comprime(s):
+          if s == "":
+              return ""
+          resultado = ""
+          actual = s[0]
+          cuenta = 1
+          for c in s[1:]:
+              if c == actual:
+                  cuenta += 1
+              else:
+                  resultado += actual + str(cuenta)
+                  actual = c
+                  cuenta = 1
+          resultado += actual + str(cuenta)
+          return resultado
+    tests:
+      - { expr: "comprime('aaabcc')", esperado: "a3b1c2" }
+      - { expr: "comprime('x')", esperado: "x1" }
+      - { expr: "comprime('abca')", esperado: "a1b1c1a1" }
+      - { expr: "comprime('')", esperado: "", oculto: true }
+      - { expr: "comprime('zzzzzzzzzzzz')", esperado: "z12", oculto: true }
+    pistas: ["Lleva dos variables: el carácter de la racha actual y cuántas veces va.", "Cuando el carácter cambia, escribe la racha que terminó. No olvides escribir la última al salir del ciclo."]
+    explicacion: 'El recorrido compara cada carácter con el de la racha actual: si es igual, suma 1; si cambia, agrega al resultado la racha terminada y empieza otra. La última racha nunca "cambia", por eso se agrega después del ciclo (el error más común es olvidarla). La cuenta puede tener varios dígitos, como en `z12`.'
+
+  - id: prog-05-020
+    tipo: codigo
+    dificultad: 5
+    conceptos: [cadenas-c, arreglos-c, recorrido-busqueda]
+    lenguaje: c
+    enunciado: 'Lee dos palabras en minúsculas (solo letras de la `a` a la `z`, máximo 100 cada una) e imprime `si` si una es anagrama de la otra (las mismas letras, el mismo número de veces, en cualquier orden) o `no` si no lo es. Usa un arreglo de 26 contadores, uno por letra.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          char a[101], b[101];
+          scanf("%100s %100s", a, b);
+          /* compara las letras de a y b */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          char a[101], b[101];
+          int cuenta[26] = {0};
+          scanf("%100s %100s", a, b);
+          for (int i = 0; a[i] != '\0'; i++) {
+              cuenta[a[i] - 'a']++;
+          }
+          for (int i = 0; b[i] != '\0'; i++) {
+              cuenta[b[i] - 'a']--;
+          }
+          for (int k = 0; k < 26; k++) {
+              if (cuenta[k] != 0) {
+                  printf("no\n");
+                  return 0;
+              }
+          }
+          printf("si\n");
+          return 0;
+      }
+    tests:
+      - { entrada: "roma amor\n", salida: "si\n" }
+      - { entrada: "hola halo\n", salida: "si\n" }
+      - { entrada: "abc abd\n", salida: "no\n" }
+      - { entrada: "aab abb\n", salida: "no\n", oculto: true }
+      - { entrada: "a aa\n", salida: "no\n", oculto: true }
+      - { entrada: "listen silent\n", salida: "si\n", oculto: true }
+    pistas: ["`letra - 'a'` convierte las letras de `'a'` a `'z'` en un índice de 0 a 25.","Suma 1 por cada letra de la primera palabra y resta 1 por cada letra de la segunda. ¿Cómo deben quedar los 26 contadores?"]
+    explicacion: 'Con `cuenta[letra - ''a'']` cada letra tiene su casilla. La primera palabra suma y la segunda resta: si son anagramas, todo queda en 0. Basta un contador distinto de 0 para responder `no`. Comparar solo las longitudes o solo qué letras aparecen falla con casos como `aab` contra `abb`.'

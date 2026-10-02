@@ -1,0 +1,643 @@
+unidad: programacion/07-estructuras-y-diccionarios
+ejercicios:
+  - id: prog-07-001
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [structs-c]
+    enunciado: |
+      Con esta declaración, ¿cómo lees el campo `y` de la variable `p`?
+
+      ```c
+      struct Punto {
+          int x;
+          int y;
+      };
+      struct Punto p = {3, 8};
+      ```
+    opciones: ["`p.y`", "`p->y`", "`p[y]`", "`Punto.y`"]
+    correcta: 0
+    pistas: ["`p` es una variable de tipo struct, no un apuntador."]
+    explicacion: 'Con una variable de tipo struct se usa el punto: `p.y` vale 8. La flecha `->` es para cuando tienes un **apuntador** a la struct, `p[y]` es sintaxis de arreglos y `Punto.y` usa el nombre del tipo en lugar del de la variable.'
+
+  - id: prog-07-002
+    tipo: predecir_salida
+    dificultad: 1
+    conceptos: [diccionarios]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Escribe la salida exacta.'
+    codigo: |
+      edades = {"Ana": 19, "Luis": 21}
+      edades["Ana"] = 20
+      edades["Sofía"] = 18
+      print(len(edades), edades["Ana"])
+    respuesta: "3 20"
+    pistas: ["Asignar a una clave que ya existe, ¿crea otra o reemplaza el valor?"]
+    explicacion: 'La segunda línea **reemplaza** el valor de la clave `"Ana"` (las claves no se repiten) y la tercera agrega una clave nueva. Quedan 3 claves y `edades["Ana"]` vale 20.'
+
+  - id: prog-07-003
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [tuplas-conjuntos]
+    enunciado: '¿Cuál de estas colecciones de Python **no** se puede modificar después de crearla?'
+    opciones:
+      - "Una tupla, como `(3, 4)`"
+      - "Una lista, como `[3, 4]`"
+      - 'Un diccionario, como `{"x": 3}`'
+      - "Un conjunto, como `{3, 4}`"
+    correcta: 0
+    explicacion: 'Las tuplas son inmutables: `t[0] = 5` lanza `TypeError`. Listas, diccionarios y conjuntos sí se modifican (`append`, asignar una clave, `add`). Por eso una tupla puede ser clave de un diccionario y una lista no.'
+
+  - id: prog-07-004
+    tipo: codigo
+    dificultad: 2
+    conceptos: [diccionarios]
+    lenguaje: python
+    enunciado: 'Escribe `contar_palabras(texto)` que regrese un diccionario con cada palabra de `texto` como clave y el número de veces que aparece como valor. Las palabras ya vienen en minúsculas y separadas por uno o más espacios.'
+    plantilla: |
+      def contar_palabras(texto):
+          conteo = {}
+          pass
+    solucion: |
+      def contar_palabras(texto):
+          conteo = {}
+          for palabra in texto.split():
+              conteo[palabra] = conteo.get(palabra, 0) + 1
+          return conteo
+    tests:
+      - { expr: 'contar_palabras("el gato y el perro")', esperado: { "el": 2, "gato": 1, "y": 1, "perro": 1 } }
+      - { expr: 'contar_palabras("hola")', esperado: { "hola": 1 } }
+      - { expr: 'contar_palabras("")', esperado: {}, oculto: true }
+      - { expr: 'contar_palabras("a  b a")', esperado: { "a": 2, "b": 1 }, oculto: true }
+    pistas: ["`texto.split()` (sin argumentos) te da la lista de palabras y se salta los espacios repetidos.", "`conteo.get(palabra, 0)` regresa 0 si la palabra aún no está."]
+    explicacion: 'Se recorre `texto.split()` y por cada palabra se suma 1 a su cuenta: `conteo[palabra] = conteo.get(palabra, 0) + 1`. Con `split(" ")` el caso `"a  b a"` fallaría, porque el doble espacio produce una palabra vacía `""`. Con texto vacío no hay palabras y se regresa `{}`.'
+
+  - id: prog-07-005
+    tipo: codigo
+    dificultad: 2
+    conceptos: [structs-c]
+    lenguaje: c
+    enunciado: 'Lee dos puntos con coordenadas enteras (`x1 y1 x2 y2`), guárdalos en dos variables `struct Punto` e imprime su distancia Manhattan, $|x_1-x_2|+|y_1-y_2|$, calculada con la función `int manhattan(struct Punto a, struct Punto b)`.'
+    plantilla: |
+      #include <stdio.h>
+      #include <stdlib.h>
+
+      struct Punto {
+          int x;
+          int y;
+      };
+
+      int manhattan(struct Punto a, struct Punto b) {
+          /* tu código aquí */
+          return 0;
+      }
+
+      int main(void) {
+          struct Punto p, q;
+          /* lee los cuatro enteros e imprime la distancia */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+      #include <stdlib.h>
+
+      struct Punto {
+          int x;
+          int y;
+      };
+
+      int manhattan(struct Punto a, struct Punto b) {
+          return abs(a.x - b.x) + abs(a.y - b.y);
+      }
+
+      int main(void) {
+          struct Punto p, q;
+          scanf("%d %d %d %d", &p.x, &p.y, &q.x, &q.y);
+          printf("%d\n", manhattan(p, q));
+          return 0;
+      }
+    tests:
+      - { entrada: "1 2 4 6\n", salida: "7\n" }
+      - { entrada: "0 0 0 0\n", salida: "0\n" }
+      - { entrada: "-3 5 2 -1\n", salida: "11\n", oculto: true }
+    pistas: ["`scanf` puede guardar directo en un campo: `&p.x` es la dirección del campo `x` de `p`.", "`abs` (de `stdlib.h`) da el valor absoluto de un entero."]
+    explicacion: 'Cada punto es una `struct Punto`; `scanf("%d %d %d %d", &p.x, &p.y, &q.x, &q.y)` llena los campos (el `&` se aplica al campo completo `p.x`). La función recibe las dos structs y regresa `abs(a.x - b.x) + abs(a.y - b.y)`. Con coordenadas negativas, el valor absoluto evita que las diferencias se resten entre sí: de (-3, 5) a (2, -1) hay 5 + 6 = 11.'
+
+  - id: prog-07-006
+    tipo: completar
+    dificultad: 2
+    conceptos: [structs-y-apuntadores]
+    enunciado: 'Completa con el operador que falta. `p` es un apuntador a una `struct Alumno` que tiene el campo `promedio`.'
+    texto: 'Para leer el campo a través del apuntador se escribe `p___promedio`, que equivale a `(___p).promedio`.'
+    respuestas: ["->", "*"]
+    explicacion: '`p->promedio` es la abreviatura de `(*p).promedio`: primero se desreferencia el apuntador (se llega a la struct) y luego se toma el campo. Los paréntesis hacen falta porque el punto se aplica antes que el `*`.'
+
+  - id: prog-07-007
+    tipo: predecir_salida
+    dificultad: 2
+    conceptos: [tuplas-conjuntos]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son dos líneas.'
+    codigo: |
+      a = {1, 2, 3, 4}
+      b = {3, 4, 5}
+      print(sorted(a & b), sorted(a - b))
+      punto = (2, 5)
+      x, y = punto
+      print(x * 10 + y)
+    respuesta: "[3, 4] [1, 2]\n25"
+    pistas: ["`&` es la intersección y `-` la diferencia; `sorted` regresa una lista.", "`x, y = punto` desempaca la tupla."]
+    explicacion: '`a & b` son los elementos que están en ambos: `{3, 4}`. `a - b` son los de `a` que no están en `b`: `{1, 2}`. `sorted` los regresa como listas ordenadas. Después, `x, y = punto` deja `x = 2` y `y = 5`, así que se imprime 25.'
+
+  - id: prog-07-008
+    tipo: ordenar
+    dificultad: 2
+    conceptos: [structs-c]
+    enunciado: 'Ordena los pasos para usar una `struct` en un programa de C.'
+    elementos:
+      - "Declarar el tipo: `struct Punto { int x; int y; };`"
+      - "Declarar una variable de ese tipo: `struct Punto p;`"
+      - "Darle valor a sus campos: `p.x = 3; p.y = 4;`"
+      - 'Usar los campos: `printf("%d", p.x + p.y);`'
+    explicacion: 'Primero se define el tipo (qué campos tiene); sin esa declaración el compilador no sabe qué es `struct Punto`. Después se crea una variable de ese tipo, se llenan sus campos y al final se usan.'
+
+  - id: prog-07-009
+    tipo: rastreo_memoria
+    dificultad: 3
+    conceptos: [structs-c, structs-y-apuntadores]
+    lenguaje: c
+    enunciado: 'Sigue el programa línea por línea y contesta lo que se pregunta. Fíjate en qué variables comparten datos y cuáles son copias.'
+    codigo: |
+      #include <stdio.h>
+
+      struct Punto {
+          int x;
+          int y;
+      };
+
+      int main(void) {
+          struct Punto a = {1, 2};
+          struct Punto b = a;
+          struct Punto *p = &a;
+          b.x = 7;
+          p->y = 9;
+          printf("%d %d %d %d\n", a.x, a.y, b.x, b.y);
+          return 0;
+      }
+    pasos:
+      - linea: 9
+        pila:
+          - { nombre: "a.x", valor: "1", expr: "a.x", formato: "%d" }
+          - { nombre: "a.y", valor: "2", expr: "a.y", formato: "%d" }
+      - linea: 10
+        nota: 'Asignar una struct copia **todos** sus campos: `b` es otra variable con sus propios valores.'
+        pila:
+          - { nombre: "a.x", valor: "1" }
+          - { nombre: "a.y", valor: "2" }
+          - { nombre: "b.x", valor: "1", expr: "b.x", formato: "%d" }
+          - { nombre: "b.y", valor: "2" }
+        pregunta: '¿Cuánto vale `b.y`?'
+        respuesta: "2"
+        expr: "b.y"
+        formato: "%d"
+      - linea: 11
+        nota: '`p` guarda la dirección de `a`: la flecha indica a quién apunta.'
+        pila:
+          - { nombre: "a.x", valor: "1" }
+          - { nombre: "a.y", valor: "2" }
+          - { nombre: "b.x", valor: "1" }
+          - { nombre: "b.y", valor: "2" }
+          - { nombre: "p", valor: "→ a" }
+      - linea: 12
+        pila:
+          - { nombre: "a.x", valor: "1" }
+          - { nombre: "a.y", valor: "2" }
+          - { nombre: "b.x", valor: "7", expr: "b.x", formato: "%d" }
+          - { nombre: "b.y", valor: "2" }
+          - { nombre: "p", valor: "→ a" }
+        pregunta: 'Acabas de cambiar `b.x`. ¿Cuánto vale `a.x`?'
+        respuesta: "1"
+        expr: "a.x"
+        formato: "%d"
+      - linea: 13
+        pila:
+          - { nombre: "a.x", valor: "1" }
+          - { nombre: "a.y", valor: "9" }
+          - { nombre: "b.x", valor: "7" }
+          - { nombre: "b.y", valor: "2", expr: "b.y", formato: "%d" }
+          - { nombre: "p", valor: "→ a" }
+        pregunta: '¿Cuánto vale `a.y` después de `p->y = 9;`?'
+        respuesta: "9"
+        expr: "a.y"
+        formato: "%d"
+    explicacion: '`b = a` hace una copia: cambiar `b.x` no toca a `a`. En cambio `p` apunta a `a`, así que `p->y = 9` escribe en `a.y` y `b.y` sigue en 2. El programa imprime `1 9 7 2`.'
+
+  - id: prog-07-010
+    tipo: codigo
+    dificultad: 3
+    conceptos: [tuplas-conjuntos]
+    lenguaje: python
+    enunciado: 'Escribe `comunes(a, b)` que reciba dos listas y regrese una lista **ordenada y sin repetidos** con los elementos que aparecen en las dos.'
+    plantilla: |
+      def comunes(a, b):
+          pass
+    solucion: |
+      def comunes(a, b):
+          return sorted(set(a) & set(b))
+    tests:
+      - { expr: "comunes([1, 2, 2, 3], [2, 3, 4])", esperado: [2, 3] }
+      - { expr: 'comunes(["eva", "ana", "luis"], ["luis", "ana"])', esperado: ["ana", "luis"] }
+      - { expr: "comunes([], [1, 2])", esperado: [], oculto: true }
+      - { expr: "comunes([5, 5, 5], [5])", esperado: [5], oculto: true }
+    pistas: ["Convierte cada lista en conjunto para quitar repetidos.", "La intersección de conjuntos es `&`, y `sorted` regresa una lista ordenada."]
+    explicacion: '`set(a) & set(b)` deja los valores que están en ambas listas, sin repetidos. Como un conjunto no tiene orden, `sorted(...)` lo convierte en lista ordenada. Con dos ciclos anidados también se puede, pero hay que cuidar no agregar repetidos (el caso `[5, 5, 5]`).'
+
+  - id: prog-07-011
+    tipo: depurar
+    dificultad: 3
+    conceptos: [diccionarios]
+    lenguaje: python
+    enunciado: '`contar_votos(votos)` debería regresar un diccionario con cuántos votos tiene cada opción, pero los resultados salen mal. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      def contar_votos(votos):
+          conteo = {}
+          for v in votos:
+              if v in conteo:
+                  conteo[v] = 1
+              else:
+                  conteo[v] = 1
+          return conteo
+    linea_bug: 5
+    solucion: |
+      def contar_votos(votos):
+          conteo = {}
+          for v in votos:
+              if v in conteo:
+                  conteo[v] += 1
+              else:
+                  conteo[v] = 1
+          return conteo
+    tests:
+      - { expr: 'contar_votos(["A", "B", "A"])', esperado: { "A": 2, "B": 1 } }
+      - { expr: 'contar_votos(["B"])', esperado: { "B": 1 } }
+      - { expr: 'contar_votos(["C", "C", "C"])', esperado: { "C": 3 }, oculto: true }
+      - { expr: "contar_votos([])", esperado: {}, oculto: true }
+    pistas: ["Prueba a mano con `[\"A\", \"A\"]`: ¿cuánto vale `conteo[\"A\"]` tras el segundo voto?"]
+    explicacion: 'Cuando la opción ya está en el diccionario hay que **sumar** uno a su cuenta (`conteo[v] += 1`), no volver a ponerla en 1. Con el error, todas las opciones terminan con 1 voto.'
+
+  - id: prog-07-012
+    tipo: parsons
+    dificultad: 3
+    conceptos: [modelado-datos, diccionarios]
+    lenguaje: python
+    enunciado: 'Cada alumno es un diccionario como `{"nombre": "Ana", "calif": 9}`. Ordena las líneas (con su sangría) para que `promedio_grupo(alumnos)` regrese el promedio de las calificaciones de una lista no vacía de alumnos. Sobran líneas.'
+    lineas:
+      - "def promedio_grupo(alumnos):"
+      - "    total = 0"
+      - "    for a in alumnos:"
+      - '        total += a["calif"]'
+      - "    return total / len(alumnos)"
+    distractores:
+      - '        total += alumnos["calif"]'
+      - "        total += a.calif"
+    tests:
+      - { expr: 'promedio_grupo([{"nombre": "Ana", "calif": 8}, {"nombre": "Leo", "calif": 10}])', esperado: 9 }
+      - { expr: 'promedio_grupo([{"nombre": "Eva", "calif": 7}])', esperado: 7 }
+    explicacion: 'Se inicia el acumulador en 0, se recorre la lista y de cada registro se toma su calificación con `a["calif"]`. `alumnos["calif"]` falla porque `alumnos` es una lista, no un diccionario, y `a.calif` es la sintaxis de C, no la de un diccionario de Python. El `return` va fuera del ciclo.'
+
+  - id: prog-07-013
+    tipo: codigo
+    dificultad: 3
+    conceptos: [arreglos-de-structs]
+    lenguaje: c
+    enunciado: |
+      Lee un entero `n` (1 ≤ n ≤ 50) y luego `n` productos, uno por línea, con su nombre (una palabra de menos de 32 letras), su precio y la cantidad en inventario. Guárdalos en un arreglo de `struct Producto` e imprime el nombre del producto con mayor valor en inventario (precio × cantidad), un espacio y ese valor con dos decimales. Si hay empate, gana el que aparece primero.
+
+      Ejemplo: con `pan 12.50 4` y `leche 28.00 3` se imprime `leche 84.00`.
+    plantilla: |
+      #include <stdio.h>
+
+      struct Producto {
+          char nombre[32];
+          double precio;
+          int cantidad;
+      };
+
+      int main(void) {
+          struct Producto inv[50];
+          int n;
+          scanf("%d", &n);
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      struct Producto {
+          char nombre[32];
+          double precio;
+          int cantidad;
+      };
+
+      int main(void) {
+          struct Producto inv[50];
+          int n;
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%31s %lf %d", inv[i].nombre, &inv[i].precio, &inv[i].cantidad);
+          }
+          int mejor = 0;
+          for (int i = 1; i < n; i++) {
+              if (inv[i].precio * inv[i].cantidad > inv[mejor].precio * inv[mejor].cantidad) {
+                  mejor = i;
+              }
+          }
+          printf("%s %.2f\n", inv[mejor].nombre, inv[mejor].precio * inv[mejor].cantidad);
+          return 0;
+      }
+    tests:
+      - { entrada: "3\nlapiz 5.50 10\ncuaderno 32.00 3\ngoma 4.25 20\n", salida: "cuaderno 96.00\n" }
+      - { entrada: "1\ntaza 80.00 1\n", salida: "taza 80.00\n" }
+      - { entrada: "2\nA 10.00 2\nB 5.00 4\n", salida: "A 20.00\n", oculto: true }
+      - { entrada: "3\nx 0.50 0\ny 1.25 3\nz 3.75 1\n", salida: "y 3.75\n", oculto: true }
+    pistas: ["`inv[i].nombre` ya es un arreglo de `char`: en `scanf` va sin `&`. Los campos numéricos sí lo llevan: `&inv[i].precio`.", "Guarda la **posición** del mejor y compara con `>` para que el primero gane los empates."]
+    explicacion: 'Un ciclo llena el arreglo campo por campo (`%31s` evita escribir más de 31 letras más el `\0`). Otro ciclo guarda en `mejor` la posición del producto con mayor `precio * cantidad`; usar `>` (y no `>=`) hace que en un empate se quede el primero. Al final se imprime ese registro.'
+
+  - id: prog-07-014
+    tipo: opcion_multiple
+    dificultad: 3
+    conceptos: [structs-c, structs-y-apuntadores]
+    enunciado: |
+      ¿Qué imprime este programa?
+
+      ```c
+      #include <stdio.h>
+
+      struct Cuenta {
+          int numero;
+          double saldo;
+      };
+
+      void depositar(struct Cuenta c, double monto) {
+          c.saldo += monto;
+      }
+
+      int main(void) {
+          struct Cuenta mia = {7, 100.0};
+          depositar(mia, 50.0);
+          printf("%.1f\n", mia.saldo);
+          return 0;
+      }
+      ```
+    opciones: ["`100.0`", "`150.0`", "`50.0`", "Nada: no compila porque una struct no se puede pasar a una función"]
+    correcta: 0
+    pistas: ["¿Qué recibe `depositar`: la struct original o una copia?"]
+    explicacion: 'Las structs se pasan **por valor**: `depositar` suma 50 a una copia y la original sigue en 100.0. Para modificarla habría que declarar `void depositar(struct Cuenta *c, double monto)`, escribir `c->saldo += monto;` y llamar `depositar(&mia, 50.0);`.'
+
+  - id: prog-07-015
+    tipo: predecir_salida
+    dificultad: 4
+    conceptos: [diccionarios, modelado-datos]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son dos líneas.'
+    codigo: |
+      a = {"nombre": "Ana", "califs": [8, 9]}
+      b = a
+      c = a.copy()
+      b["nombre"] = "Eva"
+      c["califs"].append(10)
+      print(a["nombre"], len(a["califs"]))
+      print(c["nombre"])
+    respuesta: "Eva 3\nAna"
+    pistas: ["`b = a` no copia nada: es otro nombre para el mismo diccionario.", "`copy()` crea un diccionario nuevo, pero sus valores (como la lista) siguen siendo los mismos objetos."]
+    explicacion: '`b` es el mismo diccionario que `a`, así que `b["nombre"] = "Eva"` cambia `a`. `c` es una copia **superficial**: es otro diccionario (su nombre sigue siendo "Ana"), pero la lista de calificaciones es la misma que la de `a`, así que el `append` se ve en `a`, que queda con 3 calificaciones.'
+
+  - id: prog-07-016
+    tipo: codigo
+    dificultad: 4
+    conceptos: [arreglos-de-structs, structs-y-apuntadores]
+    lenguaje: c
+    enunciado: |
+      Supón un banco pequeño que guarda sus cuentas en un arreglo de `struct Cuenta`. Lee `n` (1 ≤ n ≤ 20) y `n` cuentas (`numero saldo`). Luego lee `m` y `m` operaciones de la forma `numero tipo monto`, donde `tipo` es `D` (depósito) o `R` (retiro). Todas las cuentas mencionadas existen.
+
+      - Escribe `struct Cuenta *buscar(struct Cuenta cs[], int n, int numero)`, que regrese un apuntador a la cuenta con ese número, y úsala para aplicar cada operación.
+      - Un retiro solo se hace si el saldo alcanza; si no, se rechaza y el saldo no cambia.
+
+      Al final imprime cada cuenta en el orden original (`numero saldo`, saldo con dos decimales) y una última línea `rechazados: k`.
+    plantilla: |
+      #include <stdio.h>
+
+      struct Cuenta {
+          int numero;
+          double saldo;
+      };
+
+      struct Cuenta *buscar(struct Cuenta cs[], int n, int numero) {
+          /* tu código aquí */
+          return NULL;
+      }
+
+      int main(void) {
+          struct Cuenta cs[20];
+          int n, m;
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      struct Cuenta {
+          int numero;
+          double saldo;
+      };
+
+      struct Cuenta *buscar(struct Cuenta cs[], int n, int numero) {
+          for (int i = 0; i < n; i++) {
+              if (cs[i].numero == numero) {
+                  return &cs[i];
+              }
+          }
+          return NULL;
+      }
+
+      int main(void) {
+          struct Cuenta cs[20];
+          int n, m, rechazados = 0;
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d %lf", &cs[i].numero, &cs[i].saldo);
+          }
+          scanf("%d", &m);
+          for (int k = 0; k < m; k++) {
+              int numero;
+              char tipo;
+              double monto;
+              scanf("%d %c %lf", &numero, &tipo, &monto);
+              struct Cuenta *c = buscar(cs, n, numero);
+              if (tipo == 'D') {
+                  c->saldo += monto;
+              } else if (c->saldo >= monto) {
+                  c->saldo -= monto;
+              } else {
+                  rechazados++;
+              }
+          }
+          for (int i = 0; i < n; i++) {
+              printf("%d %.2f\n", cs[i].numero, cs[i].saldo);
+          }
+          printf("rechazados: %d\n", rechazados);
+          return 0;
+      }
+    tests:
+      - { entrada: "2\n1001 500.00\n1002 80.00\n3\n1001 R 200.00\n1002 R 100.00\n1002 D 20.00\n", salida: "1001 300.00\n1002 100.00\nrechazados: 1\n" }
+      - { entrada: "1\n7 10.50\n0\n", salida: "7 10.50\nrechazados: 0\n" }
+      - { entrada: "2\n1 50.25\n2 0.00\n3\n1 R 50.25\n2 R 0.01\n2 D 5.00\n", salida: "1 0.00\n2 5.00\nrechazados: 1\n", oculto: true }
+      - { entrada: "1\n5 100.00\n2\n5 R 100.00\n5 R 0.50\n", salida: "5 0.00\nrechazados: 1\n", oculto: true }
+    pistas: ["`buscar` recorre el arreglo y regresa `&cs[i]` cuando el número coincide.", "Con el apuntador que regresa `buscar`, cambia el saldo con `c->saldo`: así modificas la cuenta del arreglo, no una copia.", "Para leer el tipo usa `\" %c\"` o `\"%d %c %lf\"`: el espacio antes de `%c` se salta los espacios en blanco."]
+    explicacion: '`buscar` regresa la dirección de la casilla que coincide, así que `c->saldo += monto` cambia la cuenta dentro del arreglo. Un retiro se hace solo si `c->saldo >= monto` (retirar exactamente el saldo sí se permite); si no, se cuenta como rechazado. Si `buscar` regresara la struct por valor, los cambios se perderían.'
+
+  - id: prog-07-017
+    tipo: codigo
+    dificultad: 4
+    conceptos: [modelado-datos, diccionarios]
+    lenguaje: python
+    enunciado: |
+      El inventario de una tienda es un diccionario `producto → cantidad`, y las ventas del día son una lista de tuplas `(producto, cantidad)`. Escribe `actualizar_inventario(stock, ventas)` que regrese un **diccionario nuevo** con las existencias después de las ventas, **sin modificar** `stock`.
+
+      - Si una venta pide más de lo que hay, solo se vende lo que hay (la existencia queda en 0).
+      - Las ventas de productos que no están en `stock` se ignoran.
+    plantilla: |
+      def actualizar_inventario(stock, ventas):
+          pass
+    solucion: |
+      def actualizar_inventario(stock, ventas):
+          nuevo = dict(stock)
+          for producto, cantidad in ventas:
+              if producto in nuevo:
+                  nuevo[producto] = max(0, nuevo[producto] - cantidad)
+          return nuevo
+    tests:
+      - { expr: 'actualizar_inventario({"pan": 10, "leche": 4}, [("pan", 3), ("leche", 1), ("pan", 2)])', esperado: { "pan": 5, "leche": 3 } }
+      - { expr: 'actualizar_inventario({"cafe": 2}, [("cafe", 5)])', esperado: { "cafe": 0 } }
+      - { expr: 'actualizar_inventario({"te": 1}, [("pan", 3)])', esperado: { "te": 1 }, oculto: true }
+      - { expr: '(lambda s: (actualizar_inventario(s, [("pan", 1)]), s)[1])({"pan": 3})', esperado: { "pan": 3 }, oculto: true }
+    pistas: ["`dict(stock)` crea una copia; trabaja sobre ella.", "Desempaca cada venta: `for producto, cantidad in ventas:`.", "`max(0, ...)` evita existencias negativas."]
+    explicacion: 'Primero se copia el diccionario (`dict(stock)` o `stock.copy()`); si trabajaras sobre `stock` directamente, el diccionario de quien llamó a la función también cambiaría (eso revisa la prueba oculta). Después se recorre cada tupla, se ignoran los productos desconocidos y se resta sin bajar de 0.'
+
+  - id: prog-07-018
+    tipo: codigo
+    dificultad: 5
+    conceptos: [arreglos-de-structs, structs-y-apuntadores]
+    lenguaje: c
+    enunciado: |
+      Lee `n` (1 ≤ n ≤ 30) y `n` alumnos, cada uno con su nombre (una palabra de menos de 20 letras) y su calificación (entero de 0 a 100). Imprime la lista ordenada de mayor a menor calificación; si dos tienen la misma, primero el nombre que va antes según `strcmp`. Una línea por alumno: `nombre calificacion`.
+
+      Escribe y usa `void intercambiar(struct Alumno *a, struct Alumno *b)` para mover registros completos.
+    plantilla: |
+      #include <stdio.h>
+      #include <string.h>
+
+      struct Alumno {
+          char nombre[20];
+          int calif;
+      };
+
+      void intercambiar(struct Alumno *a, struct Alumno *b) {
+          /* tu código aquí */
+      }
+
+      int main(void) {
+          struct Alumno g[30];
+          int n;
+          scanf("%d", &n);
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+      #include <string.h>
+
+      struct Alumno {
+          char nombre[20];
+          int calif;
+      };
+
+      void intercambiar(struct Alumno *a, struct Alumno *b) {
+          struct Alumno tmp = *a;
+          *a = *b;
+          *b = tmp;
+      }
+
+      int va_antes(const struct Alumno *a, const struct Alumno *b) {
+          if (a->calif != b->calif) {
+              return a->calif > b->calif;
+          }
+          return strcmp(a->nombre, b->nombre) < 0;
+      }
+
+      int main(void) {
+          struct Alumno g[30];
+          int n;
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%19s %d", g[i].nombre, &g[i].calif);
+          }
+          for (int i = 0; i < n - 1; i++) {
+              for (int j = 0; j < n - 1 - i; j++) {
+                  if (va_antes(&g[j + 1], &g[j])) {
+                      intercambiar(&g[j], &g[j + 1]);
+                  }
+              }
+          }
+          for (int i = 0; i < n; i++) {
+              printf("%s %d\n", g[i].nombre, g[i].calif);
+          }
+          return 0;
+      }
+    tests:
+      - { entrada: "4\nLuis 85\nAna 92\nEva 85\nIker 70\n", salida: "Ana 92\nEva 85\nLuis 85\nIker 70\n" }
+      - { entrada: "1\nSol 100\n", salida: "Sol 100\n" }
+      - { entrada: "3\nbeto 50\nAna 50\nana 50\n", salida: "Ana 50\nana 50\nbeto 50\n", oculto: true }
+      - { entrada: "5\nE 1\nD 2\nC 3\nB 4\nA 5\n", salida: "A 5\nB 4\nC 3\nD 2\nE 1\n", oculto: true }
+    pistas: ["Para intercambiar dos structs basta una struct temporal: `struct Alumno tmp = *a; *a = *b; *b = tmp;`.", "Separa la comparación en una función: primero la calificación (mayor va antes) y, si empatan, `strcmp(a->nombre, b->nombre) < 0`.", "Con el método de la burbuja: compara vecinos e intercambia si el de la derecha debe ir antes."]
+    explicacion: 'Como asignar una struct copia todos sus campos, `intercambiar` puede mover un registro completo con una variable temporal; recibe apuntadores para cambiar las casillas del arreglo y no copias. El criterio de orden compara primero la calificación y, si empatan, usa `strcmp` (que pone las mayúsculas antes que las minúsculas: "Ana" va antes que "ana"). Cualquier método de ordenamiento correcto sirve; aquí se usa la burbuja.'
+
+  - id: prog-07-019
+    tipo: codigo
+    dificultad: 5
+    conceptos: [tuplas-conjuntos, diccionarios, modelado-datos]
+    lenguaje: python
+    enunciado: 'Una red social hipotética se guarda como un diccionario que lleva a cada persona al **conjunto** de sus amigos (la amistad es mutua). Escribe `sugerencias(red, persona)` que regrese una lista ordenada alfabéticamente de los "amigos de amigos" de `persona`: quienes son amigos de alguno de sus amigos, pero no son ya sus amigos ni son ella misma. Si `persona` no está en la red, regresa una lista vacía.'
+    plantilla: |
+      def sugerencias(red, persona):
+          pass
+    solucion: |
+      def sugerencias(red, persona):
+          amigos = red.get(persona, set())
+          candidatos = set()
+          for amigo in amigos:
+              candidatos |= red.get(amigo, set())
+          candidatos -= amigos
+          candidatos.discard(persona)
+          return sorted(candidatos)
+    tests:
+      - { expr: 'sugerencias({"ana": {"beto", "caro"}, "beto": {"ana", "dani"}, "caro": {"ana", "dani", "eva"}, "dani": {"beto", "caro"}, "eva": {"caro"}}, "ana")', esperado: ["dani", "eva"] }
+      - { expr: 'sugerencias({"ana": {"beto", "caro"}, "beto": {"ana", "dani"}, "caro": {"ana", "dani", "eva"}, "dani": {"beto", "caro"}, "eva": {"caro"}}, "eva")', esperado: ["ana", "dani"] }
+      - { expr: 'sugerencias({"ana": {"beto", "caro"}, "beto": {"ana", "dani"}, "caro": {"ana", "dani", "eva"}, "dani": {"beto", "caro"}, "eva": {"caro"}}, "beto")', esperado: ["caro"], oculto: true }
+      - { expr: 'sugerencias({"ana": {"beto"}, "beto": {"ana"}}, "zoe")', esperado: [], oculto: true }
+      - { expr: 'sugerencias({"solo": set()}, "solo")', esperado: [], oculto: true }
+    pistas: ["Junta en un conjunto a los amigos de cada amigo con `|=` (unión).", "Después quita a los amigos directos (`-=`) y a la persona misma (`discard`).", "`red.get(persona, set())` evita el `KeyError` si la persona no existe."]
+    explicacion: 'La unión de los conjuntos de amigos de cada amigo da los candidatos. A esos se les restan los amigos directos y la propia persona (que siempre aparece, porque la amistad es mutua). `sorted` convierte el conjunto en una lista ordenada. Con conjuntos, cada pregunta "¿ya es su amigo?" es inmediata y no hay que preocuparse por repetidos.'
+
+  - id: prog-07-020
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [modelado-datos, structs-c, diccionarios]
+    enunciado: 'Vas a escribir un programa para la biblioteca de una escuela (hipotética) que registra de cada libro su título, autor, año y si está prestado. Explica cómo lo modelarías en C y en Python, cómo encontrarías un libro por su título y qué debe recibir una función que marque un libro como prestado para que el cambio se conserve.'
+    rubrica:
+      - "Propone una `struct Libro` en C con campos de tipo adecuado (título y autor como arreglos de `char`, año entero, prestado como entero 0/1 o `bool`) y un arreglo de libros."
+      - "Propone en Python un diccionario por libro dentro de una lista, o un diccionario de libros cuya clave es el título."
+      - "Explica la búsqueda: en C recorrer el arreglo comparando títulos con `strcmp`; en Python recorrer la lista o acceder directo por la clave."
+      - "Dice que en C la función debe recibir un apuntador (`struct Libro *`) y usar `->`, porque una struct pasada por valor es una copia; y que en Python el diccionario se modifica en su lugar."
+    respuesta_modelo: 'En C definiría `struct Libro { char titulo[80]; char autor[60]; int anio; int prestado; };` y guardaría la colección en un arreglo `struct Libro libros[500]` con un contador `n`. Para buscar recorro el arreglo y comparo con `strcmp(libros[i].titulo, buscado) == 0`. La función para prestar sería `void prestar(struct Libro *l) { l->prestado = 1; }` y la llamo con `prestar(&libros[i])`; si recibiera `struct Libro` por valor, cambiaría una copia y el arreglo quedaría igual. En Python usaría un diccionario por libro, por ejemplo `{"titulo": ..., "autor": ..., "anio": 1998, "prestado": False}`, y para buscar rápido un diccionario `catalogo` cuya clave es el título: `catalogo[titulo]["prestado"] = True` modifica el registro en su lugar.'
+    explicacion: 'Si no mencionaste por qué la función de C necesita un apuntador, repasa la sección "Structs y apuntadores". Si tu modelo en Python era una lista de listas, piensa qué tan fácil es recordar que la posición 2 es el año: los diccionarios ponen nombre a cada campo.'
+    tarjeta: false

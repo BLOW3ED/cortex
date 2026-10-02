@@ -65,6 +65,9 @@ export function BossRunner({
   const [scheduled, setScheduled] = useState<number | null>(null);
   const finishing = useRef(false);
   const boss = unit.boss;
+  // docs/03: cada materia cierra con un jefe final (el de su última unidad).
+  const subjectUnits = catalog.subjects.find((s) => s.id === unit.subjectId)?.units ?? [];
+  const isFinal = subjectUnits.length > 1 && subjectUnits[subjectUnits.length - 1]?.key === unit.key;
   // Sin runner de C (p. ej. sin `pnpm dev`), los ejercicios en C no entran a la pelea.
   const [cReady, setCReady] = useState<boolean | null>(null);
   useEffect(() => {
@@ -204,7 +207,7 @@ export function BossRunner({
     return (
       <section className="rounded-xl border-2 border-border-strong bg-surface p-6">
         <p className="console-label flex items-center gap-2">
-          <Skull aria-hidden className="size-4" /> Jefe de la unidad
+          <Skull aria-hidden className="size-4" /> {isFinal ? "Jefe final de la materia" : "Jefe de la unidad"}
         </p>
         <h2 className="mt-2 text-3xl font-extrabold text-balance">{boss.nombre}</h2>
         <ul className="mt-4 grid gap-1 text-ink-2">

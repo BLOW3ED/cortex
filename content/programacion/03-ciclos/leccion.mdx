@@ -1,0 +1,232 @@
+---
+titulo: "Ciclos: repetir sin copiar y pegar"
+materia: programacion
+unidad: 03-ciclos
+duracion_min: 24
+prerrequisitos: [variables-asignacion, operadores-logicos, if-else]
+conceptos: [ciclo-while, ciclo-for, acumuladores-contadores, break-continue, ciclos-anidados, ciclo-do-while]
+programa_ref: "pendiente"
+---
+
+## El problema
+
+Supón que ahorras \$10 el primer día y cada día guardas el doble que el anterior: \$10, \$20, \$40, \$80… ¿Cuántos días tardas en juntar un millón de pesos? Podrías escribir una línea de código por día, pero ni siquiera sabes cuántas líneas harían falta. Un **ciclo** repite un bloque de código las veces que haga falta, y la computadora lleva la cuenta por ti.
+
+<Predice pregunta="Sin hacer cuentas exactas, ¿cuántos días crees que tardas en juntar un millón de pesos con ese plan: unos 17, unos 100 o unos 1000?" revela="Bastan 17 días: al terminar el día 16 llevas 655,350 pesos y al terminar el 17, 1,310,710. Duplicar crece rapidísimo. Abajo lo calculas con un ciclo while de pocas líneas." />
+
+## Repetir mientras se cumpla: while
+
+<Concepto titulo="Ciclo while">
+Repite un bloque **mientras** una condición sea verdadera. Antes de cada vuelta revisa la condición: si es verdadera, ejecuta el bloque y vuelve a revisar; si es falsa, sigue con lo que está debajo del ciclo. Si la condición es falsa desde el principio, el bloque no se ejecuta ni una vez.
+</Concepto>
+
+Todo `while` necesita tres cosas: una variable con valor inicial, una condición que la revise y algo **dentro** del bloque que la cambie. Sin lo tercero, la condición nunca se vuelve falsa y el ciclo no termina (un *ciclo infinito*).
+
+```python
+total = 0
+dia = 0
+deposito = 10
+while total < 1000000:
+    dia += 1             # dia = dia + 1
+    total += deposito
+    deposito *= 2        # deposito = deposito * 2
+print(dia)               # 17
+```
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    int total = 0, dia = 0, deposito = 10;
+    while (total < 1000000) {
+        dia++;               /* en C, dia++ suma 1 */
+        total += deposito;
+        deposito *= 2;
+    }
+    printf("%d\n", dia);     /* 17 */
+    return 0;
+}
+```
+
+`x += 3` es la forma corta de `x = x + 3` (igual con `-=`, `*=`, `/=`), en los dos lenguajes. `x++` y `x--` existen solo en C.
+
+## Contar y acumular
+
+<Concepto titulo="Acumulador y contador">
+Un **acumulador** es una variable que va juntando un resultado vuelta tras vuelta: una suma, un producto. Un **contador** es un acumulador que suma 1 cada vez que pasa algo. Ambos se inicializan **antes** del ciclo: en 0 si suman o cuentan, en 1 si multiplican.
+</Concepto>
+
+En el ahorro, `total` es un acumulador (junta los depósitos) y `dia` es un contador (cuenta vueltas).
+
+## Recorrer valores conocidos: for
+
+<Concepto titulo="Ciclo for">
+Conviene cuando sabes qué valores vas a recorrer. En Python, `for i in range(a, b)` le da a `i` los valores a, a+1, …, b−1: **el final no se incluye**. En C, `for (inicio; condición; actualización)` junta en una línea las tres partes de un `while`.
+</Concepto>
+
+| En Python | Valores de `i` |
+|---|---|
+| `range(5)` | 0, 1, 2, 3, 4 |
+| `range(2, 6)` | 2, 3, 4, 5 |
+| `range(10, 0, -3)` | 10, 7, 4, 1 |
+
+```python
+suma = 0
+for i in range(1, 6):    # i = 1, 2, 3, 4, 5
+    suma += i
+print(suma)              # 15
+```
+
+```c
+int suma = 0;
+for (int i = 1; i <= 5; i++) {
+    suma += i;
+}
+printf("%d\n", suma);    /* 15 */
+```
+
+El `for` de C es un `while` en una sola línea. Este fragmento hace exactamente lo mismo que el anterior:
+
+```c
+int suma = 0;
+int i = 1;               /* inicio: se ejecuta una sola vez */
+while (i <= 5) {         /* condición: antes de cada vuelta */
+    suma += i;
+    i++;                 /* actualización: al final de cada vuelta */
+}
+```
+
+<Ejemplo titulo="Sumar los dígitos de un número">
+Quieres la suma de los dígitos de `n = 4071`, que debe dar 4 + 0 + 7 + 1 = 12.
+
+1. No sabes de antemano cuántos dígitos tiene `n`, así que usas `while` en lugar de `for`.
+2. `n % 10` da el último dígito (1) y `n // 10` lo quita: 4071 pasa a 407. En C, con enteros, es `n / 10`.
+3. Juntas cada dígito en el acumulador `suma`, que empieza en 0 **antes** del ciclo.
+4. Repites mientras `n > 0`:
+
+| Vuelta | Dígito (`n % 10`) | `suma` | `n` al final de la vuelta |
+|---|---|---|---|
+| 1 | 1 | 1 | 407 |
+| 2 | 7 | 8 | 40 |
+| 3 | 0 | 8 | 4 |
+| 4 | 4 | 12 | 0 |
+
+5. Con `n = 0` la condición es falsa: el ciclo termina y `suma` vale 12.
+
+```python
+def suma_digitos(n):
+    suma = 0
+    while n > 0:
+        suma += n % 10
+        n //= 10
+    return suma
+```
+
+```c
+int n, suma = 0;
+scanf("%d", &n);
+while (n > 0) {
+    suma += n % 10;
+    n /= 10;
+}
+printf("%d\n", suma);
+```
+</Ejemplo>
+
+<Desvanecido titulo="Rastrea un for" pasos={[
+  "Código: `p = 1` y luego `for i in range(1, 5): p *= i`. Antes del ciclo, `p` vale 1.",
+  "Tras la vuelta con `i = 1`, `p` vale 1. Tras la vuelta con `i = 2`, vale 2. Tras la vuelta con `i = 3`, vale ___ .",
+  "La última vuelta es con `i` igual a ___ , porque `range` no incluye el 5.",
+  "Al terminar, `p` vale ___ , que es el factorial de 4."
+]} respuestas={["6", "4", "24"]} />
+
+## Salir antes o saltar una vuelta: break y continue
+
+<Concepto titulo="break y continue">
+`break` termina el ciclo de inmediato y el programa sigue con lo que está después del ciclo. `continue` se salta lo que falta de la vuelta actual y pasa a la siguiente. Funcionan igual en Python y en C, dentro de `for` y de `while`.
+</Concepto>
+
+```python
+for n in range(1, 20):
+    if n % 2 == 0:
+        continue         # los pares no nos interesan: siguiente vuelta
+    if n * n > 50:
+        break            # ya nos pasamos: salimos del ciclo
+    print(n)             # imprime 1, 3, 5 y 7
+```
+
+Un patrón muy común en Python es `while True:` con un `break` adentro: repite "para siempre" hasta que algo dentro del bloque decide salir.
+
+## Al menos una vez: do-while (C)
+
+<Concepto titulo="Ciclo do-while">
+En C, el ciclo `do ... while (condición);` ejecuta el bloque **primero** y revisa la condición **al final**. Por eso el bloque corre al menos una vez, aunque la condición sea falsa desde el inicio. Es ideal para pedir un dato hasta que sea válido. Python no lo tiene; se imita con `while True:` y un `break`.
+</Concepto>
+
+```c
+int n;
+do {
+    printf("Escribe un número del 1 al 10: ");
+    scanf("%d", &n);
+} while (n < 1 || n > 10);   /* repite mientras el dato sea inválido */
+```
+
+```python
+while True:
+    n = int(input("Escribe un número del 1 al 10: "))
+    if 1 <= n <= 10:
+        break
+```
+
+Fíjate en el `;` después de `while (...)`: en el `do-while` es obligatorio.
+
+## Ciclos dentro de ciclos
+
+<Concepto titulo="Ciclos anidados">
+Un ciclo dentro de otro. Por **cada** vuelta del ciclo de afuera, el de adentro hace **todas** sus vueltas. Si el de afuera da 3 vueltas y el de adentro 4, el cuerpo interior se ejecuta 3 × 4 = 12 veces.
+</Concepto>
+
+```python
+for fila in range(1, 4):
+    for col in range(1, 4):
+        print(fila * col, end=" ")   # end=" ": termina con espacio, no con salto de línea
+    print()                          # salto de línea al terminar cada fila
+```
+
+Imprime una tabla de multiplicar de 3 × 3:
+
+```
+1 2 3
+2 4 6
+3 6 9
+```
+
+Un `break` dentro del ciclo de adentro solo termina **ese** ciclo; el de afuera sigue con su siguiente vuelta.
+
+<Ojo>
+- **Una vuelta de más o de menos.** `range(1, n)` no incluye a `n`; en C, `i < n` e `i <= n` difieren en una vuelta. Revisa siempre la primera y la última vuelta.
+- **Ciclo infinito.** Si nada dentro del `while` acerca la condición a ser falsa (olvidaste `n -= 1`), el programa nunca termina.
+- **Acumulador dentro del ciclo.** Si escribes `suma = 0` dentro del ciclo, se reinicia en cada vuelta. Va antes.
+- **Producto que empieza en 0.** Un acumulador que multiplica empieza en 1; si empieza en 0, todo da 0.
+- **Punto y coma de más en C.** `for (i = 0; i < n; i++);` termina en ese `;`: el ciclo da sus vueltas sin hacer nada y el bloque de abajo corre una sola vez.
+- **`break` solo sale de un ciclo.** En ciclos anidados, sale únicamente del ciclo donde está escrito.
+- **Desbordamiento en C.** Un `int` normalmente llega hasta 2,147,483,647: 12! sí cabe, pero 13! ya no. Para resultados grandes usa `long long` y `%lld`.
+</Ojo>
+
+<Conexion materia="Inteligencia artificial">
+Entrenar una red neuronal es un ciclo: `for epoca in range(100):` recorre los datos, acumula el error y ajusta los pesos un poco en cada vuelta. Y una imagen es una cuadrícula de píxeles: recorrerla pide ciclos anidados (filas por columnas). Son los mismos patrones de esta lección, a gran escala.
+</Conexion>
+
+<Conexion materia="Cálculo">
+Una suma como $\sum_{i=1}^{n} i^2$ es un acumulador dentro de un `for`. Cuando estudies series, podrás aproximarlas así: sumando muchos términos en un ciclo y viendo a qué valor se acercan.
+</Conexion>
+
+<Resumen>
+- `while` repite mientras una condición sea verdadera; `for` recorre valores conocidos (en Python, `range` no incluye el final); `do-while` de C corre al menos una vez.
+- Los acumuladores y contadores se inicializan antes del ciclo: en 0 para sumar o contar, en 1 para multiplicar.
+- `break` sale del ciclo donde está y `continue` salta a la siguiente vuelta; revisa siempre la primera y la última vuelta.
+</Resumen>
+
+<Feynman>
+Explícale a un amigo por qué `for i in range(1, 5)` da cuatro vueltas y no cinco, y cómo escribirías el mismo ciclo con `while`. Si te trabas, vuelve a la sección del `for`.
+</Feynman>

@@ -1,0 +1,481 @@
+unidad: programacion/03-ciclos
+ejercicios:
+  - id: prog-03-001
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [ciclo-for]
+    enunciado: |
+      ¿Qué valores toma `i` en este ciclo de Python?
+
+      ```python
+      for i in range(2, 6):
+          print(i)
+      ```
+    opciones: ["2, 3, 4, 5", "2, 3, 4, 5, 6", "3, 4, 5, 6", "0, 1, 2, 3, 4, 5"]
+    correcta: 0
+    pistas: ["`range(a, b)` empieza en `a`. ¿Incluye a `b`?"]
+    explicacion: '`range(2, 6)` empieza en 2 y se detiene **antes** de 6, así que `i` toma 2, 3, 4 y 5: cuatro vueltas, que es justo 6 − 2.'
+
+  - id: prog-03-002
+    tipo: predecir_salida
+    dificultad: 1
+    conceptos: [ciclo-while]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Escribe cada valor en su propia línea.'
+    codigo: |
+      n = 3
+      while n > 0:
+          print(n)
+          n -= 1
+      print("despegue")
+    respuesta: "3\n2\n1\ndespegue"
+    pistas: ["Revisa la condición antes de cada vuelta: ¿qué pasa cuando `n` llega a 0?"]
+    explicacion: 'Con `n = 3` la condición es verdadera: imprime 3 y baja a 2. Luego imprime 2 y baja a 1; imprime 1 y baja a 0. Con `n = 0`, `n > 0` es falso y el ciclo termina sin imprimir el 0. Al final se imprime `despegue`, que está fuera del ciclo.'
+
+  - id: prog-03-003
+    tipo: completar
+    dificultad: 1
+    conceptos: [ciclo-for, acumuladores-contadores]
+    enunciado: 'Completa el fragmento de C para que `suma` termine valiendo 1 + 2 + … + 10.'
+    texto: '`int suma = ___;` y luego `for (int i = 1; i ___ 10; i++) suma += i;`'
+    respuestas: ["0", "<="]
+    pistas: ["¿El 10 debe sumarse o no?"]
+    explicacion: 'Un acumulador de suma empieza en 0. La condición debe dejar pasar al 10, así que es `i <= 10`; con `i < 10` faltaría la última vuelta y la suma daría 45 en lugar de 55.'
+
+  - id: prog-03-004
+    tipo: codigo
+    dificultad: 1
+    conceptos: [ciclo-for, acumuladores-contadores]
+    lenguaje: python
+    enunciado: 'Escribe `suma_hasta(n)` que regrese 1 + 2 + … + n usando un ciclo `for`. Si `n` es 0, la suma es 0.'
+    plantilla: |
+      def suma_hasta(n):
+          pass
+    solucion: |
+      def suma_hasta(n):
+          suma = 0
+          for i in range(1, n + 1):
+              suma += i
+          return suma
+    tests:
+      - { expr: "suma_hasta(1)", esperado: 1 }
+      - { expr: "suma_hasta(10)", esperado: 55 }
+      - { expr: "suma_hasta(100)", esperado: 5050 }
+      - { expr: "suma_hasta(0)", esperado: 0, oculto: true }
+    pistas: ["Para que `range` llegue hasta `n`, el segundo argumento es `n + 1`.", "El acumulador va antes del ciclo y el `return`, después."]
+    explicacion: 'El acumulador `suma` empieza en 0 antes del ciclo. `range(1, n + 1)` recorre de 1 a `n` (el `+ 1` es porque `range` no incluye el final). Con `n = 0`, `range(1, 1)` está vacío: el ciclo no da vueltas y se regresa 0.'
+
+  - id: prog-03-005
+    tipo: predecir_salida
+    dificultad: 2
+    conceptos: [ciclos-anidados, ciclo-for]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Escribe cada línea completa.'
+    codigo: |
+      for i in range(1, 4):
+          for j in range(1, 3):
+              print(i, j)
+    respuesta: "1 1\n1 2\n2 1\n2 2\n3 1\n3 2"
+    pistas: ["Por cada valor de `i`, el ciclo de `j` da todas sus vueltas."]
+    explicacion: 'El ciclo de afuera da 3 vueltas (`i` = 1, 2, 3) y, en cada una, el de adentro da 2 (`j` = 1, 2). Por eso `i` cambia lento y `j` rápido, como las horas y los minutos de un reloj: 3 × 2 = 6 líneas.'
+
+  - id: prog-03-006
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [ciclo-while, acumuladores-contadores]
+    enunciado: |
+      ¿Qué imprime este programa?
+
+      ```python
+      i = 0
+      veces = 0
+      while i < 10:
+          i += 3
+          veces += 1
+      print(veces)
+      ```
+    opciones: ["3", "4", "9", "12"]
+    valores: [3, 4, 9, 12]
+    correcta: 1
+    verificar: { python: "len(range(0, 10, 3))" }
+    pistas: ["Anota el valor de `i` al **inicio** de cada vuelta."]
+    explicacion: 'Al inicio de cada vuelta `i` vale 0, 3, 6 y 9: las cuatro cumplen `i < 10`, así que `veces` llega a 4. Después de la cuarta vuelta `i` vale 12 y el ciclo termina. El 12 es el valor final de `i`, no el número de vueltas.'
+
+  - id: prog-03-007
+    tipo: ordenar
+    dificultad: 2
+    conceptos: [ciclo-for]
+    enunciado: 'En C, `for (int i = 0; i < n; i++) { ... }` ejecuta sus partes en un orden fijo. Ordena lo que pasa desde que empieza el ciclo hasta que arranca la **segunda** vuelta (supón `n > 1`).'
+    elementos:
+      - "Se ejecuta `int i = 0` (una sola vez)"
+      - "Se revisa `i < n`"
+      - "Se ejecuta el cuerpo del ciclo"
+      - "Se ejecuta `i++`"
+      - "Se vuelve a revisar `i < n`"
+    explicacion: 'El inicio corre una sola vez. Luego, en cada vuelta: se revisa la condición, si es verdadera se ejecuta el cuerpo y al final se ejecuta la actualización (`i++`). Después se vuelve a revisar la condición. Es exactamente un `while` con el inicio antes y la actualización al final del bloque.'
+
+  - id: prog-03-008
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [ciclo-do-while]
+    enunciado: |
+      ¿Cuántas veces imprime `hola` este fragmento de C?
+
+      ```c
+      int i = 10;
+      do {
+          printf("hola\n");
+          i++;
+      } while (i < 5);
+      ```
+    opciones: ["0", "1", "5", "Nunca deja de imprimir"]
+    correcta: 1
+    pistas: ["¿En qué momento revisa la condición un `do-while`?"]
+    explicacion: '`do-while` ejecuta el bloque **antes** de revisar la condición, así que imprime `hola` una vez. Luego revisa `i < 5` con `i = 11`: es falso y termina. Con un `while (i < 5) { ... }` normal no se imprimiría nada.'
+
+  - id: prog-03-009
+    tipo: codigo
+    dificultad: 2
+    conceptos: [ciclo-while, acumuladores-contadores]
+    lenguaje: python
+    enunciado: 'Escribe `cuenta_digitos(n)` que regrese cuántos dígitos tiene un entero `n >= 0`, usando un ciclo `while` y división entera (sin convertir a texto). Ojo: el 0 tiene un dígito.'
+    plantilla: |
+      def cuenta_digitos(n):
+          pass
+    solucion: |
+      def cuenta_digitos(n):
+          cuenta = 1
+          while n >= 10:
+              n //= 10
+              cuenta += 1
+          return cuenta
+    tests:
+      - { expr: "cuenta_digitos(7)", esperado: 1 }
+      - { expr: "cuenta_digitos(12345)", esperado: 5 }
+      - { expr: "cuenta_digitos(1000)", esperado: 4 }
+      - { expr: "cuenta_digitos(0)", esperado: 1, oculto: true }
+    pistas: ["`n //= 10` le quita el último dígito a `n`.", "Si cuentas con `while n > 0`, ¿qué pasa con el 0?"]
+    explicacion: 'Cada `n //= 10` quita un dígito, y el contador suma 1 por cada uno. Una forma que cubre el 0 es empezar en 1 (todo número tiene al menos un dígito) y quitar dígitos mientras `n >= 10`. Con `cuenta = 0` y `while n > 0`, el 0 daría 0 dígitos: ese es el caso borde.'
+
+  - id: prog-03-010
+    tipo: codigo
+    dificultad: 2
+    conceptos: [ciclo-for, acumuladores-contadores]
+    lenguaje: c
+    enunciado: 'Escribe un programa en C que lea un entero `n` (0 ≤ `n` ≤ 20) e imprima `n!` (el factorial: 1 × 2 × … × n; por definición, 0! = 1) seguido de un salto de línea.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          long long fact = 1;
+          for (int i = 2; i <= n; i++) {
+              fact *= i;
+          }
+          printf("%lld\n", fact);
+          return 0;
+      }
+    tests:
+      - { entrada: "5\n", salida: "120\n" }
+      - { entrada: "10\n", salida: "3628800\n" }
+      - { entrada: "20\n", salida: "2432902008176640000\n" }
+      - { entrada: "0\n", salida: "1\n", oculto: true }
+      - { entrada: "1\n", salida: "1\n", oculto: true }
+    pistas: ["Un acumulador de producto empieza en 1, no en 0.", "20! no cabe en un `int`: usa `long long` e imprímelo con `%lld`."]
+    explicacion: 'El acumulador `fact` empieza en 1 y el ciclo lo multiplica por 2, 3, …, `n`. Con `n` igual a 0 o 1 el ciclo no da vueltas y queda 1, que es lo correcto. Un `int` normalmente llega hasta 2,147,483,647, y 13! ya lo rebasa; `long long` aguanta hasta 20!.'
+
+  - id: prog-03-011
+    tipo: predecir_salida
+    dificultad: 2
+    conceptos: [break-continue, ciclo-for]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Escribe cada valor en su propia línea.'
+    codigo: |
+      for i in range(1, 10):
+          if i % 3 == 0:
+              continue
+          if i > 7:
+              break
+          print(i)
+      print("fin")
+    respuesta: "1\n2\n4\n5\n7\nfin"
+    pistas: ["`continue` salta a la siguiente vuelta; `break` termina el ciclo completo."]
+    explicacion: 'Los múltiplos de 3 (3 y 6) se saltan con `continue` antes de llegar al `print`. Se imprimen 1, 2, 4, 5 y 7. Con `i = 8`, `i > 7` es verdadero y `break` termina el ciclo, así que 8 no se imprime y el 9 ni se visita. `fin` está fuera del ciclo.'
+
+  - id: prog-03-012
+    tipo: depurar
+    dificultad: 3
+    conceptos: [ciclo-for, acumuladores-contadores]
+    lenguaje: python
+    enunciado: '`suma_pares(n)` debería regresar la suma de los pares desde 2 hasta `n` (incluido `n` si es par). Por ejemplo, `suma_pares(10)` es 2 + 4 + 6 + 8 + 10 = 30. Tiene un error: encuentra la línea y corrígela.'
+    codigo: |
+      def suma_pares(n):
+          total = 0
+          for i in range(2, n, 2):
+              total += i
+          return total
+    linea_bug: 3
+    solucion: |
+      def suma_pares(n):
+          total = 0
+          for i in range(2, n + 1, 2):
+              total += i
+          return total
+    tests:
+      - { expr: "suma_pares(10)", esperado: 30 }
+      - { expr: "suma_pares(9)", esperado: 20 }
+      - { expr: "suma_pares(1)", esperado: 0, oculto: true }
+      - { expr: "suma_pares(2)", esperado: 2, oculto: true }
+    pistas: ["¿`range(2, 10, 2)` incluye al 10?"]
+    explicacion: '`range` se detiene **antes** de su segundo argumento: `range(2, 10, 2)` da 2, 4, 6, 8 y deja fuera al 10. Con `range(2, n + 1, 2)` el último par se incluye. Con `n` impar (9) el error no se nota, y por eso hay que probar ambos casos: es el clásico error de una vuelta de menos.'
+
+  - id: prog-03-013
+    tipo: depurar
+    dificultad: 3
+    conceptos: [ciclo-do-while, acumuladores-contadores]
+    lenguaje: c
+    enunciado: 'Este programa debería leer enteros y sumarlos hasta que llegue un 0 (el 0 marca el final), y luego imprimir la suma. Pero con la entrada `5 3 0` imprime `5`. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      #include <stdio.h>
+
+      int main(void) {
+          int x;
+          int suma = 0;
+          do {
+              scanf("%d", &x);
+              suma += x;
+          } while (x == 0);
+          printf("%d\n", suma);
+          return 0;
+      }
+    linea_bug: 9
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int x;
+          int suma = 0;
+          do {
+              scanf("%d", &x);
+              suma += x;
+          } while (x != 0);
+          printf("%d\n", suma);
+          return 0;
+      }
+    tests:
+      - { entrada: "5 3 0\n", salida: "8\n" }
+      - { entrada: "10 20 30 0\n", salida: "60\n" }
+      - { entrada: "-2 2 7 0\n", salida: "7\n", oculto: true }
+    pistas: ["La condición del `do-while` dice cuándo **seguir**, no cuándo parar."]
+    explicacion: 'La condición de un ciclo indica cuándo **repetir**. Queremos seguir leyendo mientras el número **no** sea 0: `while (x != 0)`. Con `x == 0`, tras leer el 5 la condición es falsa y el ciclo termina en la primera vuelta. Sumar el 0 final no cambia la suma, así que el `do-while` encaja: siempre hay que leer al menos un número.'
+
+  - id: prog-03-014
+    tipo: parsons
+    dificultad: 3
+    conceptos: [ciclos-anidados, acumuladores-contadores]
+    lenguaje: python
+    enunciado: 'Ordena las líneas para que `formas_de_sumar(caras, s)` cuente de cuántas formas dos dados de `caras` caras suman `s`, **sin importar el orden** de los dados (sacar 1 y 6 es lo mismo que 6 y 1). Por ejemplo, con dados de 6 caras hay 3 formas de sumar 7. Sobran dos líneas.'
+    lineas:
+      - "def formas_de_sumar(caras, s):"
+      - "    cuenta = 0"
+      - "    for a in range(1, caras + 1):"
+      - "        for b in range(a, caras + 1):"
+      - "            if a + b == s:"
+      - "                cuenta += 1"
+      - "    return cuenta"
+    distractores: ["        for b in range(1, caras + 1):", "    cuenta = 1"]
+    tests:
+      - { expr: "formas_de_sumar(6, 7)", esperado: 3 }
+      - { expr: "formas_de_sumar(6, 2)", esperado: 1 }
+      - { expr: "formas_de_sumar(6, 13)", esperado: 0 }
+      - { expr: "formas_de_sumar(4, 5)", esperado: 2, oculto: true }
+    pistas: ["El contador se inicializa antes de los ciclos y se regresa después de ellos.", "Para no contar dos veces el mismo par, el segundo dado empieza donde va el primero."]
+    explicacion: 'El contador empieza en 0 antes de los ciclos. El ciclo de `b` empieza en `a`, así cada par se cuenta una sola vez con `a <= b`: para 7 son (1, 6), (2, 5) y (3, 4). Con `range(1, caras + 1)` en el ciclo de adentro contarías (1, 6) y (6, 1) por separado y saldrían 6. El `return` va al nivel de la función, después de ambos ciclos.'
+
+  - id: prog-03-015
+    tipo: codigo
+    dificultad: 3
+    conceptos: [break-continue, ciclo-for]
+    lenguaje: python
+    enunciado: 'Escribe `menor_divisor(n)` que, para un entero `n >= 2`, regrese su menor divisor mayor que 1. Por ejemplo, `menor_divisor(15)` es 3 y `menor_divisor(13)` es 13. Usa un `for` con `break`.'
+    plantilla: |
+      def menor_divisor(n):
+          pass
+    solucion: |
+      def menor_divisor(n):
+          for d in range(2, n + 1):
+              if n % d == 0:
+                  break
+          return d
+    tests:
+      - { expr: "menor_divisor(15)", esperado: 3 }
+      - { expr: "menor_divisor(49)", esperado: 7 }
+      - { expr: "menor_divisor(13)", esperado: 13 }
+      - { expr: "menor_divisor(221)", esperado: 13 }
+      - { expr: "menor_divisor(2)", esperado: 2, oculto: true }
+    pistas: ["Prueba los candidatos `d` desde 2 en adelante; el primero que divide a `n` es el menor.", "¿Hasta dónde debe llegar `range` para que `n` mismo sea candidato?"]
+    explicacion: 'Se prueban los divisores en orden creciente y el primero que cumple `n % d == 0` es el menor, así que `break` corta la búsqueda ahí. Si `n` es primo, ningún número entre 2 y `n - 1` lo divide y el ciclo llega hasta `d = n`, por eso el `range` termina en `n + 1`. De paso: `n` es primo exactamente cuando `menor_divisor(n) == n`.'
+
+  - id: prog-03-016
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [ciclo-while, ciclo-for, ciclo-do-while]
+    enunciado: 'Explica con tus palabras cuándo usarías `for`, cuándo `while` y cuándo `do-while`. Da un ejemplo concreto de cada uno.'
+    rubrica:
+      - "Dice que `for` conviene cuando sabes de antemano qué valores o cuántas vueltas recorrer."
+      - "Dice que `while` conviene cuando repites mientras se cumpla una condición y no sabes cuántas vueltas serán."
+      - "Dice que `do-while` revisa la condición al final, así que el bloque corre al menos una vez (útil para menús o para pedir un dato hasta que sea válido)."
+      - "Da un ejemplo concreto y correcto de cada uno."
+    respuesta_modelo: 'Uso `for` cuando sé qué valores voy a recorrer: sumar del 1 al 100 o repetir algo 10 veces. Uso `while` cuando repito mientras pase algo y no sé cuántas vueltas serán: quitarle dígitos a un número hasta que llegue a 0, o duplicar un ahorro hasta pasar un millón. Uso `do-while` (en C) cuando el bloque tiene que correr al menos una vez antes de poder revisar la condición: pedir un número del 1 al 10 y volver a pedirlo mientras sea inválido, porque no puedo revisar el dato antes de leerlo.'
+    explicacion: 'Si te costó distinguir `while` de `do-while`, repasa en qué momento revisa la condición cada uno.'
+    tarjeta: false
+
+  - id: prog-03-017
+    tipo: predecir_salida
+    dificultad: 4
+    conceptos: [ciclos-anidados, break-continue]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa?'
+    codigo: |
+      cuenta = 0
+      for i in range(3):
+          for j in range(5):
+              if j == 2:
+                  break
+              cuenta += 1
+          cuenta += 10
+      print(cuenta)
+    respuesta: "36"
+    pistas: ["¿De qué ciclo sale el `break`?"]
+    explicacion: 'El `break` solo sale del ciclo de `j`. En cada vuelta de `i`, el ciclo de adentro alcanza a sumar 1 con `j = 0` y `j = 1`, y con `j = 2` se rompe; luego se suman 10. Cada vuelta de `i` aporta 2 + 10 = 12, y son 3 vueltas: 36.'
+
+  - id: prog-03-018
+    tipo: codigo
+    dificultad: 4
+    conceptos: [ciclo-do-while, acumuladores-contadores]
+    lenguaje: c
+    enunciado: 'Supón que un cajero pide el NIP de una tarjeta. Escribe un programa en C que lea NIPs (enteros) uno por uno hasta que llegue el correcto, `1234`, o hasta completar 3 intentos, lo que pase primero. Si se acertó, imprime `acceso en N`, donde N es el número de intentos usados; si no, imprime `bloqueada`. Usa `do-while`. Cada salida termina en salto de línea.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int nip;
+          int intentos = 0;
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int nip;
+          int intentos = 0;
+          do {
+              scanf("%d", &nip);
+              intentos++;
+          } while (nip != 1234 && intentos < 3);
+          if (nip == 1234) {
+              printf("acceso en %d\n", intentos);
+          } else {
+              printf("bloqueada\n");
+          }
+          return 0;
+      }
+    tests:
+      - { entrada: "1234\n", salida: "acceso en 1\n" }
+      - { entrada: "1111 1234\n", salida: "acceso en 2\n" }
+      - { entrada: "1 2 3\n", salida: "bloqueada\n" }
+      - { entrada: "5 6 1234\n", salida: "acceso en 3\n", oculto: true }
+      - { entrada: "5 6 7 1234\n", salida: "bloqueada\n", oculto: true }
+    pistas: ["Siempre se lee al menos un NIP: por eso encaja el `do-while`.", "Se sigue pidiendo mientras el NIP sea incorrecto **y** queden intentos."]
+    explicacion: 'El bloque lee un NIP y cuenta el intento; se repite mientras `nip != 1234 && intentos < 3`. El ciclo termina por una de dos razones, así que después hay que preguntar cuál fue: si el último NIP es correcto, hubo acceso (aunque haya sido en el tercer intento); si no, se agotaron los intentos. Con 3 fallos el cuarto número ya no se lee.'
+
+  - id: prog-03-019
+    tipo: codigo
+    dificultad: 4
+    conceptos: [ciclos-anidados, ciclo-for]
+    lenguaje: c
+    enunciado: |
+      Escribe un programa en C que lea un entero `n` (1 ≤ `n` ≤ 9) e imprima un triángulo de `n` filas: la fila `i` tiene los números del 1 al `i` separados por un espacio, **sin** espacio al final de la fila. Por ejemplo, con `n = 3`:
+
+      ```
+      1
+      1 2
+      1 2 3
+      ```
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          for (int i = 1; i <= n; i++) {
+              printf("1");
+              for (int j = 2; j <= i; j++) {
+                  printf(" %d", j);
+              }
+              printf("\n");
+          }
+          return 0;
+      }
+    tests:
+      - { entrada: "1\n", salida: "1\n" }
+      - { entrada: "3\n", salida: "1\n1 2\n1 2 3\n" }
+      - { entrada: "4\n", salida: "1\n1 2\n1 2 3\n1 2 3 4\n" }
+      - { entrada: "9\n", salida: "1\n1 2\n1 2 3\n1 2 3 4\n1 2 3 4 5\n1 2 3 4 5 6\n1 2 3 4 5 6 7\n1 2 3 4 5 6 7 8\n1 2 3 4 5 6 7 8 9\n", oculto: true }
+    pistas: ["El ciclo de afuera recorre las filas; el de adentro, los números de cada fila.", "Para no dejar espacio al final, imprime el primer número solo y luego cada siguiente como espacio + número."]
+    explicacion: 'El ciclo de afuera da `n` vueltas, una por fila, y el de adentro depende de `i`: la fila `i` tiene `i` números. El truco del espacio: se imprime `1` solo y después cada número con su espacio **antes** (`" %d"`), así nunca sobra uno al final. Al terminar cada fila va el salto de línea, fuera del ciclo de adentro.'
+
+  - id: prog-03-020
+    tipo: codigo
+    dificultad: 5
+    conceptos: [ciclos-anidados, ciclo-while, acumuladores-contadores]
+    lenguaje: python
+    enunciado: 'Toma un entero positivo `n` y aplica la regla: si es par, pasa a `n // 2`; si es impar, a `3 * n + 1`; repite hasta llegar a 1. Por ejemplo, 6 → 3 → 10 → 5 → 16 → 8 → 4 → 2 → 1 toma 8 pasos. (Es la conjetura de Collatz: nadie ha demostrado que siempre se llegue a 1, pero se ha comprobado con computadora para una cantidad enorme de números.) Escribe `mas_pasos(limite)` que regrese el número inicial entre 1 y `limite` (incluidos) que tarda más pasos en llegar a 1. Si hay empate, regresa el menor.'
+    plantilla: |
+      def mas_pasos(limite):
+          pass
+    solucion: |
+      def mas_pasos(limite):
+          mejor = 1
+          max_pasos = 0
+          for inicio in range(1, limite + 1):
+              n = inicio
+              pasos = 0
+              while n != 1:
+                  if n % 2 == 0:
+                      n = n // 2
+                  else:
+                      n = 3 * n + 1
+                  pasos += 1
+              if pasos > max_pasos:
+                  max_pasos = pasos
+                  mejor = inicio
+          return mejor
+    tests:
+      - { expr: "mas_pasos(1)", esperado: 1 }
+      - { expr: "mas_pasos(10)", esperado: 9 }
+      - { expr: "mas_pasos(100)", esperado: 97 }
+      - { expr: "mas_pasos(3)", esperado: 3, oculto: true }
+      - { expr: "mas_pasos(1000)", esperado: 871, oculto: true }
+    pistas: ["Un `for` recorre los números iniciales; adentro, un `while` cuenta los pasos de cada uno.", "Guarda dos cosas fuera del `for`: el récord de pasos y qué número lo logró.", "Para que en un empate gane el menor, actualiza el récord solo con `>`, no con `>=`."]
+    explicacion: 'Son dos ciclos anidados: el `for` prueba cada número inicial y el `while` cuenta sus pasos (no sabes cuántos serán, por eso `while`). El contador `pasos` se reinicia para cada número, **dentro** del `for`. Fuera del `for` viven el récord (`max_pasos`) y su dueño (`mejor`). Como recorres de menor a mayor y solo actualizas con `>`, en un empate se queda el menor. Con límite 10 gana el 9 (19 pasos) y con 100, el 97 (118 pasos).'

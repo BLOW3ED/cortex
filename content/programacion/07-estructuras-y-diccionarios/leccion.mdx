@@ -1,0 +1,206 @@
+---
+titulo: "Estructuras y diccionarios: datos que van juntos"
+materia: programacion
+unidad: 07-estructuras-y-diccionarios
+duracion_min: 25
+prerrequisitos: [arreglos-c, listas-python, apuntadores, paso-por-valor]
+conceptos: [structs-c, arreglos-de-structs, structs-y-apuntadores, diccionarios, tuplas-conjuntos, modelado-datos]
+programa_ref: "pendiente"
+---
+
+## El problema
+
+Quieres guardar los datos de 30 alumnos: boleta, nombre y promedio. Con lo que ya sabes harías tres arreglos paralelos (`boletas[30]`, `nombres[30][40]` y `promedios[30]`) y confiarías en que la casilla 7 de los tres arreglos sea el mismo alumno. Basta con ordenar uno y olvidar los otros dos para que Ana termine con la boleta de Luis. Lo natural es tener **un registro por alumno** con todos sus datos juntos. En C ese registro es una `struct`; en Python, casi siempre, un diccionario.
+
+<Predice pregunta="En C haces `struct Punto b = a;` y luego `b.x = 7;`. ¿Cambia `a.x`? Y en Python, si `a` es un diccionario, haces `b = a` y luego `b['x'] = 7`: ¿cambia `a['x']`?" revela="En C no: asignar una struct copia todos sus campos, así que `b` es otra variable con sus propios valores. En Python sí: `b = a` no copia el diccionario, solo le pone otro nombre al mismo objeto. Para copiarlo se usa `dict(a)` o `a.copy()`." />
+
+## Estructuras en C
+
+<Concepto titulo="struct">
+Una `struct` es un tipo nuevo que agrupa varios valores con nombre, llamados **campos**, que pueden ser de tipos distintos. A cada campo se llega con un punto: `alumno.promedio`.
+</Concepto>
+
+```c
+#include <stdio.h>
+
+struct Alumno {
+    int boleta;
+    char nombre[40];
+    double promedio;
+};                      /* el punto y coma después de la llave es obligatorio */
+
+int main(void) {
+    struct Alumno a = {2024630001, "Ana", 9.1};   /* en el orden de los campos */
+    a.promedio = 9.3;                             /* cambiar un campo */
+    printf("%s: %.1f\n", a.nombre, a.promedio);   /* Ana: 9.3 */
+    return 0;
+}
+```
+
+Lo que conviene saber desde el principio:
+
+- `struct Alumno` es el nombre completo del tipo. Con `typedef struct Alumno Alumno;` podrías escribir solo `Alumno`; aquí usamos la forma larga para que siempre se vea que es una struct.
+- Asignar una struct a otra (`b = a;`) **copia todos los campos**, incluso los arreglos que tenga adentro. Lo mismo pasa al pasarla a una función: la función recibe una copia (paso por valor, como con un `int`).
+- Dos structs no se comparan con `==`: se comparan campo por campo.
+
+## Arreglos de structs
+
+Un arreglo de structs es la tabla completa: cada casilla es un registro.
+
+```c
+struct Alumno grupo[3] = {
+    {2024630001, "Ana", 9.1},
+    {2024630002, "Luis", 7.8},
+    {2024630003, "Eva", 8.6}
+};
+double suma = 0;
+for (int i = 0; i < 3; i++) {
+    suma += grupo[i].promedio;      /* casilla i, campo promedio */
+}
+printf("%.2f\n", suma / 3);         /* 8.50 */
+```
+
+`grupo[i].promedio` se lee de izquierda a derecha: primero la casilla y luego el campo. Si ordenas el arreglo, se mueven registros completos, así que los datos de un alumno nunca se separan.
+
+## Structs y apuntadores
+
+Como pasar una struct copia todo, para que una función **modifique** la original le pasas su dirección. Con un apuntador `p` a una struct, el campo es `(*p).campo`, que se abrevia `p->campo`.
+
+```c
+void subir_promedio(struct Alumno *p, double puntos) {
+    p->promedio += puntos;          /* igual que (*p).promedio += puntos */
+    if (p->promedio > 10) {
+        p->promedio = 10;
+    }
+}
+
+/* en main: */
+subir_promedio(&grupo[1], 0.5);    /* Luis pasa de 7.8 a 8.3 */
+```
+
+Pasar un apuntador también evita copiar structs grandes. Si la función solo va a leer, decláralo `const struct Alumno *p` y el compilador te avisará si intentas cambiar algo.
+
+## Diccionarios en Python
+
+<Concepto titulo="Diccionario">
+Un diccionario (`dict`) guarda pares **clave → valor**. Buscas por la clave, no por la posición: `edades["Ana"]`. Las claves no se repiten y deben ser inmutables (texto, números, tuplas); los valores pueden ser cualquier cosa.
+</Concepto>
+
+```python
+alumno = {"boleta": 2024630001, "nombre": "Ana", "promedio": 9.1}
+alumno["promedio"] = 9.3          # cambiar un valor
+alumno["carrera"] = "IIA"         # agregar una clave nueva
+print(alumno["nombre"])           # Ana
+print("edad" in alumno)           # False: ¿existe la clave?
+print(alumno.get("edad", 0))      # 0: valor por defecto si no existe
+for clave, valor in alumno.items():
+    print(clave, valor)
+```
+
+Leer con corchetes una clave que no existe (`alumno["edad"]`) lanza `KeyError`; `get` no. Desde Python 3.7 los diccionarios recuerdan el orden en que insertaste las claves.
+
+El uso más común de un diccionario es **contar**:
+
+```python
+conteo = {}
+for color in ["rojo", "azul", "rojo"]:
+    conteo[color] = conteo.get(color, 0) + 1
+print(conteo)                     # {'rojo': 2, 'azul': 1}
+```
+
+## Tuplas y conjuntos
+
+<Concepto titulo="Tupla y conjunto">
+Una **tupla** es una secuencia **inmutable**: `punto = (3, 4)`. Sirve para valores que van juntos y no deben cambiar, y se puede desempacar: `x, y = punto`. Un **conjunto** (`set`) es una colección **sin orden y sin repetidos**: `{3, 1, 3}` es lo mismo que `{1, 3}`. Responde muy rápido a "¿está este valor?" y hace operaciones de conjuntos.
+</Concepto>
+
+```python
+punto = (3, 4)
+x, y = punto                # desempacar: x = 3, y = 4
+# punto[0] = 5              # TypeError: una tupla no se modifica
+
+a = {1, 2, 3, 4}
+b = {3, 4, 5}
+print(a & b)                # {3, 4}           intersección
+print(a | b)                # {1, 2, 3, 4, 5}  unión
+print(a - b)                # {1, 2}           diferencia
+print(len(set([2, 2, 7])))  # 2: set() quita repetidos
+vacio = set()               # ojo: {} es un diccionario vacío, no un conjunto
+```
+
+Un conjunto no tiene posiciones (`a[0]` es error) y no garantiza el orden al imprimirlo; si necesitas un orden, usa `sorted(a)`, que regresa una lista.
+
+## Modelar datos
+
+<Concepto titulo="Modelar con registros">
+Modelar es decidir **cómo se representa** la información del problema. Pregúntate: ¿qué entidades hay (alumno, producto, cuenta)? ¿Qué campos tiene cada una y de qué tipo? ¿Cómo las vas a buscar y qué operaciones harás con ellas?
+</Concepto>
+
+| Necesitas... | En Python | En C |
+|---|---|---|
+| Un registro con campos fijos | diccionario (o tupla si no cambia) | `struct` |
+| Muchos registros en orden | lista de diccionarios | arreglo de structs |
+| Encontrar un registro por una clave | diccionario de registros, p. ej. `por_boleta[2024630001]` | recorrer el arreglo comparando la clave |
+| Valores sin repetir, preguntar "¿está?" | conjunto | arreglo y búsqueda |
+| Un par fijo de valores (coordenadas) | tupla | `struct` pequeña |
+
+<Ejemplo titulo="El mejor promedio, en C y en Python">
+Problema: dado un grupo de alumnos, reporta el nombre del que tiene el mejor promedio.
+
+1. **Modelo.** Cada alumno es un registro con `nombre` y `promedio`; el grupo es una secuencia de registros (arreglo de structs en C, lista de diccionarios en Python).
+2. **Idea.** Recorremos el grupo recordando al mejor visto hasta ahora. Empezamos con el primero y lo reemplazamos cuando aparece alguien con promedio mayor.
+3. **En C** guardamos la posición del mejor:
+
+```c
+int mejor = 0;
+for (int i = 1; i < n; i++) {
+    if (grupo[i].promedio > grupo[mejor].promedio) {
+        mejor = i;
+    }
+}
+printf("%s\n", grupo[mejor].nombre);
+```
+
+4. **En Python** podemos guardar el registro mismo:
+
+```python
+mejor = grupo[0]
+for alumno in grupo[1:]:
+    if alumno["promedio"] > mejor["promedio"]:
+        mejor = alumno
+print(mejor["nombre"])
+```
+
+5. **Por qué `>` y no `>=`.** Con `>` un empate no reemplaza al que ya estaba, así que gana el que apareció primero. Con `>=` ganaría el último. Decide cuál quieres y escríbelo en el enunciado de tu programa.
+</Ejemplo>
+
+<Desvanecido titulo="Contar votos con un diccionario" pasos={[
+  "Los votos son `['A', 'B', 'A']`. Empiezas con `conteo = {}` y por cada voto `v` haces `conteo[v] = conteo.get(v, 0) + 1`.",
+  "Tras el primer voto, `conteo['A']` vale ___ .",
+  "Tras el segundo voto, `conteo` tiene ___ claves.",
+  "Al final, `conteo['A']` vale ___ ."
+]} respuestas={["1", "2", "2"]} />
+
+<Ojo>
+- **Olvidar el `;` después de la llave que cierra la `struct`.** El compilador marca un error confuso en la línea siguiente.
+- **Usar el punto con un apuntador.** Si `p` es `struct Alumno *`, se escribe `p->promedio`. `*p.promedio` tampoco sirve: el punto se aplica antes que el `*`; por eso existe la flecha.
+- **Esperar que una función cambie una struct pasada por valor.** Recibe una copia: pasa `&a` y usa `->`.
+- **Creer que `b = a` copia un diccionario.** Ambos nombres son el mismo diccionario. `a.copy()` o `dict(a)` hacen una copia *superficial*: si un valor es una lista, esa lista sigue compartida.
+- **`KeyError`.** `d[clave]` falla si la clave no existe; revisa antes con `in` o usa `d.get(clave, defecto)`.
+- **`{}` no es un conjunto vacío.** Es un diccionario vacío; el conjunto vacío es `set()`.
+- **Listas como claves.** Una lista no puede ser clave porque es mutable; una tupla sí: `distancia[(0, 1)] = 5`.
+</Ojo>
+
+<Conexion materia="Inteligencia artificial">
+Los conjuntos de datos con los que entrenarás modelos suelen llegar en JSON o CSV, y en Python se cargan como listas de diccionarios: un registro por ejemplo y una clave por atributo. Decidir bien ese registro es el primer paso de cualquier proyecto de datos. Y por dentro, bibliotecas como NumPy describen cada arreglo con una `struct` de C que guarda sus dimensiones, el tipo de sus elementos y un apuntador a los valores: la misma idea de esta lección.
+</Conexion>
+
+<Resumen>
+- Una `struct` en C o un diccionario en Python juntan en un registro los datos que van juntos; se accede con `.campo` o con `["clave"]`.
+- Asignar o pasar una struct la copia; para modificar la original usa un apuntador y `->`. En Python, `b = a` comparte el mismo diccionario.
+- Las tuplas son secuencias inmutables y los conjuntos guardan valores sin repetir; elige la estructura según cómo vas a usar los datos.
+</Resumen>
+
+<Feynman>
+Explícale a alguien por qué tres arreglos paralelos son frágiles y cómo lo resuelve un arreglo de structs (o una lista de diccionarios). Incluye qué pasa cuando le pasas una struct a una función y cuándo necesitas `->`.
+</Feynman>

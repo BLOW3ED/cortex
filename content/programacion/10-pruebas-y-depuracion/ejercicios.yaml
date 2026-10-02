@@ -1,0 +1,517 @@
+unidad: programacion/10-pruebas-y-depuracion
+ejercicios:
+  - id: prog-10-001
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [tipos-de-error]
+    enunciado: |
+      Python se niega a ejecutar este fragmento y marca la primera línea:
+
+      ```python
+      if x > 0
+          print("positivo")
+      ```
+
+      ¿Qué tipo de error es?
+    opciones: ["De sintaxis", "De ejecución", "De lógica", "Ninguno: Python lo acepta así"]
+    correcta: 0
+    pistas: ["¿El programa llegó a correr, o se detuvo antes de empezar?"]
+    explicacion: 'Falta `:` después de la condición. El código no respeta las reglas de Python, así que no se ejecuta nada: es un error de sintaxis (`SyntaxError`). Un error de ejecución aparece con el programa ya corriendo, y uno de lógica corre completo pero da un resultado equivocado.'
+
+  - id: prog-10-002
+    tipo: predecir_salida
+    dificultad: 1
+    conceptos: [excepciones, tipos-de-error]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son dos líneas.'
+    codigo: |
+      try:
+          print(10 / 0)
+      except ZeroDivisionError:
+          print("no se puede")
+      print("fin")
+    respuesta: "no se puede\nfin"
+    pistas: ["`10 / 0` lanza una excepción antes de que `print` alcance a imprimir algo."]
+    explicacion: 'Al evaluar `10 / 0` se lanza `ZeroDivisionError`; el `print` de esa línea nunca termina. El `except` la atrapa e imprime `no se puede`. Como la excepción ya se manejó, el programa sigue normal e imprime `fin`.'
+
+  - id: prog-10-003
+    tipo: completar
+    dificultad: 1
+    conceptos: [assert-pruebas, casos-de-prueba]
+    enunciado: 'Completa la prueba automática en Python.'
+    texto: 'Para comprobar que `cuadrado(3)` da 9 se escribe `assert cuadrado(3) ___ 9`. Si la condición resulta falsa, Python lanza la excepción `___`.'
+    respuestas: ["==", "AssertionError"]
+    pistas: ["Se compara, no se asigna."]
+    explicacion: 'La prueba compara el resultado con lo esperado usando `==` (un solo `=` sería asignación y daría error de sintaxis). Si la comparación es falsa, `assert` lanza `AssertionError` y el programa se detiene ahí.'
+
+  - id: prog-10-004
+    tipo: ordenar
+    dificultad: 2
+    conceptos: [depuracion-sistematica, casos-de-prueba]
+    enunciado: 'Una persona reporta que `promedio([4, 6])` da 4 en vez de 5. Ordena los pasos de una depuración sistemática.'
+    elementos:
+      - "Escribir el caso que falla como prueba y confirmar que falla"
+      - "Seguir los valores dentro de la función hasta encontrar la primera línea donde se desvían de lo esperado"
+      - "Corregir la causa en esa línea"
+      - "Volver a correr todas las pruebas, también las que ya pasaban"
+    explicacion: 'Primero se reproduce el error con una prueba (si no lo puedes reproducir, no sabrás si lo arreglaste). Luego se ubica la primera línea donde los valores se desvían, se corrige la causa y al final se corre todo de nuevo, porque una corrección puede romper algo que ya funcionaba.'
+
+  - id: prog-10-005
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [assert-pruebas]
+    enunciado: '¿Qué pasa al ejecutar `assert x > 0, "x debe ser positivo"` cuando `x` vale -1?'
+    opciones:
+      - 'Se lanza `AssertionError` con el mensaje "x debe ser positivo" y el programa se detiene (si nadie la atrapa)'
+      - 'Se imprime "x debe ser positivo" y el programa sigue'
+      - 'Python cambia `x` a un valor positivo y sigue'
+      - 'Nada: `assert` solo funciona dentro de funciones de prueba'
+    correcta: 0
+    explicacion: 'Si la condición de `assert` es falsa, se lanza `AssertionError`; el texto después de la coma es el mensaje de esa excepción. `assert` funciona en cualquier parte del código, no solo en funciones de prueba, y nunca corrige valores: solo avisa.'
+
+  - id: prog-10-006
+    tipo: opcion_multiple
+    dificultad: 2
+    conceptos: [casos-borde, casos-de-prueba]
+    enunciado: |
+      Esta función da bien con `[8, 9, 10]`. ¿Cuál de estas entradas es el caso borde que la hace tronar?
+
+      ```python
+      def promedio(lista):
+          return sum(lista) / len(lista)
+      ```
+    opciones: ["`[]`", "`[7, 7, 7]`", "`[10, 0]`", "`[6.5, 9.5]`"]
+    correcta: 0
+    pistas: ["¿Cuánto vale `len(lista)` en cada caso?"]
+    explicacion: 'Con la lista vacía, `len(lista)` es 0 y la división lanza `ZeroDivisionError`. Las otras entradas dan 7, 5 y 8 sin problema. La lista vacía es uno de los casos borde que siempre conviene probar.'
+
+  - id: prog-10-007
+    tipo: codigo
+    dificultad: 2
+    conceptos: [excepciones, casos-borde]
+    lenguaje: python
+    enunciado: 'Escribe `division_segura(a, b)` que regrese `a / b`, o `None` si `b` es 0. Usa `try / except` en lugar de un `if`.'
+    plantilla: |
+      def division_segura(a, b):
+          pass
+    solucion: |
+      def division_segura(a, b):
+          try:
+              return a / b
+          except ZeroDivisionError:
+              return None
+    tests:
+      - { expr: "division_segura(10, 4)", esperado: 2.5, tolerancia: 0.000001 }
+      - { expr: "division_segura(-9, 3)", esperado: -3, tolerancia: 0.000001 }
+      - { expr: "division_segura(5, 0)", esperado: null }
+      - { expr: "division_segura(0, 7)", esperado: 0, tolerancia: 0.000001, oculto: true }
+      - { expr: "division_segura(0, 0)", esperado: null, oculto: true }
+    pistas: ["¿Qué excepción lanza Python al dividir entre cero?", "Dentro del `except` regresa `None`."]
+    explicacion: 'Se intenta la división dentro de `try`; si `b` es 0, Python lanza `ZeroDivisionError`, el `except` la atrapa y se regresa `None`. Ojo con los bordes: un numerador 0 es válido (da 0) y solo el divisor 0 es problema, incluso en `0 / 0`.'
+
+  - id: prog-10-008
+    tipo: depurar
+    dificultad: 2
+    conceptos: [depuracion-sistematica, casos-borde]
+    lenguaje: python
+    enunciado: '`contar_aprobados(califs)` debe contar cuántas calificaciones son aprobatorias (6 o más), pero falla. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      def contar_aprobados(califs):
+          aprobados = 0
+          for c in califs:
+              if c > 6:
+                  aprobados += 1
+          return aprobados
+    linea_bug: 4
+    solucion: |
+      def contar_aprobados(califs):
+          aprobados = 0
+          for c in califs:
+              if c >= 6:
+                  aprobados += 1
+          return aprobados
+    tests:
+      - { expr: "contar_aprobados([6, 7, 5])", esperado: 2 }
+      - { expr: "contar_aprobados([10, 9, 8])", esperado: 3 }
+      - { expr: "contar_aprobados([])", esperado: 0 }
+      - { expr: "contar_aprobados([6, 6])", esperado: 2, oculto: true }
+    pistas: ["¿Qué pasa exactamente con una calificación de 6?"]
+    explicacion: 'Se aprueba con 6 **o más**, así que la condición debe ser `c >= 6`. Con `c > 6` el valor justo en la frontera queda fuera: es el error clásico de un caso borde, y por eso conviene probar siempre el valor exacto del límite.'
+
+  - id: prog-10-009
+    tipo: predecir_salida
+    dificultad: 3
+    conceptos: [assert-pruebas, casos-de-prueba]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Escribe la salida exacta.'
+    codigo: |
+      def cuadrado(x):
+          return x * 2
+
+      try:
+          assert cuadrado(2) == 4
+          print("pasó con 2")
+          assert cuadrado(3) == 9
+          print("pasó con 3")
+      except AssertionError:
+          print("falló")
+    respuesta: "pasó con 2\nfalló"
+    pistas: ["Calcula `2 * 2` y `3 * 2`.", "Cuando un `assert` falla, el resto del bloque `try` se salta."]
+    explicacion: 'La función tiene un error (`x * 2` en vez de `x * x`), pero con 2 da 4 por casualidad, así que el primer `assert` pasa. Con 3 da 6, el segundo `assert` lanza `AssertionError`, se salta `print("pasó con 3")` y se imprime `falló`. Moraleja: un caso que pasa puede pasar por coincidencia; usa varios casos distintos.'
+
+  - id: prog-10-010
+    tipo: codigo
+    dificultad: 3
+    conceptos: [casos-borde, casos-de-prueba]
+    lenguaje: c
+    enunciado: 'Escribe un programa en C que lea un entero $n$ ($0 \le n \le 100$) y luego $n$ enteros, e imprima el mayor seguido de un salto de línea. Si $n$ es 0, imprime `vacio`.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          if (n == 0) {
+              printf("vacio\n");
+              return 0;
+          }
+          int mayor, x;
+          scanf("%d", &mayor);
+          for (int i = 1; i < n; i++) {
+              scanf("%d", &x);
+              if (x > mayor) {
+                  mayor = x;
+              }
+          }
+          printf("%d\n", mayor);
+          return 0;
+      }
+    tests:
+      - { entrada: "3\n4 9 2\n", salida: "9\n" }
+      - { entrada: "0\n", salida: "vacio\n" }
+      - { entrada: "1\n7\n", salida: "7\n" }
+      - { entrada: "5\n2 4 6 8 10\n", salida: "10\n" }
+      - { entrada: "4\n-3 -1 -7 -2\n", salida: "-1\n", oculto: true }
+    pistas: ["¿Con qué valor empieza tu variable `mayor`? Piensa qué pasa si todos los números son negativos.", "Lee el primer número directo en `mayor` y compara los demás contra él."]
+    explicacion: 'El caso $n = 0$ se atiende primero. Después, `mayor` empieza con el **primer número leído**, no con 0: si empezara en 0, con puros negativos se imprimiría 0, que ni siquiera está en la entrada. La prueba oculta revisa justo ese caso borde.'
+
+  - id: prog-10-011
+    tipo: depurar
+    dificultad: 3
+    conceptos: [tipos-de-error, depuracion-sistematica]
+    lenguaje: c
+    enunciado: 'Este programa lee $n$ y luego $n$ enteros, y debe imprimir cuántos de ellos son cero. Compila (con una advertencia) pero siempre imprime 0. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n, x, ceros = 0;
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &x);
+              if (x = 0) {
+                  ceros++;
+              }
+          }
+          printf("%d\n", ceros);
+          return 0;
+      }
+    linea_bug: 8
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n, x, ceros = 0;
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &x);
+              if (x == 0) {
+                  ceros++;
+              }
+          }
+          printf("%d\n", ceros);
+          return 0;
+      }
+    tests:
+      - { entrada: "5\n0 3 0 0 7\n", salida: "3\n" }
+      - { entrada: "3\n1 2 3\n", salida: "0\n" }
+      - { entrada: "1\n0\n", salida: "1\n", oculto: true }
+    pistas: ["Lee con calma la advertencia del compilador sobre la condición del `if`.", "¿Qué diferencia hay entre `=` y `==` en C?"]
+    explicacion: '`x = 0` **asigna** 0 a `x` y el valor de esa expresión es 0, que en C es falso: el `if` nunca entra. Es un error de lógica que sí compila; `gcc -Wall` avisa que se usa una asignación como condición. La corrección es comparar con `x == 0`.'
+
+  - id: prog-10-012
+    tipo: parsons
+    dificultad: 3
+    conceptos: [excepciones, casos-borde]
+    lenguaje: python
+    enunciado: 'Ordena las líneas (con su sangría) para que `leer_edad(texto)` regrese la edad como entero si el texto es un entero entre 0 y 130, y -1 en cualquier otro caso. Atrapa solo el error de conversión. Sobran dos líneas.'
+    lineas:
+      - "def leer_edad(texto):"
+      - "    try:"
+      - "        edad = int(texto)"
+      - "    except ValueError:"
+      - "        edad = -1"
+      - "    if edad < 0 or edad > 130:"
+      - "        return -1"
+      - "    return edad"
+    distractores: ["    except:", "        edad = float(texto)"]
+    tests:
+      - { expr: "leer_edad('20')", esperado: 20 }
+      - { expr: "leer_edad('veinte')", esperado: -1 }
+      - { expr: "leer_edad('-3')", esperado: -1 }
+      - { expr: "leer_edad('130')", esperado: 130, oculto: true }
+      - { expr: "leer_edad('')", esperado: -1, oculto: true }
+    explicacion: 'Primero se intenta convertir con `int`; si el texto no es un entero se lanza `ValueError` y se marca la edad como -1. Después se revisa el rango, que también descarta el -1 de la conversión fallida. `except:` sin tipo atraparía cualquier error (hasta uno de dedo) y `float` aceptaría `"20.5"`, que no es una edad entera.'
+
+  - id: prog-10-013
+    tipo: predecir_salida
+    dificultad: 4
+    conceptos: [excepciones, tipos-de-error]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Escribe la salida exacta, una línea por cada `print` que se ejecute.'
+    codigo: |
+      def f(x):
+          print("entra", x)
+          r = 10 // x
+          print("sale", x)
+          return r
+
+      try:
+          f(2)
+          f(0)
+          f(5)
+      except ZeroDivisionError:
+          print("atrapado")
+      print("fin")
+    respuesta: "entra 2\nsale 2\nentra 0\natrapado\nfin"
+    pistas: ["La excepción nace dentro de `f(0)`, pero el `try` está afuera.", "¿Se llega a llamar `f(5)`?"]
+    explicacion: '`f(2)` corre completa. En `f(0)`, `10 // 0` lanza `ZeroDivisionError`; `f` no la atrapa, así que la excepción sube hasta el `try` de afuera, saltándose `print("sale", 0)` y también la llamada `f(5)`. El `except` imprime `atrapado` y el programa sigue con `fin`.'
+
+  - id: prog-10-014
+    tipo: depurar
+    dificultad: 4
+    conceptos: [tipos-de-error, depuracion-sistematica]
+    lenguaje: c
+    enunciado: 'Este programa lee $n \ge 1$ y luego $n$ enteros, y debe imprimir su promedio con dos decimales. Con `3` y `1 2 2` imprime `1.00` en vez de `1.67`. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n, x, suma = 0;
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &x);
+              suma += x;
+          }
+          double prom = suma / n;
+          printf("%.2f\n", prom);
+          return 0;
+      }
+    linea_bug: 10
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int n, x, suma = 0;
+          scanf("%d", &n);
+          for (int i = 0; i < n; i++) {
+              scanf("%d", &x);
+              suma += x;
+          }
+          double prom = (double) suma / n;
+          printf("%.2f\n", prom);
+          return 0;
+      }
+    tests:
+      - { entrada: "3\n1 2 2\n", salida: "1.67\n" }
+      - { entrada: "2\n4 6\n", salida: "5.00\n" }
+      - { entrada: "4\n7 8 8 9\n", salida: "8.00\n" }
+      - { entrada: "2\n9 10\n", salida: "9.50\n", oculto: true }
+    pistas: ["Que la variable sea `double` no cambia cómo se calcula lo que está a la derecha del `=`.", "¿De qué tipo son `suma` y `n`?"]
+    explicacion: '`suma / n` divide dos enteros, así que trunca (5 / 3 da 1) **antes** de guardarse en `prom`. Es un error de lógica: compila y corre sin quejarse. Basta convertir un operando: `(double) suma / n`. Las pruebas con promedio exacto (5.00 y 8.00) pasaban con el error; solo un caso con decimales lo delata.'
+
+  - id: prog-10-015
+    tipo: depurar
+    dificultad: 4
+    conceptos: [excepciones, depuracion-sistematica]
+    lenguaje: python
+    enunciado: '`suma_validos(textos)` debe sumar los textos que representan enteros e ignorar los demás, pero el programa truena con `["3", "x", "5"]`. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      def suma_validos(textos):
+          total = 0
+          for t in textos:
+              try:
+                  total += int(t)
+              except TypeError:
+                  pass
+          return total
+    linea_bug: 6
+    solucion: |
+      def suma_validos(textos):
+          total = 0
+          for t in textos:
+              try:
+                  total += int(t)
+              except ValueError:
+                  pass
+          return total
+    tests:
+      - { expr: "suma_validos(['3', '4'])", esperado: 7 }
+      - { expr: "suma_validos(['3', 'x', '5'])", esperado: 8 }
+      - { expr: "suma_validos([])", esperado: 0 }
+      - { expr: "suma_validos(['', '-2', '2.5'])", esperado: -2, oculto: true }
+    pistas: ["¿Qué excepción lanza exactamente `int('x')`?"]
+    explicacion: '`int("x")` lanza `ValueError` (el tipo es correcto, un texto, pero su contenido no es un entero). El `except TypeError` no la atrapa, así que la excepción sigue de largo y el programa truena. Atrapar la excepción correcta lo arregla; cambiarlo por `except:` a secas también "funcionaría", pero escondería cualquier otro error.'
+
+  - id: prog-10-016
+    tipo: codigo
+    dificultad: 4
+    conceptos: [casos-borde, tipos-de-error]
+    lenguaje: c
+    enunciado: 'Escribe un programa en C que lea enteros hasta que se acabe la entrada o hasta encontrar algo que no se pueda leer como entero. Imprime cuántos enteros leyó y su suma, separados por un espacio y con salto de línea. Ejemplo: con `10 -4 x 7` imprime `2 6`.'
+    plantilla: |
+      #include <stdio.h>
+
+      int main(void) {
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int main(void) {
+          int x, cuantos = 0;
+          long suma = 0;
+          while (scanf("%d", &x) == 1) {
+              cuantos++;
+              suma += x;
+          }
+          printf("%d %ld\n", cuantos, suma);
+          return 0;
+      }
+    tests:
+      - { entrada: "3 4 5\n", salida: "3 12\n" }
+      - { entrada: "10 -4 x 7\n", salida: "2 6\n" }
+      - { entrada: "abc\n", salida: "0 0\n" }
+      - { entrada: "", salida: "0 0\n", oculto: true }
+    pistas: ["`scanf` regresa cuántos datos logró leer: 1 si leyó el entero, 0 si encontró otra cosa y `EOF` si ya no hay entrada.", "Usa ese valor de retorno como condición de un `while`."]
+    explicacion: 'En C no hay excepciones: `scanf` avisa con su valor de retorno. `while (scanf("%d", &x) == 1)` sigue mientras se lea un entero y se detiene tanto con texto inválido (regresa 0) como con el fin de la entrada (regresa `EOF`). El caso borde de la entrada vacía debe dar `0 0`.'
+
+  - id: prog-10-017
+    tipo: codigo
+    dificultad: 4
+    conceptos: [excepciones, casos-borde]
+    lenguaje: python
+    enunciado: 'Escribe `minutos_del_dia(texto)` que reciba una hora como `"13:45"` y regrese los minutos transcurridos desde la medianoche (aquí, 825). El texto es válido si tiene exactamente un `:`, si `int()` puede convertir cada lado y si la hora va de 0 a 23 y los minutos de 0 a 59. Si no es válido, regresa -1.'
+    plantilla: |
+      def minutos_del_dia(texto):
+          pass
+    solucion: |
+      def minutos_del_dia(texto):
+          partes = texto.split(":")
+          if len(partes) != 2:
+              return -1
+          try:
+              h = int(partes[0])
+              m = int(partes[1])
+          except ValueError:
+              return -1
+          if 0 <= h <= 23 and 0 <= m <= 59:
+              return h * 60 + m
+          return -1
+    tests:
+      - { expr: "minutos_del_dia('13:45')", esperado: 825 }
+      - { expr: "minutos_del_dia('00:00')", esperado: 0 }
+      - { expr: "minutos_del_dia('7:05')", esperado: 425 }
+      - { expr: "minutos_del_dia('24:00')", esperado: -1 }
+      - { expr: "minutos_del_dia('ab:10')", esperado: -1 }
+      - { expr: "minutos_del_dia('1230')", esperado: -1 }
+      - { expr: "minutos_del_dia('23:59')", esperado: 1439, oculto: true }
+      - { expr: "minutos_del_dia('12:60')", esperado: -1, oculto: true }
+      - { expr: "minutos_del_dia('12:30:15')", esperado: -1, oculto: true }
+    pistas: ["`texto.split(\":\")` separa en partes; revisa cuántas salieron.", "Convierte dentro de `try` y atrapa `ValueError`.", "Revisa los rangos al final: 23:59 es válida, 24:00 y 12:60 no."]
+    explicacion: 'Se valida en capas: primero la forma (exactamente dos partes), luego la conversión (`int` lanza `ValueError` con `"ab"`) y al final los rangos. Las fronteras importan: 23:59 da 1439 y es válida, mientras que 24:00 y 12:60 se pasan por uno.'
+
+  - id: prog-10-018
+    tipo: depurar
+    dificultad: 5
+    conceptos: [casos-borde, depuracion-sistematica, casos-de-prueba]
+    lenguaje: python
+    enunciado: '`es_primo(n)` pasa con 1, 2, 7 y 12, pero un usuario reporta que a veces dice que un número compuesto es primo. Las pruebas ocultas lo confirman. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      def es_primo(n):
+          if n < 2:
+              return False
+          for d in range(2, int(n ** 0.5)):
+              if n % d == 0:
+                  return False
+          return True
+    linea_bug: 4
+    solucion: |
+      def es_primo(n):
+          if n < 2:
+              return False
+          for d in range(2, int(n ** 0.5) + 1):
+              if n % d == 0:
+                  return False
+          return True
+    tests:
+      - { expr: "es_primo(1)", esperado: false }
+      - { expr: "es_primo(2)", esperado: true }
+      - { expr: "es_primo(7)", esperado: true }
+      - { expr: "es_primo(12)", esperado: false }
+      - { expr: "es_primo(9)", esperado: false, oculto: true }
+      - { expr: "es_primo(49)", esperado: false, oculto: true }
+    pistas: ["¿Qué compuestos solo tienen divisores iguales a su raíz cuadrada? Prueba con 9, 25 o 49.", "Recuerda que `range` excluye su tope."]
+    explicacion: 'Basta probar divisores hasta $\sqrt{n}$ **incluida**. Como `range` excluye el tope, con `range(2, int(n ** 0.5))` nunca se prueba la raíz misma: para 9 solo se prueba el 2, y 9 sale "primo". Los cuadrados de primos (9, 25, 49) son el caso borde que lo delata; 12 pasaba porque tiene un divisor pequeño (2). La corrección es sumar 1 al tope.'
+
+  - id: prog-10-019
+    tipo: codigo
+    dificultad: 5
+    conceptos: [casos-de-prueba, assert-pruebas, excepciones]
+    lenguaje: python
+    enunciado: 'Construye un mini corredor de pruebas. Escribe `contar_fallas(f, casos)`, donde `casos` es una lista de parejas `(entrada, esperado)`. Regresa cuántos casos fallan: un caso falla si `f(entrada)` es distinto de `esperado` **o** si `f(entrada)` lanza cualquier excepción. Tu función nunca debe tronar.'
+    plantilla: |
+      def contar_fallas(f, casos):
+          pass
+    solucion: |
+      def contar_fallas(f, casos):
+          fallas = 0
+          for entrada, esperado in casos:
+              try:
+                  if f(entrada) != esperado:
+                      fallas += 1
+              except Exception:
+                  fallas += 1
+          return fallas
+    tests:
+      - { expr: "contar_fallas(lambda x: x * 2, [(1, 2), (2, 4), (3, 7)])", esperado: 1 }
+      - { expr: "contar_fallas(lambda x: x * x, [(0, 0), (2, 4), (3, 6)])", esperado: 1 }
+      - { expr: "contar_fallas(abs, [])", esperado: 0 }
+      - { expr: "contar_fallas(lambda x: 10 // x, [(1, 10), (0, 0), (5, 2)])", esperado: 1, oculto: true }
+      - { expr: "contar_fallas(int, [('7', 7), ('x', 0), ('3.5', 3)])", esperado: 2, oculto: true }
+    pistas: ["Recorre las parejas con `for entrada, esperado in casos:`.", "Pon la llamada `f(entrada)` dentro de un `try`; ¿qué cuentas en el `except`?"]
+    explicacion: 'Por cada pareja se llama a `f` dentro de `try`: si el resultado no coincide se cuenta una falla, y si `f` lanza una excepción el `except Exception` también la cuenta. Aquí sí conviene atrapar cualquier excepción, porque un corredor de pruebas debe sobrevivir a cualquier error del código que revisa (y aun así se evita `except:` a secas). Así funcionan por dentro herramientas como `pytest`.'
+
+  - id: prog-10-020
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [depuracion-sistematica, casos-de-prueba, casos-borde]
+    enunciado: 'Tu compañero escribió `es_bisiesto(anio)` y dice que "ya funciona" porque con 2024 dio `True` y con 2023 dio `False`. Explícale qué casos le faltan, cómo decidiría el resultado esperado de cada uno y qué haría si alguno falla. (Regla del calendario gregoriano: es bisiesto si es múltiplo de 4, salvo los múltiplos de 100 que no son múltiplos de 400.)'
+    rubrica:
+      - "Señala que dos casos típicos no bastan y que faltan casos borde."
+      - "Propone casos de las fronteras de la regla: un múltiplo de 100 que no es de 400 (como 1900) y un múltiplo de 400 (como 2000)."
+      - "Dice que el resultado esperado se saca de la regla, no de lo que imprime la función."
+      - "Describe una depuración con método: reproducir con el caso que falla, ubicar la primera línea que se desvía, corregir la causa y volver a correr todas las pruebas."
+    respuesta_modelo: 'Con 2024 y 2023 solo probó la parte "múltiplo de 4". Faltan las fronteras de la regla: 1900 (múltiplo de 100 pero no de 400, no es bisiesto), 2000 (múltiplo de 400, sí es bisiesto) y quizá 2100 (no lo es). El esperado de cada caso se calcula con la regla a mano antes de correr la función, nunca copiando su salida. Si uno falla, lo escribo como `assert`, sigo los valores de las condiciones para ese año hasta ver cuál decide mal, corrijo esa condición y vuelvo a correr todas las pruebas.'
+    explicacion: 'La clave de esta unidad: los errores viven en los bordes de las condiciones. Si no mencionaste 1900 o 2000, repasa la sección de casos borde.'
+    tarjeta: false

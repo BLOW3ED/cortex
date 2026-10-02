@@ -1,0 +1,608 @@
+unidad: programacion/04-funciones
+ejercicios:
+  - id: prog-04-001
+    tipo: predecir_salida
+    dificultad: 1
+    conceptos: [funciones-definicion, parametros-retorno]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son dos líneas.'
+    codigo: |
+      def saluda(nombre):
+          return "Hola, " + nombre
+
+      mensaje = saluda("Luz")
+      print(mensaje)
+      print(saluda("Max") + "!")
+    respuesta: "Hola, Luz\nHola, Max!"
+    pistas: ["`return` entrega el texto armado; quien lo muestra es `print`."]
+    explicacion: 'La primera llamada regresa `"Hola, Luz"`, que se guarda en `mensaje` y se imprime. La segunda regresa `"Hola, Max"`, se le pega `"!"` y se imprime. La función por sí sola nunca imprime nada.'
+
+  - id: prog-04-002
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [parametros-retorno]
+    enunciado: 'En Python, ¿qué regresa una función que termina sin ejecutar ningún `return`?'
+    opciones: ["`None`", "`0`", "El valor de la última variable que asignó", "Nada: Python marca error al llamarla"]
+    correcta: 0
+    explicacion: 'Toda función de Python regresa algo; si no ejecuta un `return`, regresa `None`. Por eso `x = f()` no falla, pero después `x + 1` sí (no se puede sumar `None`).'
+
+  - id: prog-04-003
+    tipo: completar
+    dificultad: 1
+    conceptos: [funciones-definicion, prototipos-c]
+    enunciado: 'Completa con la palabra clave correcta.'
+    texto: 'En Python una función se define con la palabra ___ . En C, una función que no regresa ningún valor se declara con el tipo de retorno ___ .'
+    respuestas: ["def", "void"]
+    explicacion: 'En Python se escribe `def nombre(parámetros):`. En C el tipo de retorno va antes del nombre, y `void` significa "no regresa valor", como en `void saluda(void)`.'
+
+  - id: prog-04-004
+    tipo: opcion_multiple
+    dificultad: 1
+    conceptos: [paso-por-valor]
+    enunciado: |
+      ¿Qué imprime este programa en C?
+
+      ```c
+      #include <stdio.h>
+
+      void incrementa(int n) {
+          n = n + 1;
+      }
+
+      int main(void) {
+          int a = 4;
+          incrementa(a);
+          printf("%d\n", a);
+          return 0;
+      }
+      ```
+    opciones: ["`4`", "`5`", "Un valor basura", "Error de compilación"]
+    correcta: 0
+    pistas: ["¿`n` y `a` son la misma variable, o `n` es una copia?"]
+    explicacion: 'C pasa los argumentos por valor: `n` recibe una copia de `a`. La función le suma 1 a la copia, que desaparece al terminar la función; `a` sigue valiendo 4.'
+
+  - id: prog-04-005
+    tipo: codigo
+    dificultad: 2
+    conceptos: [funciones-definicion, parametros-retorno]
+    lenguaje: python
+    enunciado: 'Escribe `distancia(x1, y1, x2, y2)` que regrese la distancia entre los puntos $(x_1, y_1)$ y $(x_2, y_2)$: $d=\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}$.'
+    plantilla: |
+      import math
+
+      def distancia(x1, y1, x2, y2):
+          pass
+    solucion: |
+      import math
+
+      def distancia(x1, y1, x2, y2):
+          return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    tests:
+      - { expr: "distancia(0, 0, 3, 4)", esperado: 5, tolerancia: 0.000001 }
+      - { expr: "distancia(1, 2, 4, 6)", esperado: 5, tolerancia: 0.000001 }
+      - { expr: "distancia(-1, -1, 1, 1)", esperado: 2.8284271247, tolerancia: 0.000001 }
+      - { expr: "distancia(2, 3, 2, 3)", esperado: 0, tolerancia: 0.000001, oculto: true }
+    pistas: ["`math.sqrt` saca la raíz cuadrada y `**` eleva a una potencia.", "Usa `return`: las pruebas revisan lo que regresa la función, no la pantalla."]
+    explicacion: 'Se restan las coordenadas, se elevan al cuadrado, se suman y se saca la raíz. Cuando los dos puntos son el mismo (caso borde), la distancia es 0.'
+
+  - id: prog-04-006
+    tipo: predecir_salida
+    dificultad: 2
+    conceptos: [alcance-variables]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son dos líneas.'
+    codigo: |
+      x = 10
+
+      def cambia():
+          x = 99
+          print(x)
+
+      cambia()
+      print(x)
+    respuesta: "99\n10"
+    pistas: ["Asignar a `x` dentro de la función crea una variable local con ese nombre."]
+    explicacion: 'Dentro de `cambia`, `x = 99` crea una `x` local que tapa a la global, así que se imprime 99. Al terminar la función esa `x` local desaparece; afuera sigue la global, que vale 10.'
+
+  - id: prog-04-007
+    tipo: codigo
+    dificultad: 2
+    conceptos: [funciones-definicion, parametros-retorno, prototipos-c]
+    lenguaje: c
+    enunciado: 'Completa la función `mayor3(a, b, c)` para que regrese el mayor de tres enteros. El `main` ya lee los tres números e imprime lo que regresa tu función.'
+    plantilla: |
+      #include <stdio.h>
+
+      int mayor3(int a, int b, int c);
+
+      int main(void) {
+          int a, b, c;
+          scanf("%d %d %d", &a, &b, &c);
+          printf("%d\n", mayor3(a, b, c));
+          return 0;
+      }
+
+      int mayor3(int a, int b, int c) {
+          /* tu código aquí */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int mayor3(int a, int b, int c);
+
+      int main(void) {
+          int a, b, c;
+          scanf("%d %d %d", &a, &b, &c);
+          printf("%d\n", mayor3(a, b, c));
+          return 0;
+      }
+
+      int mayor3(int a, int b, int c) {
+          int m = a;
+          if (b > m) {
+              m = b;
+          }
+          if (c > m) {
+              m = c;
+          }
+          return m;
+      }
+    tests:
+      - { entrada: "3 9 4\n", salida: "9\n" }
+      - { entrada: "7 2 1\n", salida: "7\n" }
+      - { entrada: "1 2 8\n", salida: "8\n" }
+      - { entrada: "-5 -2 -9\n", salida: "-2\n", oculto: true }
+    pistas: ["Toma el primero como mayor provisional y compáralo con los otros dos."]
+    explicacion: 'Se toma `a` como mayor provisional y se reemplaza si `b` o `c` son más grandes. Con puros negativos (caso oculto) no sirve empezar en 0: hay que empezar con uno de los números. El prototipo de arriba permite que `main` use `mayor3` antes de su definición.'
+
+  - id: prog-04-008
+    tipo: parsons
+    dificultad: 2
+    conceptos: [funciones-definicion, parametros-retorno]
+    lenguaje: python
+    enunciado: 'Ordena las líneas (con su sangría) para que `factorial(n)` regrese $n! = 1\cdot 2\cdots n$, con $0! = 1$. Sobran dos líneas.'
+    lineas:
+      - "def factorial(n):"
+      - "    resultado = 1"
+      - "    for i in range(2, n + 1):"
+      - "        resultado = resultado * i"
+      - "    return resultado"
+    distractores: ["    resultado = 0", "        print(resultado)"]
+    tests:
+      - { expr: "factorial(5)", esperado: 120 }
+      - { expr: "factorial(1)", esperado: 1 }
+      - { expr: "factorial(0)", esperado: 1, oculto: true }
+    explicacion: 'El acumulador de un producto empieza en 1 (con 0 todo daría 0). El ciclo multiplica de 2 a n, y el `return` va fuera del ciclo para entregar el producto completo. Con n = 0 o n = 1 el ciclo no da vueltas y se regresa 1.'
+
+  - id: prog-04-009
+    tipo: depurar
+    dificultad: 2
+    conceptos: [parametros-retorno]
+    lenguaje: python
+    enunciado: '`suma_digitos(n)` debería regresar la suma de los dígitos de un entero $n \ge 0$ (por ejemplo, 123 da 6). Las pruebas fallan aunque en pantalla aparece el número correcto. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      def suma_digitos(n):
+          total = 0
+          while n > 0:
+              total = total + n % 10
+              n = n // 10
+          print(total)
+    linea_bug: 6
+    solucion: |
+      def suma_digitos(n):
+          total = 0
+          while n > 0:
+              total = total + n % 10
+              n = n // 10
+          return total
+    tests:
+      - { expr: "suma_digitos(123)", esperado: 6 }
+      - { expr: "suma_digitos(9)", esperado: 9 }
+      - { expr: "suma_digitos(0)", esperado: 0, oculto: true }
+    pistas: ["¿Qué recibe quien llama a la función: lo que se imprime o lo que se regresa?"]
+    explicacion: '`print(total)` solo muestra el número; la función termina sin `return` y regresa `None`, así que las pruebas comparan `None` con 6. La corrección es `return total`. Con 0 el ciclo no da vueltas y se regresa 0.'
+
+  - id: prog-04-010
+    tipo: ordenar
+    dificultad: 3
+    conceptos: [funciones-definicion, parametros-retorno, alcance-variables]
+    enunciado: 'Con `def cuadrado(x): return x * x`, ordena lo que pasa al ejecutar `r = cuadrado(2 + 1)`.'
+    elementos:
+      - "Se evalúa el argumento: `2 + 1` da 3"
+      - "Se crea la variable local `x` con el valor 3"
+      - "Se ejecuta el cuerpo hasta `return x * x`, que calcula 9"
+      - "La función termina y su variable local `x` deja de existir"
+      - "El 9 ocupa el lugar de la llamada y se asigna a `r`"
+    explicacion: 'Los argumentos se evalúan antes de entrar a la función. Al entrar, el parámetro `x` es una variable local que recibe el 3. El `return` calcula el resultado y termina la llamada (sus locales desaparecen); el valor regresado reemplaza a la llamada y entonces se asigna a `r`.'
+
+  - id: prog-04-011
+    tipo: predecir_salida
+    dificultad: 3
+    conceptos: [paso-por-valor, parametros-retorno]
+    lenguaje: python
+    enunciado: '¿Qué imprime este programa? Son dos líneas.'
+    codigo: |
+      def triplica(n):
+          n = n * 3
+          return n
+
+      a = 2
+      b = triplica(a)
+      print(a, b)
+      print(triplica(triplica(a)))
+    respuesta: "2 6\n18"
+    pistas: ["Reasignar `n` dentro de la función no cambia `a`.", "En una llamada anidada se resuelve primero la de adentro."]
+    explicacion: '`triplica(a)` regresa 6, que se guarda en `b`; `a` sigue en 2 porque la función solo reasignó su parámetro local. Después, `triplica(2)` da 6 y `triplica(6)` da 18.'
+
+  - id: prog-04-012
+    tipo: codigo
+    dificultad: 3
+    conceptos: [descomposicion, parametros-retorno]
+    lenguaje: python
+    enunciado: 'Un número es **capicúa** si se lee igual al revés (121, 7, 4554). Escribe dos funciones: `invierte(n)`, que regrese el entero $n \ge 0$ con sus dígitos al revés (1200 da 21), y `es_capicua(n)`, que regrese `True` o `False` usando `invierte`.'
+    plantilla: |
+      def invierte(n):
+          pass
+
+      def es_capicua(n):
+          pass
+    solucion: |
+      def invierte(n):
+          r = 0
+          while n > 0:
+              r = r * 10 + n % 10
+              n = n // 10
+          return r
+
+      def es_capicua(n):
+          return invierte(n) == n
+    tests:
+      - { expr: "invierte(123)", esperado: 321 }
+      - { expr: "invierte(1200)", esperado: 21 }
+      - { expr: "es_capicua(121)", esperado: true }
+      - { expr: "es_capicua(4554)", esperado: true }
+      - { expr: "es_capicua(10)", esperado: false }
+      - { expr: "es_capicua(7)", esperado: true, oculto: true }
+      - { expr: "es_capicua(0)", esperado: true, oculto: true }
+    pistas: ["`n % 10` es el último dígito y `n // 10` lo quita.", "Para pegar un dígito `d` al final de `r`: `r = r * 10 + d`."]
+    explicacion: '`invierte` saca el último dígito con `% 10`, lo pega al final de `r` multiplicando por 10, y quita ese dígito con `// 10`. Así `es_capicua` queda de una línea: compara el número con su inverso. Con 0, `invierte` regresa 0 y por lo tanto 0 es capicúa.'
+
+  - id: prog-04-013
+    tipo: depurar
+    dificultad: 3
+    conceptos: [parametros-retorno]
+    lenguaje: c
+    enunciado: 'Este programa lee dos enteros e imprime su promedio con dos decimales, pero con `3 4` imprime `3.00` en lugar de `3.50`. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      #include <stdio.h>
+
+      double promedio(int a, int b) {
+          return (a + b) / 2;
+      }
+
+      int main(void) {
+          int a, b;
+          scanf("%d %d", &a, &b);
+          printf("%.2f\n", promedio(a, b));
+          return 0;
+      }
+    linea_bug: 4
+    solucion: |
+      #include <stdio.h>
+
+      double promedio(int a, int b) {
+          return (a + b) / 2.0;
+      }
+
+      int main(void) {
+          int a, b;
+          scanf("%d %d", &a, &b);
+          printf("%.2f\n", promedio(a, b));
+          return 0;
+      }
+    tests:
+      - { entrada: "3 4\n", salida: "3.50\n" }
+      - { entrada: "10 20\n", salida: "15.00\n" }
+      - { entrada: "-3 0\n", salida: "-1.50\n", oculto: true }
+    pistas: ["El tipo de retorno es `double`, pero ¿de qué tipo es la división `(a + b) / 2`?"]
+    explicacion: '`(a + b) / 2` divide dos enteros: el resultado se trunca antes de convertirse a `double`. Que la función regrese `double` no rescata los decimales perdidos. Con `2.0` la división ya es decimal.'
+
+  - id: prog-04-014
+    tipo: codigo
+    dificultad: 3
+    conceptos: [prototipos-c, descomposicion]
+    lenguaje: c
+    enunciado: 'Completa `es_bisiesto(anio)` (regresa 1 o 0) y `dias_del_mes(mes, anio)`, que debe usar `es_bisiesto` para febrero. En el calendario gregoriano un año es bisiesto si es divisible entre 4 y no entre 100, o si es divisible entre 400. Abril, junio, septiembre y noviembre tienen 30 días; febrero, 28 o 29; los demás, 31.'
+    plantilla: |
+      #include <stdio.h>
+
+      int es_bisiesto(int anio);
+      int dias_del_mes(int mes, int anio);
+
+      int main(void) {
+          int mes, anio;
+          scanf("%d %d", &mes, &anio);
+          printf("%d\n", dias_del_mes(mes, anio));
+          return 0;
+      }
+
+      int es_bisiesto(int anio) {
+          /* 1 si es bisiesto, 0 si no */
+          return 0;
+      }
+
+      int dias_del_mes(int mes, int anio) {
+          /* usa es_bisiesto para febrero */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int es_bisiesto(int anio);
+      int dias_del_mes(int mes, int anio);
+
+      int main(void) {
+          int mes, anio;
+          scanf("%d %d", &mes, &anio);
+          printf("%d\n", dias_del_mes(mes, anio));
+          return 0;
+      }
+
+      int es_bisiesto(int anio) {
+          return (anio % 4 == 0 && anio % 100 != 0) || anio % 400 == 0;
+      }
+
+      int dias_del_mes(int mes, int anio) {
+          if (mes == 2) {
+              return es_bisiesto(anio) ? 29 : 28;
+          }
+          if (mes == 4 || mes == 6 || mes == 9 || mes == 11) {
+              return 30;
+          }
+          return 31;
+      }
+    tests:
+      - { entrada: "2 2024\n", salida: "29\n" }
+      - { entrada: "2 2023\n", salida: "28\n" }
+      - { entrada: "4 2023\n", salida: "30\n" }
+      - { entrada: "12 2023\n", salida: "31\n" }
+      - { entrada: "2 1900\n", salida: "28\n", oculto: true }
+      - { entrada: "2 2000\n", salida: "29\n", oculto: true }
+    pistas: ["Escribe la regla de bisiesto como una sola expresión con `&&` y `||`.", "En `dias_del_mes` resuelve primero el caso de febrero."]
+    explicacion: 'Cada función tiene un solo trabajo: `es_bisiesto` aplica la regla y `dias_del_mes` decide por casos. 1900 es divisible entre 100 pero no entre 400, así que no es bisiesto; 2000 sí lo es. Los prototipos permiten que `main` vaya primero.'
+
+  - id: prog-04-015
+    tipo: autoevaluacion
+    dificultad: 3
+    conceptos: [descomposicion, paso-por-valor]
+    enunciado: 'Supón que vas a escribir en C un programa que lee una hora en formato de 24 horas (por ejemplo `18 45`), revisa que sea válida y la imprime en formato de 12 horas (`6:45 PM`). Explica en qué funciones lo dividirías (nombre, qué reciben y qué regresan) y por qué ninguna de ellas puede cambiar por accidente las variables `hora` y `minuto` de `main`.'
+    rubrica:
+      - "Propone al menos dos funciones, cada una con un solo trabajo (por ejemplo, validar y convertir)."
+      - "Dice qué parámetros recibe y qué regresa cada función."
+      - "Explica que C pasa los argumentos por valor: cada función trabaja con copias."
+      - "Menciona una ventaja de dividir: probar cada parte por separado o reutilizarla."
+    respuesta_modelo: 'Haría `int hora_valida(int h, int m)`, que regresa 1 si 0 ≤ h ≤ 23 y 0 ≤ m ≤ 59, y `int hora_12(int h)`, que convierte 0 en 12 y resta 12 a las horas mayores que 12. Una tercera, `int es_pm(int h)`, regresa 1 si h ≥ 12. `main` lee, valida, convierte e imprime. Como C pasa por valor, cada función recibe copias de `hora` y `minuto`; aunque las modifique adentro, las de `main` no cambian. Así puedo probar cada función con casos sueltos (0, 12, 23) sin correr el programa completo.'
+    explicacion: 'Si no pudiste decir qué regresa cada función, o mezclaste leer, validar e imprimir en una sola, repasa la sección "Descomponer un problema".'
+    tarjeta: false
+
+  - id: prog-04-016
+    tipo: opcion_multiple
+    dificultad: 4
+    conceptos: [alcance-variables]
+    enunciado: |
+      ¿Qué pasa al ejecutar este programa de Python?
+
+      ```python
+      contador = 0
+
+      def registra():
+          contador = contador + 1
+          return contador
+
+      print(registra())
+      ```
+    opciones:
+      - "Imprime `1`"
+      - "Imprime `0`"
+      - "Falla con `UnboundLocalError`: como la función asigna a `contador`, ese nombre es local y se lee antes de tener valor"
+      - "Imprime `1` y además la variable global queda en 1"
+    correcta: 2
+    pistas: ["En Python, ¿qué pasa con un nombre al que una función le asigna un valor?"]
+    explicacion: 'Python decide el alcance al leer la función completa: como hay una asignación a `contador`, ese nombre es local en toda la función. Al evaluar `contador + 1` la local todavía no tiene valor y se lanza `UnboundLocalError`. La salida limpia es recibir el valor como parámetro y regresar el nuevo.'
+
+  - id: prog-04-017
+    tipo: opcion_multiple
+    dificultad: 4
+    conceptos: [paso-por-valor]
+    enunciado: |
+      ¿Qué imprime este programa en C? Imprime dos líneas.
+
+      ```c
+      #include <stdio.h>
+
+      void intercambia(int a, int b) {
+          int t = a;
+          a = b;
+          b = t;
+          printf("%d %d\n", a, b);
+      }
+
+      int main(void) {
+          int x = 1, y = 2;
+          intercambia(x, y);
+          printf("%d %d\n", x, y);
+          return 0;
+      }
+      ```
+    opciones:
+      - "`2 1` y luego `1 2`"
+      - "`2 1` y luego `2 1`"
+      - "`1 2` y luego `1 2`"
+      - "`1 2` y luego `2 1`"
+    correcta: 0
+    pistas: ["Adentro de la función, `a` y `b` sí se intercambian. ¿Son las mismas cajas que `x` y `y`?"]
+    explicacion: '`a` y `b` son copias de `x` y `y`. Dentro de la función las copias se intercambian, así que se imprime `2 1`. Al regresar a `main`, `x` y `y` nunca cambiaron: `1 2`. Para intercambiar de verdad hacen falta apuntadores (unidad 6).'
+
+  - id: prog-04-018
+    tipo: codigo
+    dificultad: 4
+    conceptos: [descomposicion, parametros-retorno]
+    lenguaje: python
+    enunciado: 'Dos primos son **gemelos** si se llevan 2, como 11 y 13. Escribe `cuenta_gemelos(n)` que regrese cuántas parejas $(p, p+2)$ de primos gemelos cumplen $p + 2 \le n$. Divide el trabajo: primero escribe `es_primo(k)` y úsala dentro de `cuenta_gemelos`.'
+    plantilla: |
+      def es_primo(k):
+          pass
+
+      def cuenta_gemelos(n):
+          pass
+    solucion: |
+      def es_primo(k):
+          if k < 2:
+              return False
+          d = 2
+          while d * d <= k:
+              if k % d == 0:
+                  return False
+              d += 1
+          return True
+
+      def cuenta_gemelos(n):
+          cuenta = 0
+          for p in range(2, n - 1):
+              if es_primo(p) and es_primo(p + 2):
+                  cuenta += 1
+          return cuenta
+    tests:
+      - { expr: "cuenta_gemelos(10)", esperado: 2 }
+      - { expr: "cuenta_gemelos(13)", esperado: 3 }
+      - { expr: "cuenta_gemelos(20)", esperado: 4 }
+      - { expr: "cuenta_gemelos(100)", esperado: 8 }
+      - { expr: "cuenta_gemelos(4)", esperado: 0, oculto: true }
+      - { expr: "cuenta_gemelos(5)", esperado: 1, oculto: true }
+    pistas: ["`es_primo(k)`: k ≥ 2 y ningún divisor d con `d * d <= k`.", "En `cuenta_gemelos`, p va de 2 hasta n − 2 para que p + 2 no pase de n."]
+    explicacion: 'Con `es_primo` resuelta, `cuenta_gemelos` solo recorre los p posibles (de 2 a n − 2) y cuenta los que cumplen `es_primo(p) and es_primo(p + 2)`. Hasta 10 son (3, 5) y (5, 7); con n = 5 solo cabe (3, 5), y con n = 4 ninguna.'
+
+  - id: prog-04-019
+    tipo: codigo
+    dificultad: 4
+    conceptos: [descomposicion, prototipos-c, parametros-retorno]
+    lenguaje: c
+    enunciado: 'Completa `mcd(a, b)` con el algoritmo de Euclides (mientras `b` no sea 0, el par `(a, b)` se vuelve `(b, a % b)`; al final el máximo común divisor es `a`) y `mcm(a, b)`, que debe usar `mcd`: $\operatorname{mcm}(a,b) = \dfrac{a}{\operatorname{mcd}(a,b)}\cdot b$. Los dos números son enteros positivos.'
+    plantilla: |
+      #include <stdio.h>
+
+      int mcd(int a, int b);
+      int mcm(int a, int b);
+
+      int main(void) {
+          int a, b;
+          scanf("%d %d", &a, &b);
+          printf("%d %d\n", mcd(a, b), mcm(a, b));
+          return 0;
+      }
+
+      int mcd(int a, int b) {
+          /* algoritmo de Euclides */
+          return 0;
+      }
+
+      int mcm(int a, int b) {
+          /* usa mcd */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int mcd(int a, int b);
+      int mcm(int a, int b);
+
+      int main(void) {
+          int a, b;
+          scanf("%d %d", &a, &b);
+          printf("%d %d\n", mcd(a, b), mcm(a, b));
+          return 0;
+      }
+
+      int mcd(int a, int b) {
+          while (b != 0) {
+              int r = a % b;
+              a = b;
+              b = r;
+          }
+          return a;
+      }
+
+      int mcm(int a, int b) {
+          return a / mcd(a, b) * b;
+      }
+    tests:
+      - { entrada: "12 18\n", salida: "6 36\n" }
+      - { entrada: "7 5\n", salida: "1 35\n" }
+      - { entrada: "21 6\n", salida: "3 42\n" }
+      - { entrada: "100 75\n", salida: "25 300\n", oculto: true }
+      - { entrada: "9 9\n", salida: "9 9\n", oculto: true }
+    pistas: ["Guarda `a % b` en una variable temporal antes de mover los valores.", "En `mcm`, divide antes de multiplicar para no desbordar el `int`."]
+    explicacion: 'Euclides repite `(a, b) → (b, a % b)`: con 12 y 18 pasa por (18, 12), (12, 6), (6, 0) y da 6. Como `mcd` modifica sus parámetros, que son copias, `main` no pierde sus `a` y `b`. `mcm` reutiliza `mcd`: 12 / 6 · 18 = 36.'
+
+  - id: prog-04-020
+    tipo: codigo
+    dificultad: 5
+    conceptos: [descomposicion, prototipos-c]
+    lenguaje: c
+    enunciado: 'Dos números distintos son **amigos** si la suma de los divisores propios de cada uno (los divisores menores que él) es igual al otro. Lee un entero $n \ge 2$ e imprime, una pareja por línea y de menor a mayor, todas las parejas `a b` de amigos con $a < b \le n$. Si no hay ninguna, imprime `ninguno`. Escribe una función `suma_divisores(k)` y úsala.'
+    plantilla: |
+      #include <stdio.h>
+
+      int suma_divisores(int k);
+
+      int main(void) {
+          int n;
+          scanf("%d", &n);
+          /* busca las parejas usando suma_divisores */
+          return 0;
+      }
+
+      int suma_divisores(int k) {
+          /* suma de los divisores de k menores que k */
+          return 0;
+      }
+    solucion: |
+      #include <stdio.h>
+
+      int suma_divisores(int k);
+
+      int main(void) {
+          int n;
+          int encontradas = 0;
+          scanf("%d", &n);
+          for (int a = 2; a <= n; a++) {
+              int b = suma_divisores(a);
+              if (b > a && b <= n && suma_divisores(b) == a) {
+                  printf("%d %d\n", a, b);
+                  encontradas++;
+              }
+          }
+          if (encontradas == 0) {
+              printf("ninguno\n");
+          }
+          return 0;
+      }
+
+      int suma_divisores(int k) {
+          int suma = 0;
+          for (int d = 1; d < k; d++) {
+              if (k % d == 0) {
+                  suma += d;
+              }
+          }
+          return suma;
+      }
+    tests:
+      - { entrada: "300\n", salida: "220 284\n" }
+      - { entrada: "1500\n", salida: "220 284\n1184 1210\n" }
+      - { entrada: "200\n", salida: "ninguno\n" }
+      - { entrada: "3000\n", salida: "220 284\n1184 1210\n2620 2924\n", oculto: true }
+      - { entrada: "284\n", salida: "220 284\n", oculto: true }
+    pistas: ["Para cada a, calcula b = suma_divisores(a). Solo te interesa si b > a (así no repites ni cuentas los perfectos).", "Luego confirma el regreso: ¿suma_divisores(b) da a? Revisa también que b ≤ n."]
+    explicacion: 'Con `suma_divisores` el problema principal queda corto: para cada a se calcula su "candidato" b y se confirma que el camino de regreso lleve a a. Pedir b > a evita imprimir dos veces la misma pareja y descarta los números perfectos (como 6, cuya suma da él mismo). La pareja (220, 284) aparece justo cuando n llega a 284.'
