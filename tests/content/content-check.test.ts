@@ -107,7 +107,7 @@ describe("pnpm content:check", () => {
   });
 
   it("sin Python falla y explica qué hacer", () => {
-    const env = { ...process.env, PATH: emptyDir(), CORTEX_PYTHON: "/no/existe" };
+    const env = { ...process.env, PATH: emptyDir(), CORTEX_PYTHON: "/no/existe", CORTEX_VENV: emptyDir() };
     const r = contentCheck(makeRoot(), [], env);
     expect(r.status).toBe(1);
     expect(r.out).toContain("no encontré Python 3.11+");

@@ -117,9 +117,9 @@ function main(): number {
   if (!py.ok) {
     console.log("ERROR   no encontré Python 3.11+ con sympy y PyYAML. Probé:");
     py.tried.forEach((t) => console.log(`        - ${t}`));
-    console.log("        Instala las dependencias en un entorno virtual (README, paso 2):");
+    console.log("        Crea el entorno virtual del repo (README, paso 2); se usa solo, sin activarlo:");
     console.log("          python3 -m venv .venv && .venv/bin/python -m pip install -r scripts/requirements.txt");
-    console.log("        y luego activa el entorno (`source .venv/bin/activate`) o define CORTEX_PYTHON con la ruta absoluta a su python.");
+    console.log("        (o define CORTEX_PYTHON con la ruta a un Python que ya tenga sympy y PyYAML).");
     failed.push("3", "4");
   } else {
     // ---- Capa 3 (solo YAML: el plan es JSON y ambos lados lo leen con un parser de JSON)
