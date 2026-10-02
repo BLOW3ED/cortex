@@ -7,7 +7,7 @@ import { Suspense, useEffect } from "react";
 import { GymHub } from "@/components/gym/gym-hub";
 import { BossRunner } from "@/components/study/boss-runner";
 import { DailySession } from "@/components/study/daily-session";
-import { LessonQuiz, PracticeRunner, ReviewRunner } from "@/components/study/runners";
+import { LessonQuiz, PracticeRunner, ReviewRunner, SingleExercise } from "@/components/study/runners";
 import { StudyGate } from "@/components/study/study-gate";
 import { Button } from "@/components/ui/button";
 import { findUnit } from "@/content/core/study-catalog";
@@ -22,6 +22,9 @@ function useEscapeTo(href: string) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape" || e.defaultPrevented) return;
+      // En el editor de código, Esc sirve para salir de él con Tab: no saca de la página.
+      const el = e.target as HTMLElement | null;
+      if (el?.closest(".cm-editor") || el?.tagName === "INPUT" || el?.tagName === "TEXTAREA") return;
       if (document.querySelector("[role=alertdialog], [role=dialog]")) return;
       window.location.assign(href);
     };
@@ -121,4 +124,22 @@ export function UnitStudyClient(props: { unitKey: string; kind: "practice" | "bo
 
 export function GymPageClient() {
   return <StudyGate>{(ctx) => <GymHub db={ctx.db} catalog={ctx.catalog} />}</StudyGate>;
+}
+
+export function SingleExerciseClient({ exerciseId }: { exerciseId: string }) {
+  return (
+    <StudyGate>
+      {(ctx) => {
+        const ex = ctx.catalog.exercises[exerciseId];
+        const unit = ex ? findUnit(ctx.catalog, ex.unitKey) : undefined;
+        if (!ex || !unit) return <p>Ejercicio no encontrado.</p>;
+        return (
+          <div>
+            <Crumb href={unitHref(unit)}>{unit.title}</Crumb>
+            <SingleExercise db={ctx.db} catalog={ctx.catalog} profile={ctx.profile} exercise={ex} unit={unit} />
+          </div>
+        );
+      }}
+    </StudyGate>
+  );
 }

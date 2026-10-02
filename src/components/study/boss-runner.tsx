@@ -21,6 +21,7 @@ import {
   timeoutBoss,
 } from "@/engine/boss";
 import { createRng, seedFrom } from "@/engine/rng";
+import { cRunnerStatus } from "@/runners/c-client";
 import { playSound } from "@/lib/sound";
 import { exerciseRef, missionContext, unitRef } from "@/lib/study";
 import { cn } from "@/lib/utils";
@@ -64,13 +65,24 @@ export function BossRunner({
   const [scheduled, setScheduled] = useState<number | null>(null);
   const finishing = useRef(false);
   const boss = unit.boss;
+  // Sin runner de C (p. ej. sin `pnpm dev`), los ejercicios en C no entran a la pelea.
+  const [cReady, setCReady] = useState<boolean | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void cRunnerStatus().then((s) => alive && setCReady(s.enabled));
+    return () => {
+      alive = false;
+    };
+  }, []);
   const info = useCallback(
     (id: string) => {
       const ex = catalog.exercises[id];
-      // Las autoevaluaciones (y los tipos que esta versión aún no juega) no entran al jefe.
-      return ex ? { difficulty: ex.dificultad, selfAssessed: ex.tipo === "autoevaluacion" || !isPlayable(ex) } : undefined;
+      if (!ex) return undefined;
+      const needsC = "lenguaje" in ex && ex.lenguaje === "c" && ex.tipo !== "rastreo_memoria";
+      // Las autoevaluaciones (y lo que esta máquina no puede ejecutar) no entran al jefe.
+      return { difficulty: ex.dificultad, selfAssessed: ex.tipo === "autoevaluacion" || !isPlayable(ex) || (needsC && cReady === false) };
     },
-    [catalog.exercises],
+    [catalog.exercises, cReady],
   );
   const total = useMemo(() => planBoss(boss, info, createRng(1)).waves.flat().length, [boss, info]);
 
@@ -214,9 +226,11 @@ export function BossRunner({
             </span>
           </span>
         </label>
+        {cReady === false ? <p className="mt-4 text-sm text-warning">El runner de C no está disponible: las preguntas en C se omiten de esta pelea.</p> : null}
         <Button
           size="lg"
           className="mt-6"
+          disabled={cReady === null}
           onClick={() => {
             const t = Date.now();
             finishing.current = false;

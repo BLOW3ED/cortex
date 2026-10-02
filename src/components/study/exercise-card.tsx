@@ -53,6 +53,8 @@ const TYPE_LABELS: Record<string, string> = {
   rastreo_memoria: "Rastreo de memoria",
 };
 
+const CODE_TYPES = new Set(["codigo", "depurar", "parsons", "rastreo_memoria"]);
+
 function isTyping(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
   return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable || el.tagName === "MATH-FIELD");
@@ -67,6 +69,7 @@ export function ExerciseCard({
   header,
   nextLabel = "Siguiente",
   seed = 1,
+  onSkip,
 }: {
   exercise: CatalogExercise;
   /** Guarda el resultado; lo que regresa se muestra en la retroalimentación. */
@@ -77,11 +80,14 @@ export function ExerciseCard({
   header?: React.ReactNode;
   nextLabel?: string;
   seed?: number;
+  /** Si existe, se ofrece "Saltar" (p. ej. cuando el runner de C no está disponible). No cuenta como intento. */
+  onSkip?: () => void;
 }) {
   const mod = TYPE_MODULES[exercise.tipo];
   const [draft, setDraft] = useState<unknown>(() => mod?.initial(exercise, seed));
   const [phase, setPhase] = useState<Phase>({ kind: "answering", error: null });
   const [hints, setHints] = useState(0);
+  const [busy, setBusy] = useState(false);
   // Se reinicia al montar: cada ejercicio usa su propia tarjeta (`key` = id del ejercicio).
   const started = useRef(0);
   useEffect(() => {
@@ -119,6 +125,7 @@ export function ExerciseCard({
   const submit = useCallback(async () => {
     if (!mod || phase.kind !== "answering" || submitting.current) return;
     submitting.current = true;
+    setBusy(true);
     try {
       const timeMs = performance.now() - started.current;
       const answer = await mod.toAnswer(exercise, draft as never);
@@ -137,6 +144,7 @@ export function ExerciseCard({
       else await finish(answer, result, timeMs, null);
     } finally {
       submitting.current = false;
+      setBusy(false);
     }
   }, [askConfidence, draft, exercise, finish, mod, phase.kind]);
 
@@ -223,8 +231,8 @@ export function ExerciseCard({
 
       {answering ? (
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <Button onClick={() => void submit()}>
-            Comprobar <span className="kbd border-current/40 text-current">⏎</span>
+          <Button onClick={() => void submit()} disabled={busy}>
+            {busy ? "Ejecutando pruebas…" : "Comprobar"} <span className="kbd border-current/40 text-current">{CODE_TYPES.has(exercise.tipo) ? "Ctrl ⏎" : "⏎"}</span>
           </Button>
           {allowHints && hints < pistas.length ? (
             <Button variant="outline" onClick={() => setHints((h) => h + 1)}>
@@ -235,6 +243,11 @@ export function ExerciseCard({
             <p role="alert" className="text-sm text-warning">
               {phase.error}
             </p>
+          ) : null}
+          {onSkip && phase.error ? (
+            <Button variant="ghost" size="sm" onClick={onSkip}>
+              Saltar este ejercicio
+            </Button>
           ) : null}
         </div>
       ) : null}
@@ -268,8 +281,8 @@ export function ExerciseCard({
           </p>
           {!phase.correct && phase.expected && exercise.tipo !== "autoevaluacion" ? (
             <div className="mt-2 text-sm">
-              <span className="text-muted-foreground">Respuesta esperada: </span>
-              {exercise.tipo === "predecir_salida" || exercise.tipo === "codigo" ? (
+              <span className="text-muted-foreground">{CODE_TYPES.has(exercise.tipo) ? "Detalle: " : "Respuesta esperada: "}</span>
+              {exercise.tipo === "predecir_salida" || CODE_TYPES.has(exercise.tipo) ? (
                 <pre className="code-view mt-1">{phase.expected}</pre>
               ) : (
                 <RichText text={exercise.tipo === "simbolico" || exercise.tipo === "numerico" ? `\`${phase.expected}\`` : phase.expected} inline />
@@ -291,6 +304,12 @@ export function ExerciseCard({
             <p className="console-label mb-1">Explicación</p>
             <RichText text={exercise.explicacion} />
           </div>
+          {exercise.tipo === "codigo" || exercise.tipo === "depurar" ? (
+            <details className="mt-3 text-sm">
+              <summary className="cursor-pointer text-brand">Ver una solución</summary>
+              <pre className="code-view mt-2">{exercise.solucion.replace(/\n$/, "")}</pre>
+            </details>
+          ) : null}
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <Button ref={nextRef} onClick={onNext}>
               {nextLabel} <span className="kbd border-current/40 text-current">N</span>

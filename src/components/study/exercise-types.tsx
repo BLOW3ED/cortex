@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp } from "lucide-react";
+import { codeModule, debugModule, parsonsModule, traceModule } from "@/components/code/code-types";
 import { type ComponentType, Fragment, useEffect, useRef } from "react";
 import type { CatalogExercise } from "@/content/core/study-catalog";
 import { splitBlanks } from "@/content/core/blanks";
@@ -311,8 +312,12 @@ const self: TypeModule<SelfDraft> = {
   describe: (_ex, d) => d.text,
 };
 
-/** Tipos de la Fase 1. La Fase 2 registra `codigo`, `depurar`, `parsons` y `rastreo_memoria`. */
+/** Un módulo por tipo de ejercicio (los de código, de la Fase 2, viven en `components/code`). */
 export const TYPE_MODULES: Record<string, TypeModule<never>> = {
+  codigo: codeModule as unknown as TypeModule<never>,
+  depurar: debugModule as unknown as TypeModule<never>,
+  parsons: parsonsModule as unknown as TypeModule<never>,
+  rastreo_memoria: traceModule as unknown as TypeModule<never>,
   opcion_multiple: choice as unknown as TypeModule<never>,
   numerico: numeric as unknown as TypeModule<never>,
   simbolico: symbolic as unknown as TypeModule<never>,

@@ -203,17 +203,21 @@ function Notebook({ db, catalog }: StudyContext) {
                 className="w-full rounded-md border border-input bg-surface px-3 py-2"
               />
             </label>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button asChild size="sm">
+                <Link href={`/ejercicios/${m.exerciseId}`}>Practicarlo ahora</Link>
+              </Button>
             {m.fixedAt === null ? (
               <Button
-                className="mt-3"
                 size="sm"
                 variant="secondary"
                 disabled={sent.has(m.exerciseId)}
                 onClick={() => void scheduleNow(db, [m.exerciseId], Date.now()).then(() => setSent(new Set([...sent, m.exerciseId])))}
               >
-                {sent.has(m.exerciseId) ? "En tu repaso de hoy" : "Repasarlo hoy"}
+                {sent.has(m.exerciseId) ? "En tu repaso de hoy" : "Mandarlo a mi repaso de hoy"}
               </Button>
             ) : null}
+            </div>
           </li>
         );
       })}

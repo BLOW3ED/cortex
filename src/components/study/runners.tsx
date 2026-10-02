@@ -19,6 +19,8 @@ import { type AfterAnswer, ExerciseCard, type ExerciseResult } from "./exercise-
 import { isPlayable } from "./exercise-types";
 import { RichText } from "./rich-text";
 
+const QUIZ_EXCLUDED = new Set(["codigo", "depurar", "parsons", "rastreo_memoria"]);
+
 /** Texto de "vuelve en..." a partir de días. */
 export function dueText(days: number): string {
   if (days < 1 / 24) return "Vuelve en unos minutos para afianzarlo.";
@@ -233,7 +235,18 @@ export function PracticeRunner({
       {state.worked && catalog.exercises[state.worked.exerciseId] ? (
         <WorkedExample exercise={catalog.exercises[state.worked.exerciseId] as CatalogExercise} onClose={() => setState((s) => s && { ...s, worked: null })} />
       ) : (
-        <ExerciseCard key={`${ex.id}-${state.turn}`} exercise={ex} onAnswered={onAnswered} onNext={onNext} seed={state.turn + 1} />
+        <ExerciseCard
+          key={`${ex.id}-${state.turn}`}
+          exercise={ex}
+          onAnswered={onAnswered}
+          onNext={onNext}
+          seed={state.turn + 1}
+          onSkip={() => {
+            const id = ex.id;
+            setState((s) => s && { ...s, seen: new Set([...s.seen, id]) });
+            onNext();
+          }}
+        />
       )}
     </div>
   );
@@ -350,6 +363,7 @@ export function ReviewRunner({
           return after;
         }}
         onNext={() => setIndex((i) => i + 1)}
+        onSkip={() => setIndex((i) => i + 1)}
       />
     </div>
   );
@@ -375,7 +389,8 @@ export function LessonQuiz({
   const items = useMemo(() => {
     const eligible = unit.exerciseIds
       .map((id) => catalog.exercises[id])
-      .filter((e): e is CatalogExercise => !!e && e.tipo !== "autoevaluacion" && isPlayable(e))
+      // Chequeo rápido: sin autoevaluación ni ejercicios de código (esos van en la práctica).
+      .filter((e): e is CatalogExercise => !!e && e.tipo !== "autoevaluacion" && isPlayable(e) && !QUIZ_EXCLUDED.has(e.tipo))
       .sort((a, b) => a.dificultad - b.dificultad);
     const easy = eligible.filter((e) => e.dificultad <= 2);
     const base = easy.length >= CONFIG.xp.lessonQuizSize ? easy : eligible;
@@ -438,6 +453,43 @@ export function LessonQuiz({
       />
     </div>
   );
+}
+
+/** Un solo ejercicio, como práctica libre (desde el cuaderno o la autopsia). */
+export function SingleExercise({
+  db,
+  catalog,
+  profile,
+  exercise,
+  unit,
+}: {
+  db: CortexDb;
+  catalog: StudyCatalog;
+  profile: ProfileRecord;
+  exercise: CatalogExercise;
+  unit: CatalogUnit;
+}) {
+  const sessionId = useSession(db, "free", unit.key);
+  const record = useRecorder(db, catalog, profile, "practice", sessionId);
+  const [round, setRound] = useState(0);
+  const [done, setDone] = useState(false);
+  if (done) {
+    return (
+      <div className="flex flex-wrap gap-3">
+        <Button
+          onClick={() => {
+            setDone(false);
+            setRound((r) => r + 1);
+          }}
+        >
+          Intentarlo otra vez
+        </Button>
+        <BackLink href={`/materias/${unit.subjectId}/${unit.slug}/practica`}>Practicar la unidad</BackLink>
+        <BackLink href="/cuaderno">Cuaderno de errores</BackLink>
+      </div>
+    );
+  }
+  return <ExerciseCard key={`${exercise.id}-${round}`} exercise={exercise} seed={round + 5} onAnswered={(r) => record(exercise, unit, r)} onNext={() => setDone(true)} nextLabel="Listo" />;
 }
 
 export function BackLink({ href, children }: { href: string; children: React.ReactNode }) {
