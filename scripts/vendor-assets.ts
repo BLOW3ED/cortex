@@ -4,6 +4,7 @@
  * `public/vendor/` no se versiona.
  *
  *   - Fuentes de MathLive → public/vendor/mathlive/fonts/
+ *   - Pyodide → public/vendor/pyodide/ y su worker → public/vendor/python-worker.mjs
  */
 import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -18,7 +19,17 @@ interface Copy {
   readonly only?: readonly string[];
 }
 
-export const COPIES: readonly Copy[] = [{ from: "node_modules/mathlive/fonts", to: "mathlive/fonts" }];
+export const COPIES: readonly Copy[] = [
+  { from: "node_modules/mathlive/fonts", to: "mathlive/fonts" },
+  // Pyodide (Python en WebAssembly, ADR-004): solo lo que carga el núcleo, sin paquetes extra.
+  {
+    from: "node_modules/pyodide",
+    to: "pyodide",
+    only: ["pyodide.mjs", "pyodide.asm.mjs", "pyodide.asm.wasm", "python_stdlib.zip", "pyodide-lock.json"],
+  },
+  // El worker que lo usa (código propio, en src/runners para que se revise y versione).
+  { from: "src/runners", to: ".", only: ["python-worker.mjs"] },
+];
 
 function upToDate(src: string, dst: string): boolean {
   return existsSync(dst) && statSync(dst).size === statSync(src).size && statSync(dst).mtimeMs >= statSync(src).mtimeMs;

@@ -9,12 +9,12 @@
     "node": "^22.12.0 || ^24.0.0 || >=26.0.0"
   },
   "scripts": {
-    "dev": "tsx scripts/vendor-assets.ts && NEXT_TELEMETRY_DISABLED=1 next dev -H localhost -p 3000",
+    "dev": "tsx scripts/vendor-assets.ts && NEXT_TELEMETRY_DISABLED=1 CORTEX_LOCAL=1 next dev -H localhost -p 3000",
     "build": "tsx scripts/vendor-assets.ts && NEXT_TELEMETRY_DISABLED=1 next build",
-    "start": "NEXT_TELEMETRY_DISABLED=1 next start -H localhost -p 3000",
+    "start": "NEXT_TELEMETRY_DISABLED=1 CORTEX_LOCAL=1 next start -H localhost -p 3000",
     "typecheck": "NEXT_TELEMETRY_DISABLED=1 next typegen && tsc --noEmit",
     "telemetry:check": "NEXT_TELEMETRY_DISABLED=1 next telemetry status",
-    "start:e2e": "NEXT_TELEMETRY_DISABLED=1 next start -H localhost -p 3100",
+    "start:e2e": "NEXT_TELEMETRY_DISABLED=1 CORTEX_LOCAL=1 next start -H localhost -p 3100",
     "lint": "eslint --max-warnings=0 .",
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
@@ -24,6 +24,13 @@
     "test:content": "vitest run --project content"
   },
   "dependencies": {
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/lang-cpp": "6.0.3",
+    "@codemirror/lang-python": "6.2.1",
+    "@codemirror/language": "6.12.4",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.13",
+    "@lezer/highlight": "1.2.5",
     "@mdx-js/mdx": "3.1.1",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
@@ -36,6 +43,7 @@
     "mathjs": "15.2.0",
     "mathlive": "0.111.0",
     "next": "16.3.8",
+    "pyodide": "314.0.7",
     "radix-ui": "1.6.7",
     "react": "19.3.0",
     "react-dom": "19.3.0",
