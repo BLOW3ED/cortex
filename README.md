@@ -2,7 +2,7 @@
 
 App web **local-first** para estudiar toda la carrera de Ingeniería en Inteligencia Artificial (IPN, plan 2020) de forma interactiva, retadora y difícil de soltar.
 
-Estado: **Fase 1 · Motor de aprendizaje** implementada (ver `ESTADO.md`). Botón "Empezar sesión de hoy" (repaso espaciado → misión → reto del gimnasio → cofre), práctica adaptativa, jefes, mapa de maestría, cuaderno de errores y progreso. Los ejercicios de código llegan en la Fase 2.
+Estado: **Fases 1 y 2** implementadas (ver `ESTADO.md`). Botón "Empezar sesión de hoy" (repaso espaciado → misión → reto del gimnasio → cofre), práctica adaptativa, jefes, mapa de maestría, cuaderno de errores y progreso; Fundamentos de programación completo (12 unidades) con editor de código, Python en el navegador (Pyodide) y C con un runner local, Debug Dojo, Parsons y rastreo de memoria.
 
 ## Qué hay aquí
 
@@ -23,7 +23,7 @@ Estado: **Fase 1 · Motor de aprendizaje** implementada (ver `ESTADO.md`). Botó
 
 ## Arranque rápido
 
-1. Instala: Node 22.12+ (recomendado Node 24 LTS), pnpm 10.28 (`npm i -g pnpm@10.28.0`), Python 3.11+, git. `gcc` es opcional (solo verifica ejercicios en C). En Windows conviene WSL2, con el repo dentro del sistema de archivos de Linux (no en `/mnt/c`).
+1. Instala: Node 22.12+ (recomendado Node 24 LTS), pnpm 10.28 (`npm i -g pnpm@10.28.0`), Python 3.11+, git y `gcc` (en macOS: `xcode-select --install`). `gcc` compila los ejercicios en C dentro de la app (runner local, solo con `pnpm dev`/`pnpm start` en tu máquina) y en `verify_content.py`; sin él, esos ejercicios se pueden saltar. En Windows conviene WSL2, con el repo dentro del sistema de archivos de Linux (no en `/mnt/c`).
 2. Dependencias de Python en un entorno virtual (en macOS con Homebrew y en Linux recientes, `pip install` global falla con `externally-managed-environment`):
    ```bash
    python3 -m venv .venv
@@ -31,7 +31,7 @@ Estado: **Fase 1 · Motor de aprendizaje** implementada (ver `ESTADO.md`). Botó
    ```
    `pnpm check` y `pnpm content:check` usan ese `.venv` solos, sin activarlo (orden: `CORTEX_PYTHON`, `.venv`, `python3`, `python`, `py -3`); para un entorno en otra ruta, define `CORTEX_PYTHON` con la ruta absoluta a su python. Para correr `python scripts/verify_content.py` a mano, actívalo (`source .venv/bin/activate`). En WSL2 es igual (en Ubuntu quizá antes necesites `sudo apt install python3-venv`). En Windows sin WSL2: `py -3 -m venv .venv` y `.venv\Scripts\python -m pip install -r scripts/requirements.txt`.
 3. `pnpm install --frozen-lockfile`. Si aparece "Ignored build scripts", avísale a Claude Code.
-4. `pnpm dev` y abre **http://localhost:3000**. Usa siempre esa dirección: tus datos viven en el navegador y van ligados a ella. Si el puerto está ocupado, `pnpm dev` falla a propósito en vez de cambiarse a otro (cierra lo que lo use).
+4. `pnpm dev` y abre **http://localhost:3000** (la primera vez que abras un ejercicio de Python se cargan ~13 MB de Pyodide desde tu propia máquina; luego quedan en caché). Usa siempre esa dirección: tus datos viven en el navegador y van ligados a ella. Si el puerto está ocupado, `pnpm dev` falla a propósito en vez de cambiarse a otro (cierra lo que lo use).
 5. Verificaciones: `pnpm content:check` (contenido) y `pnpm check` (lint, tipos y pruebas). Para las pruebas de navegador, una vez: `pnpm exec playwright install chromium` (en Linux/WSL2: `pnpm exec playwright install --with-deps chromium`); luego `pnpm test:e2e`.
 6. Tus datos: **Ajustes → Descargar respaldo** de vez en cuando. Importar un respaldo reemplaza todo, tras confirmar.
 

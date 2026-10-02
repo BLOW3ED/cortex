@@ -40,7 +40,8 @@ cortex/
     engine/          config, xp, niveles, racha, fsrs, misiones, cofre, liga, récords, logros, jefes, flujo,
                      maestría, sesión, answers/ (verificadores), gym/ (puro TS, sin React)
     db/              (además) migrations.ts (v1→v2) · progress.ts (reglas del motor en una transacción)
-    runners/         (Fase 2) pyodide worker, cliente del runner de C
+    runners/         python-worker.mjs + python-client.ts (Pyodide local), c-runner.ts (servidor) + c-client.ts
+    app/api/run-c/   ruta local del runner de C (ADR-005)
     lib/  styles/
   tests/             pruebas con Python (paridad, content:check) y stubs
   e2e/               Playwright (smoke)

@@ -28,6 +28,9 @@ async function catalog(page: Page): Promise<StudyCatalog> {
 
 const LETTERS = "ABCDEFGH";
 
+/** Texto del YAML sin marcas de Markdown/LaTeX, para buscarlo en el DOM ya renderizado. */
+const plain = (s: string) => s.replace(/[`$*]/g, "");
+
 /** Contesta bien el ejercicio que está en pantalla (con confianza 3) y pasa al siguiente. */
 async function answerCurrent(page: Page, cat: StudyCatalog, { correct = true }: { correct?: boolean } = {}): Promise<string> {
   const article = page.locator("article[aria-label^='Ejercicio ']");
@@ -66,7 +69,8 @@ async function answerCurrent(page: Page, cat: StudyCatalog, { correct = true }: 
       // Ordena con los botones "Subir paso N" hasta que coincida con `elementos`.
       for (let target = 0; target < ex.elementos.length; target++) {
         const items = await page.getByRole("list", { name: "Pasos en tu orden" }).locator("li").allTextContents();
-        const from = items.findIndex((t) => t.includes(ex.elementos[target] ?? "\u0000"));
+        const from = items.findIndex((t) => t.includes(plain(ex.elementos[target] ?? "\u0000")));
+        expect(from, `paso «${ex.elementos[target]}» en pantalla`).toBeGreaterThanOrEqual(target);
         for (let k = from; k > target; k--) await page.getByRole("button", { name: `Subir paso ${k + 1}` }).click();
       }
       await page.getByRole("button", { name: /Comprobar/ }).click();
