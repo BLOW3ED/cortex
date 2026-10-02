@@ -25,3 +25,197 @@ conceptos:
   - id: estructura-programa-c
     nombre: "Estructura de un programa en C"
     prerequisitos: [entrada-salida]
+  # ---- 02 · Condicionales
+  - id: operadores-relacionales
+    nombre: "Operadores relacionales (==, !=, <, <=, >, >=)"
+    prerequisitos: [tipos-basicos]
+  - id: operadores-logicos
+    nombre: "Operadores lógicos y valores de verdad (and/or/not, &&/||/!)"
+    prerequisitos: [operadores-relacionales]
+  - id: if-else
+    nombre: "Decisiones con if / else"
+    prerequisitos: [operadores-relacionales]
+  - id: condiciones-anidadas
+    nombre: "Condiciones anidadas y elif / else if"
+    prerequisitos: [if-else]
+  - id: seleccion-multiple
+    nombre: "Selección múltiple (switch en C, match en Python)"
+    prerequisitos: [if-else]
+  # ---- 03 · Ciclos
+  - id: ciclo-while
+    nombre: "Ciclo while"
+    prerequisitos: [if-else]
+  - id: ciclo-for
+    nombre: "Ciclo for (range en Python, for de tres partes en C)"
+    prerequisitos: [ciclo-while]
+  - id: acumuladores-contadores
+    nombre: "Acumuladores y contadores"
+    prerequisitos: [ciclo-while, variables-asignacion]
+  - id: break-continue
+    nombre: "break y continue"
+    prerequisitos: [ciclo-for]
+  - id: ciclos-anidados
+    nombre: "Ciclos anidados"
+    prerequisitos: [ciclo-for]
+  - id: ciclo-do-while
+    nombre: "Ciclo do-while (C)"
+    prerequisitos: [ciclo-while]
+  # ---- 04 · Funciones
+  - id: funciones-definicion
+    nombre: "Definir y llamar funciones"
+    prerequisitos: [variables-asignacion]
+  - id: parametros-retorno
+    nombre: "Parámetros y valor de retorno"
+    prerequisitos: [funciones-definicion]
+  - id: alcance-variables
+    nombre: "Alcance de variables (locales y globales)"
+    prerequisitos: [funciones-definicion]
+  - id: paso-por-valor
+    nombre: "Paso por valor"
+    prerequisitos: [parametros-retorno]
+  - id: prototipos-c
+    nombre: "Prototipos y tipos de función en C"
+    prerequisitos: [funciones-definicion, estructura-programa-c]
+  - id: descomposicion
+    nombre: "Descomponer un problema en funciones"
+    prerequisitos: [parametros-retorno]
+  # ---- 05 · Arreglos y cadenas
+  - id: arreglos-c
+    nombre: "Arreglos en C"
+    prerequisitos: [ciclo-for]
+  - id: listas-python
+    nombre: "Listas en Python"
+    prerequisitos: [ciclo-for]
+  - id: recorrido-busqueda
+    nombre: "Recorrer y buscar en secuencias"
+    prerequisitos: [arreglos-c, listas-python]
+  - id: cadenas
+    nombre: "Cadenas de texto y sus operaciones"
+    prerequisitos: [listas-python]
+  - id: cadenas-c
+    nombre: "Cadenas en C (arreglos de char terminados en '\\0')"
+    prerequisitos: [cadenas, arreglos-c]
+  - id: matrices
+    nombre: "Matrices (arreglos de dos dimensiones)"
+    prerequisitos: [arreglos-c, ciclos-anidados]
+  # ---- 06 · Apuntadores y memoria (C)
+  - id: direcciones-memoria
+    nombre: "Direcciones de memoria y el operador &"
+    prerequisitos: [variables-asignacion, estructura-programa-c]
+  - id: apuntadores
+    nombre: "Apuntadores y desreferencia (*)"
+    prerequisitos: [direcciones-memoria]
+  - id: aritmetica-apuntadores
+    nombre: "Aritmética de apuntadores y arreglos"
+    prerequisitos: [apuntadores, arreglos-c]
+  - id: paso-por-referencia
+    nombre: "Paso por referencia con apuntadores"
+    prerequisitos: [apuntadores, paso-por-valor]
+  - id: memoria-dinamica
+    nombre: "Memoria dinámica (malloc, free)"
+    prerequisitos: [apuntadores]
+  - id: pila-heap
+    nombre: "Pila y heap"
+    prerequisitos: [memoria-dinamica]
+  # ---- 07 · Estructuras y diccionarios
+  - id: structs-c
+    nombre: "Estructuras (struct) en C"
+    prerequisitos: [estructura-programa-c, tipos-basicos]
+  - id: arreglos-de-structs
+    nombre: "Arreglos de estructuras"
+    prerequisitos: [structs-c, arreglos-c]
+  - id: structs-y-apuntadores
+    nombre: "Estructuras y apuntadores (->)"
+    prerequisitos: [structs-c, apuntadores]
+  - id: diccionarios
+    nombre: "Diccionarios en Python"
+    prerequisitos: [listas-python]
+  - id: tuplas-conjuntos
+    nombre: "Tuplas y conjuntos en Python"
+    prerequisitos: [listas-python]
+  - id: modelado-datos
+    nombre: "Modelar datos con registros"
+    prerequisitos: [structs-c, diccionarios]
+  # ---- 08 · Archivos
+  - id: archivos-texto-python
+    nombre: "Leer y escribir archivos de texto en Python"
+    prerequisitos: [cadenas]
+  - id: archivos-c
+    nombre: "Archivos en C (fopen, fprintf, fgets, fclose)"
+    prerequisitos: [cadenas-c, apuntadores]
+  - id: modos-apertura
+    nombre: "Modos de apertura (lectura, escritura, agregar)"
+    prerequisitos: [archivos-texto-python]
+  - id: procesar-lineas
+    nombre: "Procesar un archivo línea por línea"
+    prerequisitos: [archivos-texto-python, ciclo-for]
+  - id: manejo-errores-archivos
+    nombre: "Errores al abrir archivos"
+    prerequisitos: [archivos-texto-python, if-else]
+  - id: formato-csv
+    nombre: "Datos separados por comas (CSV)"
+    prerequisitos: [procesar-lineas]
+  # ---- 09 · Recursión
+  - id: recursion-base
+    nombre: "Funciones recursivas"
+    prerequisitos: [funciones-definicion]
+  - id: caso-base
+    nombre: "Caso base y caso recursivo"
+    prerequisitos: [recursion-base]
+  - id: pila-de-llamadas
+    nombre: "La pila de llamadas"
+    prerequisitos: [recursion-base]
+  - id: recursion-vs-iteracion
+    nombre: "Recursión contra iteración"
+    prerequisitos: [recursion-base, ciclo-while]
+  - id: recursion-en-secuencias
+    nombre: "Recursión sobre listas y cadenas"
+    prerequisitos: [recursion-base, listas-python]
+  - id: divide-y-venceras
+    nombre: "Divide y vencerás"
+    prerequisitos: [recursion-base]
+  # ---- 10 · Pruebas y depuración
+  - id: casos-de-prueba
+    nombre: "Diseñar casos de prueba"
+    prerequisitos: [funciones-definicion]
+  - id: assert-pruebas
+    nombre: "Pruebas automáticas con assert"
+    prerequisitos: [casos-de-prueba]
+  - id: casos-borde
+    nombre: "Casos borde"
+    prerequisitos: [casos-de-prueba]
+  - id: tipos-de-error
+    nombre: "Errores de sintaxis, de ejecución y de lógica"
+    prerequisitos: [casos-de-prueba]
+  - id: depuracion-sistematica
+    nombre: "Depuración sistemática"
+    prerequisitos: [tipos-de-error]
+  - id: excepciones
+    nombre: "Excepciones en Python (try / except)"
+    prerequisitos: [tipos-de-error, if-else]
+  # ---- 11 · Complejidad intuitiva
+  - id: conteo-operaciones
+    nombre: "Contar operaciones"
+    prerequisitos: [ciclos-anidados]
+  - id: notacion-o-grande
+    nombre: "Notación O grande (intuitiva)"
+    prerequisitos: [conteo-operaciones]
+  - id: crecimiento-funciones
+    nombre: "Cómo crecen n, n log n, n² y 2ⁿ"
+    prerequisitos: [notacion-o-grande, "calculo:limite-infinito"]
+  - id: busqueda-binaria
+    nombre: "Búsqueda lineal contra búsqueda binaria"
+    prerequisitos: [recorrido-busqueda, notacion-o-grande]
+  - id: ordenamiento-basico
+    nombre: "Ordenamiento básico y su costo"
+    prerequisitos: [arreglos-c, notacion-o-grande]
+  # ---- 12 · Proyecto integrador
+  - id: diseno-programa
+    nombre: "Diseñar un programa completo"
+    prerequisitos: [descomposicion, modelado-datos]
+  - id: integracion-modulos
+    nombre: "Integrar funciones, datos y archivos"
+    prerequisitos: [diseno-programa, procesar-lineas]
+  - id: validacion-entradas
+    nombre: "Validar entradas y casos borde en un programa real"
+    prerequisitos: [casos-borde, diseno-programa]

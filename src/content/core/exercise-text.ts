@@ -32,6 +32,12 @@ export function exerciseTextFields(ex: Exercise): TextField[] {
       out.push(...ex.rubrica.map((text, i) => ({ field: `rubrica[${i}]`, text, inline: true })));
       out.push({ field: "respuesta_modelo", text: ex.respuesta_modelo, inline: false });
       break;
+    case "rastreo_memoria":
+      ex.pasos.forEach((p, i) => {
+        if (p.nota) out.push({ field: `pasos[${i}].nota`, text: p.nota, inline: false });
+        if (p.pregunta) out.push({ field: `pasos[${i}].pregunta`, text: p.pregunta, inline: true });
+      });
+      break;
     default:
       break;
   }

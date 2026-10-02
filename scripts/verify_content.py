@@ -32,7 +32,10 @@ PLAN = ROOT / "curriculum" / "plan-2020.json"
 TIPOS = {
     "opcion_multiple", "numerico", "simbolico", "completar", "ordenar",
     "codigo", "predecir_salida", "autoevaluacion",
+    "depurar", "parsons", "rastreo_memoria",
 }
+# printf con salida determinista (sin %p). Igual que TRACE_FORMAT_RE de la app.
+TRACE_FORMAT_RE = re.compile(r"^%(?:\.\d+)?(?:d|i|u|c|s|f|g|x|ld|lu|lf|zu)$")
 ID_RE = re.compile(r"^[a-z]+-\d{2}-\d{3}$")
 KEBAB_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 PY_TIMEOUT = 10
@@ -100,8 +103,10 @@ def run_python_tests(code: str, tests: list[dict]) -> tuple[bool, str]:
         "print(json.dumps(_r, default=repr))\n"
     )
     try:
-        p = subprocess.run([sys.executable, "-c", harness], capture_output=True,
-                           text=True, timeout=PY_TIMEOUT)
+        # En una carpeta temporal: si el código crea archivos, no ensucia el repo.
+        with tempfile.TemporaryDirectory() as d:
+            p = subprocess.run([sys.executable, "-c", harness], capture_output=True,
+                               text=True, timeout=PY_TIMEOUT, cwd=d)
     except subprocess.TimeoutExpired:
         return False, "timeout"
     if p.returncode != 0:
@@ -122,8 +127,9 @@ def run_python_tests(code: str, tests: list[dict]) -> tuple[bool, str]:
 
 def run_python_output(code: str) -> tuple[bool, str]:
     try:
-        p = subprocess.run([sys.executable, "-c", code], capture_output=True,
-                           text=True, timeout=PY_TIMEOUT)
+        with tempfile.TemporaryDirectory() as d:
+            p = subprocess.run([sys.executable, "-c", code], capture_output=True,
+                               text=True, timeout=PY_TIMEOUT, cwd=d)
     except subprocess.TimeoutExpired:
         return False, "timeout"
     if p.returncode != 0:
@@ -142,12 +148,105 @@ def run_c_tests(code: str, tests: list[dict]) -> tuple[bool, str]:
         for t in tests:
             try:
                 p = subprocess.run([str(exe)], input=t.get("entrada", ""),
-                                   capture_output=True, text=True, timeout=C_TIMEOUT)
+                                   capture_output=True, text=True, timeout=C_TIMEOUT, cwd=d)
             except subprocess.TimeoutExpired:
                 return False, "timeout"
             if p.stdout.rstrip() != str(t["salida"]).rstrip():
                 return False, f"entrada {t.get('entrada','')!r} -> {p.stdout!r}, esperado {t['salida']!r}"
     return True, "ok"
+
+
+def run_c_output(code: str, entrada: str = "") -> tuple[bool, str]:
+    """Compila y corre un programa en C; devuelve su salida."""
+    with tempfile.TemporaryDirectory() as d:
+        src, exe = Path(d) / "main.c", Path(d) / "main"
+        src.write_text(code)
+        c = subprocess.run(["gcc", "-Wall", "-O0", "-o", str(exe), str(src), "-lm"],
+                           capture_output=True, text=True, timeout=C_TIMEOUT)
+        if c.returncode != 0:
+            return False, "no compila: " + (c.stderr.strip().splitlines() or ["?"])[0]
+        try:
+            p = subprocess.run([str(exe)], input=entrada, capture_output=True, text=True,
+                               timeout=C_TIMEOUT, cwd=d)
+        except subprocess.TimeoutExpired:
+            return False, "timeout"
+        return True, p.stdout
+
+
+def run_tests(lenguaje: str, code: str, tests: list[dict]) -> tuple[bool, str] | None:
+    """Corre tests de Python o de C. `None` si es C y no hay gcc."""
+    if lenguaje == "python":
+        return run_python_tests(code, tests)
+    if lenguaje == "c":
+        if not shutil.which("gcc"):
+            return None
+        return run_c_tests(code, tests)
+    return False, "lenguaje debe ser 'python' o 'c'"
+
+
+def changed_lines(before: str, after: str) -> tuple[set[int], bool]:
+    """Líneas (1-based) de `before` que cambian o se borran; y si hubo inserciones puras."""
+    import difflib
+    a, b = before.rstrip("\n").split("\n"), after.rstrip("\n").split("\n")
+    touched: set[int] = set()
+    inserted = False
+    for tag, i1, i2, _j1, _j2 in difflib.SequenceMatcher(a=a, b=b, autojunk=False).get_opcodes():
+        if tag in ("replace", "delete"):
+            touched.update(range(i1 + 1, i2 + 1))
+        elif tag == "insert":
+            inserted = True
+    return touched, inserted
+
+
+def trace_checks(ex: dict) -> list[dict]:
+    """Comprobaciones de un rastreo: preguntas y celdas con `expr`."""
+    checks = []
+    for k, paso in enumerate(ex.get("pasos", [])):
+        vez = paso.get("vez", 1)
+        if paso.get("pregunta"):
+            checks.append({"linea": paso["linea"], "vez": vez, "expr": paso.get("expr"),
+                           "formato": paso.get("formato"), "esperado": str(paso.get("respuesta", "")),
+                           "donde": f"paso {k + 1} (pregunta)"})
+        for zona in ("pila", "heap"):
+            for celda in paso.get(zona) or []:
+                if celda.get("expr"):
+                    checks.append({"linea": paso["linea"], "vez": vez, "expr": celda["expr"],
+                                   "formato": celda.get("formato"), "esperado": str(celda.get("valor", "")),
+                                   "donde": f"paso {k + 1}, {zona} '{celda.get('nombre')}'"})
+    return checks
+
+
+def run_trace(code: str, checks: list[dict]) -> list[str]:
+    """Inyecta un printf con marca tras cada línea revisada, ejecuta y compara. Devuelve errores."""
+    lines = code.rstrip("\n").split("\n")
+    after: dict[int, list[str]] = {}
+    for i, c in enumerate(checks):
+        fmt = str(c["formato"])
+        if not TRACE_FORMAT_RE.match(fmt):
+            return [f"{c['donde']}: formato '{fmt}' no permitido"]
+        after.setdefault(int(c["linea"]), []).append(
+            f'printf("@@CX{i}@@{fmt}\\n", {c["expr"]});')
+    out_lines = []
+    for n, line in enumerate(lines, start=1):
+        out_lines.append(line)
+        out_lines.extend(after.get(n, []))
+    ok, out = run_c_output("\n".join(out_lines) + "\n")
+    if not ok:
+        return [f"el código instrumentado falla: {out}"]
+    seen: dict[int, list[str]] = {}
+    for raw in out.splitlines():
+        m = re.match(r"^@@CX(\d+)@@(.*)$", raw)
+        if m:
+            seen.setdefault(int(m.group(1)), []).append(m.group(2))
+    errores = []
+    for i, c in enumerate(checks):
+        vals = seen.get(i, [])
+        vez = int(c.get("vez") or 1)
+        if len(vals) < vez:
+            errores.append(f"{c['donde']}: la línea {c['linea']} no se ejecuta {vez} vez/veces")
+        elif vals[vez - 1].strip() != c["esperado"].strip():
+            errores.append(f"{c['donde']}: {c['expr']} vale {vals[vez - 1]!r}, no {c['esperado']!r}")
+    return errores
 
 
 # ---------------------------------------------------------------- ejercicios
@@ -279,6 +378,70 @@ def check_exercise(where: str, ex: dict, conceptos_ok: set[str] | None) -> None:
                     stats["verificados"] += 1
             else:
                 err(w, "lenguaje debe ser 'python' o 'c'")
+
+        elif tipo == "depurar":
+            leng = ex.get("lenguaje")
+            for campo in ("codigo", "linea_bug", "solucion", "tests"):
+                if campo not in ex:
+                    return err(w, f"depurar requiere '{campo}'")
+            r = run_tests(leng, ex["solucion"], ex["tests"])
+            if r is None:
+                warn(w, "gcc no disponible: ejercicio de C NO verificado")
+                stats["c_omitidos"] += 1
+                return
+            if not r[0]:
+                return err(w, f"la solución no pasa sus tests: {r[1]}")
+            r_bug = run_tests(leng, ex["codigo"], ex["tests"])
+            if r_bug and r_bug[0]:
+                return err(w, "el código con el error ya pasa los tests (no hay bug que encontrar)")
+            declared = ex["linea_bug"] if isinstance(ex["linea_bug"], list) else [ex["linea_bug"]]
+            touched, inserted = changed_lines(ex["codigo"], ex["solucion"])
+            if inserted:
+                err(w, "la solución agrega líneas: el error debe estar en líneas existentes (linea_bug)")
+            elif touched != set(declared):
+                err(w, f"la solución cambia las líneas {sorted(touched)} pero linea_bug dice {sorted(declared)}")
+            else:
+                stats["verificados"] += 1
+
+        elif tipo == "parsons":
+            leng = ex.get("lenguaje")
+            lineas = ex.get("lineas") or []
+            if len(lineas) < 3:
+                return err(w, "parsons requiere ≥3 líneas")
+            trimmed = {str(l).strip() for l in lineas}
+            for d in ex.get("distractores") or []:
+                if str(d).strip() in trimmed:
+                    err(w, f"el distractor '{str(d).strip()}' también está en las líneas")
+            if ex.get("tests"):
+                r = run_tests(leng, "\n".join(lineas) + "\n", ex["tests"])
+                if r is None:
+                    warn(w, "gcc no disponible: ejercicio de C NO verificado")
+                    stats["c_omitidos"] += 1
+                elif not r[0]:
+                    err(w, f"las líneas en orden no pasan los tests: {r[1]}")
+                else:
+                    stats["verificados"] += 1
+            else:
+                stats["manuales"] += 1
+
+        elif tipo == "rastreo_memoria":
+            if "codigo" not in ex or not ex.get("pasos"):
+                return err(w, "rastreo_memoria requiere 'codigo' y 'pasos'")
+            checks = trace_checks(ex)
+            if not any(p.get("pregunta") for p in ex["pasos"]):
+                return err(w, "rastreo requiere al menos una pregunta")
+            for c in checks:
+                if not c.get("expr") or not c.get("formato"):
+                    return err(w, f"{c['donde']}: requiere 'expr' y 'formato'")
+            if not shutil.which("gcc"):
+                warn(w, "gcc no disponible: rastreo NO verificado")
+                stats["c_omitidos"] += 1
+                return
+            errores = run_trace(ex["codigo"], checks)
+            for e in errores:
+                err(w, e)
+            if not errores:
+                stats["verificados"] += 1
     except Exception as e:  # noqa: BLE001
         err(w, f"excepción al verificar: {type(e).__name__}: {e}")
 

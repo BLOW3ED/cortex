@@ -9,6 +9,9 @@ export const EXERCISE_TYPES = [
   "codigo",
   "predecir_salida",
   "autoevaluacion",
+  "depurar",
+  "parsons",
+  "rastreo_memoria",
 ] as const;
 export type ExerciseType = (typeof EXERCISE_TYPES)[number];
 
@@ -114,15 +117,20 @@ const ordering = z
     }
   });
 
+/** `oculto: true` = la app no muestra la prueba (solo si pasó o no). */
 const pythonTest = z.strictObject({
   expr: nonEmptyText,
   esperado: z.json(),
   tolerancia: z.number().nonnegative().optional(),
+  oculto: z.boolean().optional(),
 });
 const cTest = z.strictObject({
   entrada: z.string().optional(),
   salida: displayText,
+  oculto: z.boolean().optional(),
 });
+
+const lineCount = (code: string) => code.replace(/\n+$/, "").split("\n").length;
 
 const codePython = z.strictObject({
   ...common,
@@ -140,6 +148,102 @@ const codeC = z.strictObject({
   solucion: nonEmptyText,
   tests: z.array(cTest).min(1),
 });
+
+/** Debug Dojo (Fase 2): encuentra la línea con el error y corrígela hasta pasar las pruebas. */
+const lineNumber = z.number().int().positive();
+const bugLines = z.union([lineNumber, z.array(lineNumber).min(1)]);
+const debugCommon = {
+  ...common,
+  tipo: z.literal("depurar"),
+  /** Código con el error (lo que ve el usuario). */
+  codigo: nonEmptyText,
+  /** Línea(s) 1-based donde está el error: las únicas que cambia la solución. */
+  linea_bug: bugLines,
+  solucion: nonEmptyText,
+};
+const checkBugLines = (ex: { codigo: string; linea_bug: number | number[] }, ctx: z.RefinementCtx) => {
+  const n = lineCount(ex.codigo);
+  for (const l of Array.isArray(ex.linea_bug) ? ex.linea_bug : [ex.linea_bug]) {
+    if (l > n) ctx.addIssue({ code: "custom", path: ["linea_bug"], message: `linea_bug ${l} fuera del código (${n} líneas)` });
+  }
+};
+const debugPython = z.strictObject({ ...debugCommon, lenguaje: z.literal("python"), tests: z.array(pythonTest).min(1) }).superRefine(checkBugLines);
+const debugC = z.strictObject({ ...debugCommon, lenguaje: z.literal("c"), tests: z.array(cTest).min(1) }).superRefine(checkBugLines);
+
+/** Problema de Parsons (Fase 2): ordenar líneas de código (y su sangría en Python). */
+const parsonsCommon = {
+  ...common,
+  tipo: z.literal("parsons"),
+  /** Líneas en el orden correcto; en Python con su sangría (múltiplos de 4 espacios). */
+  lineas: z.array(displayText).min(3, "parsons requiere ≥3 líneas"),
+  /** Líneas que sobran (no van en la solución). */
+  distractores: z.array(displayText).optional(),
+};
+const checkParsons = (ex: { lenguaje: string; lineas: string[]; distractores?: string[] | undefined }, ctx: z.RefinementCtx) => {
+  const lines = new Set(ex.lineas.map((l) => l.trim()));
+  for (const d of ex.distractores ?? []) {
+    if (lines.has(d.trim())) ctx.addIssue({ code: "custom", path: ["distractores"], message: `el distractor «${d.trim()}» también está en las líneas` });
+  }
+  if (ex.lenguaje === "python") {
+    ex.lineas.forEach((l, i) => {
+      const indent = l.length - l.trimStart().length;
+      if (indent % 4 !== 0 || l.trimStart().startsWith("\t")) {
+        ctx.addIssue({ code: "custom", path: ["lineas", i], message: "en Python la sangría va en múltiplos de 4 espacios" });
+      }
+    });
+  }
+};
+const parsonsPython = z.strictObject({ ...parsonsCommon, lenguaje: z.literal("python"), tests: z.array(pythonTest).min(1).optional() }).superRefine(checkParsons);
+const parsonsC = z.strictObject({ ...parsonsCommon, lenguaje: z.literal("c"), tests: z.array(cTest).min(1).optional() }).superRefine(checkParsons);
+
+/** Formatos de printf con salida determinista (sin %p: las direcciones cambian en cada corrida). */
+export const TRACE_FORMAT_RE = /^%(?:\.\d+)?(?:d|i|u|c|s|f|g|x|ld|lu|lf|zu)$/;
+const traceFormat = z.string().regex(TRACE_FORMAT_RE, "formato de printf no permitido (usa %d, %c, %s, %f, %.2f, %ld, %zu...; nunca %p)");
+const traceCell = z.strictObject({
+  nombre: nonEmptyText,
+  /** Lo que se dibuja (p. ej. "5", "'a'", "→ a", "basura"). */
+  valor: displayText,
+  /** Si se da, verify_content.py imprime `expr` con `formato` tras la línea del paso y lo compara con `valor`. */
+  expr: nonEmptyText.optional(),
+  formato: traceFormat.optional(),
+});
+const traceStep = z
+  .strictObject({
+    /** Línea 1-based que se acaba de ejecutar. */
+    linea: lineNumber,
+    nota: nonEmptyText.optional(),
+    pila: z.array(traceCell),
+    heap: z.array(traceCell).optional(),
+    pregunta: nonEmptyText.optional(),
+    respuesta: displayText.optional(),
+    expr: nonEmptyText.optional(),
+    formato: traceFormat.optional(),
+    /** Si la línea corre varias veces (un ciclo), cuál de sus ejecuciones (1 = la primera). */
+    vez: z.number().int().positive().optional(),
+  })
+  .superRefine((p, ctx) => {
+    if (p.pregunta && (p.respuesta === undefined || !p.expr || !p.formato)) {
+      ctx.addIssue({ code: "custom", path: ["pregunta"], message: "una pregunta requiere 'respuesta', 'expr' y 'formato'" });
+    }
+    for (const [i, c] of [...p.pila, ...(p.heap ?? [])].entries()) {
+      if (Boolean(c.expr) !== Boolean(c.formato)) ctx.addIssue({ code: "custom", path: ["pila", i], message: "'expr' y 'formato' van juntos" });
+    }
+  });
+const memoryTrace = z
+  .strictObject({
+    ...common,
+    tipo: z.literal("rastreo_memoria"),
+    lenguaje: z.literal("c"),
+    codigo: nonEmptyText,
+    pasos: z.array(traceStep).min(2, "rastreo requiere ≥2 pasos"),
+  })
+  .superRefine((ex, ctx) => {
+    const n = lineCount(ex.codigo);
+    ex.pasos.forEach((p, i) => {
+      if (p.linea > n) ctx.addIssue({ code: "custom", path: ["pasos", i, "linea"], message: `línea ${p.linea} fuera del código (${n} líneas)` });
+    });
+    if (!ex.pasos.some((p) => p.pregunta)) ctx.addIssue({ code: "custom", path: ["pasos"], message: "rastreo requiere al menos una pregunta" });
+  });
 
 const predictOutput = z.strictObject({
   ...common,
@@ -166,6 +270,9 @@ export const exerciseSchemas = {
   codigo: z.discriminatedUnion("lenguaje", [codePython, codeC], { error: "lenguaje debe ser 'python' o 'c'" }),
   predecir_salida: predictOutput,
   autoevaluacion: selfAssessment,
+  depurar: z.discriminatedUnion("lenguaje", [debugPython, debugC], { error: "lenguaje debe ser 'python' o 'c'" }),
+  parsons: z.discriminatedUnion("lenguaje", [parsonsPython, parsonsC], { error: "lenguaje debe ser 'python' o 'c'" }),
+  rastreo_memoria: memoryTrace,
 } as const satisfies Record<ExerciseType, z.ZodType>;
 
 /**
@@ -185,6 +292,13 @@ export type OrderingExercise = z.infer<typeof ordering>;
 export type CodeExercise = z.infer<(typeof exerciseSchemas)["codigo"]>;
 export type PredictOutputExercise = z.infer<typeof predictOutput>;
 export type SelfAssessmentExercise = z.infer<typeof selfAssessment>;
+export type DebugExercise = z.infer<(typeof exerciseSchemas)["depurar"]>;
+export type ParsonsExercise = z.infer<(typeof exerciseSchemas)["parsons"]>;
+export type MemoryTraceExercise = z.infer<typeof memoryTrace>;
+export type TraceStep = z.infer<typeof traceStep>;
+export type TraceCell = z.infer<typeof traceCell>;
+export type PythonTest = z.infer<typeof pythonTest>;
+export type CTest = z.infer<typeof cTest>;
 export type Exercise =
   | MultipleChoiceExercise
   | NumericExercise
@@ -193,7 +307,10 @@ export type Exercise =
   | OrderingExercise
   | CodeExercise
   | PredictOutputExercise
-  | SelfAssessmentExercise;
+  | SelfAssessmentExercise
+  | DebugExercise
+  | ParsonsExercise
+  | MemoryTraceExercise;
 export type RetiredExercise = z.infer<typeof retiredExerciseSchema>;
 
 /** Encabezado de `ejercicios.yaml`; cada ejercicio se valida aparte con `parseExercise`. */

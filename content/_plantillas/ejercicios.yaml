@@ -116,3 +116,83 @@ ejercicios:
     respuesta_modelo: '...'
     explicacion: '...'
     tarjeta: false
+
+  # --- depurar (Debug Dojo, Fase 2): `codigo` trae el error; `solucion` solo cambia las líneas de `linea_bug` ---
+  - id: pref-NN-010
+    tipo: depurar
+    dificultad: 2
+    conceptos: [concepto-uno]
+    lenguaje: python                 # o c (con tests { entrada, salida })
+    enunciado: '`mayor(a, b)` debería regresar el mayor de los dos, pero falla. Encuentra la línea con el error y corrígela.'
+    codigo: |
+      def mayor(a, b):
+          if a < b:
+              return a
+          return b
+    linea_bug: 2                     # o [2, 3]
+    solucion: |
+      def mayor(a, b):
+          if a > b:
+              return a
+          return b
+    tests:
+      - { expr: "mayor(3, 5)", esperado: 5 }
+      - { expr: "mayor(9, 1)", esperado: 9, oculto: true }   # oculto: la app no muestra la prueba
+    explicacion: '...'
+
+  # --- parsons (Fase 2): `lineas` en el orden correcto; en Python con su sangría (4 espacios) ---
+  - id: pref-NN-011
+    tipo: parsons
+    dificultad: 2
+    conceptos: [concepto-uno]
+    lenguaje: python
+    enunciado: 'Ordena las líneas para que `signo(x)` regrese 1 si x es positivo y 0 si no.'
+    lineas:
+      - "def signo(x):"
+      - "    if x > 0:"
+      - "        return 1"
+      - "    return 0"
+    distractores: ["    return -1"]   # opcional: líneas que sobran
+    tests:                             # opcional: el programa armado debe pasarlos
+      - { expr: "signo(4)", esperado: 1 }
+      - { expr: "signo(-4)", esperado: 0 }
+    explicacion: '...'
+
+  # --- rastreo_memoria (Fase 2, solo C): pila y heap paso a paso; las preguntas se verifican con printf ---
+  - id: pref-NN-012
+    tipo: rastreo_memoria
+    dificultad: 4
+    conceptos: [concepto-uno]
+    lenguaje: c
+    enunciado: 'Sigue el programa línea por línea y contesta lo que se pregunta.'
+    codigo: |
+      #include <stdio.h>
+      #include <stdlib.h>
+      int main(void) {
+          int a = 5;
+          int *p = &a;
+          *p = 8;
+          int *q = malloc(sizeof(int));
+          *q = a + 1;
+          printf("%d %d\n", a, *q);
+          free(q);
+          return 0;
+      }
+    pasos:
+      - linea: 4                      # línea que se acaba de ejecutar
+        pila: [{ nombre: "a", valor: "5", expr: "a", formato: "%d" }]
+      - linea: 5
+        nota: '`p` guarda la dirección de `a`: la flecha indica a quién apunta.'
+        pila: [{ nombre: "a", valor: "5" }, { nombre: "p", valor: "→ a" }]
+        pregunta: '¿Cuánto vale `*p`?'
+        respuesta: "5"
+        expr: "*p"                    # expresión C que se imprime con `formato` tras la línea
+        formato: "%d"
+      - linea: 8
+        pila: [{ nombre: "a", valor: "8" }, { nombre: "p", valor: "→ a" }, { nombre: "q", valor: "→ bloque" }]
+        heap: [{ nombre: "bloque", valor: "9", expr: "*q", formato: "%d" }]
+        pregunta: '¿Qué valor hay en el bloque del heap?'
+        respuesta: "9"
+        expr: "*q"
+        formato: "%d"
+    explicacion: '...'

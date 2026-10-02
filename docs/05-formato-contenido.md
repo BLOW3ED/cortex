@@ -117,9 +117,16 @@ ejercicios:
 | `codigo` | `lenguaje` (`python` o `c`), `plantilla`, `solucion`, `tests` | Ejecuta `solucion` contra `tests`; exige que la `plantilla` **no** los pase |
 | `predecir_salida` | `lenguaje` (`python`), `codigo`, `respuesta` (texto) | Ejecuta `codigo` y compara la salida |
 | `autoevaluacion` | `rubrica` (lista de criterios), `respuesta_modelo` | Exige rúbrica y respuesta modelo |
+| `depurar` (Debug Dojo) | `lenguaje` (`python` o `c`), `codigo` (con el error), `linea_bug` (número o lista, 1-based), `solucion`, `tests` | La `solucion` pasa los tests; el `codigo` NO los pasa; la solución cambia exactamente las líneas de `linea_bug` (sin agregar líneas) |
+| `parsons` | `lenguaje`, `lineas` (orden correcto; en Python con sangría de 4 espacios), `distractores` (opcional), `tests` (opcional) | ≥ 3 líneas; ningún distractor igual a una línea; si hay `tests`, las líneas unidas en orden los pasan |
+| `rastreo_memoria` (solo C) | `lenguaje: c`, `codigo` (programa completo), `pasos`: lista de `{ linea, pila, heap?, nota?, pregunta?, respuesta?, expr?, formato?, vez? }`; cada celda `{ nombre, valor, expr?, formato? }` | Al menos una pregunta. Inserta `printf(formato, expr)` justo después de `linea` (en su `vez`-ésima ejecución), compila, ejecuta y compara con `respuesta`/`valor` |
 
 **Tests de `codigo` en Python:** lista de `{ expr: "f(2)", esperado: 4, tolerancia: 0 }`. `expr` se evalúa después de ejecutar la solución.
 **Tests de `codigo` en C:** lista de `{ entrada: "3 4\n", salida: "7\n" }`; `solucion` es un programa completo con `main`. Se compila con `gcc -Wall -O0` y se compara salida (sin espacios finales).
+
+**Tests ocultos:** cualquier test (Python o C, en `codigo`, `depurar` y `parsons`) acepta `oculto: true`: la app no muestra su expresión ni su resultado esperado, solo si pasó. Úsalos para casos borde que no deben poder "adivinarse" leyendo las pruebas. Los programas se ejecutan en una carpeta temporal (pueden crear archivos sin ensuciar el repo).
+
+**Rastreo de memoria:** `linea` es la línea (1-based) que se acaba de ejecutar en ese paso. Las direcciones no se muestran: un apuntador se dibuja como `→ nombre`; un valor sin inicializar, como `basura`. Solo se permiten formatos deterministas (`%d %i %u %c %s %f %.2f %g %x %ld %lu %lf %zu`; nunca `%p`). Si la línea está dentro de un ciclo, `vez` dice cuál de sus ejecuciones se mira. No pongas `linea` en una línea `if`/`for` sin llaves (el `printf` quedaría como su cuerpo).
 
 **Texto de los ejercicios.** `enunciado`, `explicacion`, `pistas`, `opciones`, `elementos`, `rubrica`, `respuesta_modelo` y los tramos de `texto` (en `completar`) son Markdown con fórmulas `$...$`, sin HTML ni imágenes; `pnpm content:check` los dibuja con el mismo KaTeX estricto de las lecciones (capa 2). Un hueco `___` puede ir dentro de código (`` `7 ___ 2` ``) o de una fórmula.
 
