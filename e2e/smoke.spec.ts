@@ -89,18 +89,19 @@ test("2 - una lección carga con fórmulas y tablas", async ({ page }) => {
   expect(await page.locator(".katex").count()).toBeGreaterThan(10);
   await expect(page.locator(".katex-error")).toHaveCount(0);
   await expect(page.locator("article table")).toHaveCount(1);
-  await expect(page.locator(".lesson-blank")).toHaveCount(2);
+  // Desde la Fase 1, <Desvanecido> es interactivo: un campo por hueco.
+  await expect(page.getByRole("textbox", { name: /^Hueco \d+$/ })).toHaveCount(2);
   await page.waitForLoadState("networkidle");
   expect(await page.evaluate(() => document.fonts.check("16px KaTeX_Main"))).toBe(true);
   expect(errors).toEqual([]);
 });
 
 /** Escribe valores en el perfil directo en IndexedDB (misma versión: no dispara `versionchange`). */
-async function setProfile(page: Page, values: Record<string, number>): Promise<void> {
+async function setProfile(page: Page, values: Record<string, number | string>): Promise<void> {
   await page.evaluate(
     (v) =>
       new Promise<void>((resolve, reject) => {
-        const req = indexedDB.open("cortex", 10);
+        const req = indexedDB.open("cortex", 20);
         req.onsuccess = () => {
           const tx = req.result.transaction("profile", "readwrite");
           const store = tx.objectStore("profile");
@@ -140,17 +141,23 @@ test("3 - en un celular no hay desborde horizontal (320 y 375 px)", async ({ pag
   // El HUD cabe en su margen aun con números grandes, en el ancho mínimo y donde aparece la barra de XP.
   await page.goto("/");
   await expect(page.getByRole("banner").getByRole("img", { name: "Nivel 1" })).toBeVisible();
-  for (const [profile, widths] of [
-    [{ level: 1, currentStreak: 0 }, [320, 640, 768]],
-    [{ level: 100, currentStreak: 1240, xpTotal: 98_760 }, [320, 375, 640, 768, 1024]],
+  // Desde la Fase 1 el HUD calcula el nivel con el XP y la racha visible con el último día de estudio.
+  const today = await page.evaluate(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
+  for (const [profile, label, widths] of [
+    [{ xpTotal: 0, currentStreak: 0 }, /^Nivel 1$/, [320, 640, 768]],
+    [{ xpTotal: 4_000_000, currentStreak: 1240, maxStreak: 1240, lastStudyDay: today }, /^Nivel \d{3}$/, [320, 375, 640, 768, 1024]],
   ] as const) {
     await setProfile(page, profile);
     await page.reload();
-    await expect(page.getByRole("banner").getByRole("img", { name: `Nivel ${profile.level}` })).toBeVisible();
+    await expect(page.getByRole("banner").getByRole("img", { name: label })).toBeVisible();
+    const level = (await page.getByRole("banner").getByRole("img", { name: label }).getAttribute("aria-label")) ?? "";
     for (const width of widths) {
       await page.setViewportSize({ width, height: 800 });
-      expect(await noHorizontalOverflow(page), `nivel ${profile.level} a ${width} px`).toBeLessThanOrEqual(0);
-      expect(await hudIntrusion(page), `HUD con nivel ${profile.level} a ${width} px`).toBeLessThanOrEqual(0.5);
+      expect(await noHorizontalOverflow(page), `${level} a ${width} px`).toBeLessThanOrEqual(0);
+      expect(await hudIntrusion(page), `HUD con ${level} a ${width} px`).toBeLessThanOrEqual(0.5);
     }
   }
 });
@@ -185,7 +192,7 @@ test("4 - respaldo: exportar, borrar, importar con confirmación y rechazar uno 
     schemaVersion: number;
     tables: { profile: { preferences: { sound: boolean } }[] };
   };
-  expect([backup.app, backup.format, backup.schemaVersion]).toEqual(["cortex", 1, 1]);
+  expect([backup.app, backup.format, backup.schemaVersion]).toEqual(["cortex", 1, 2]);
   expect(backup.tables.profile[0]?.preferences.sound).toBe(true);
   await expect(page.getByRole("status").filter({ hasText: "Respaldo descargado" })).toBeVisible();
 
@@ -242,7 +249,7 @@ test("4 - respaldo: exportar, borrar, importar con confirmación y rechazar uno 
 
   // Un respaldo de una versión más nueva se rechaza y no toca nada.
   const future = join(dir, "futuro.json");
-  writeFileSync(future, JSON.stringify({ ...backup, schemaVersion: 2 }));
+  writeFileSync(future, JSON.stringify({ ...backup, schemaVersion: 3 }));
   await page.getByLabel("Importar respaldo").setInputFiles(future);
   await expect(page.getByRole("main").getByRole("alert")).toContainText("versión más nueva");
   await expect(replace).toBeHidden();
@@ -265,7 +272,7 @@ test("6 - si otra pestaña sube la versión de la base, esta se desconecta y no 
   await page.goto("/ajustes");
   await expect(page.getByRole("switch", { name: "Sonido" })).toBeEnabled();
 
-  // "Otra pestaña" con una app más nueva: versión 2 (nativa 20), sin un índice de la v1 y con una tabla nueva.
+  // "Otra pestaña" con una app más nueva: versión 3 (nativa 30), sin un índice de la v2 y con una tabla nueva.
   // Se abre en una página del mismo origen SIN la app (el ícono), para que la única conexión sea la de la
   // pestaña vieja: una página de la app abre su propia sonda, cuyo `close()` queda pendiente mientras
   // terminan sus lecturas, y eso dispara un `blocked` pasajero que no es culpa de la pestaña vieja.
@@ -274,12 +281,12 @@ test("6 - si otra pestaña sube la versión de la base, esta se desconecta y no 
   await other.evaluate(
     () =>
       new Promise<void>((resolve, reject) => {
-        const req = indexedDB.open("cortex", 20);
+        const req = indexedDB.open("cortex", 30);
         req.onupgradeneeded = () => {
           const db = req.result;
           req.transaction?.objectStore("attempts").deleteIndex("sessionId");
           db.createObjectStore("nuevaTabla", { keyPath: "id" });
-          req.transaction?.objectStore("meta").put({ key: "schemaVersion", value: 2 });
+          req.transaction?.objectStore("meta").put({ key: "schemaVersion", value: 3 });
         };
         req.onsuccess = () => {
           req.result.close();
@@ -309,13 +316,13 @@ test("6 - si otra pestaña sube la versión de la base, esta se desconecta y no 
           req.onerror = () => reject(req.error);
         }),
     );
-  expect(await native()).toEqual({ version: 20, indexes: ["at", "exerciseId"] });
+  expect(await native()).toEqual({ version: 30, indexes: ["at", "exerciseId"] });
 
   // Al recargar, la guarda la reconoce como más nueva y tampoco la toca.
   await page.reload();
   const warning = page.getByRole("banner").getByRole("status");
   await expect(warning).toContainText("Datos de una versión más nueva");
-  expect(await native()).toEqual({ version: 20, indexes: ["at", "exerciseId"] });
+  expect(await native()).toEqual({ version: 30, indexes: ["at", "exerciseId"] });
 
   // En el celular más chico el aviso cabe en el header (texto corto; el completo para lectores de pantalla).
   await page.setViewportSize({ width: 320, height: 800 });
