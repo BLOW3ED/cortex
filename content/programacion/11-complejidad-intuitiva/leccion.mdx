@@ -68,6 +68,8 @@ Al comparar algoritmos con entradas grandes, lo que manda es **cómo crece** el 
 Idea práctica: quédate con el término que crece más rápido y quítale su constante. Así, $3n^2 + 5n + 2$ es $O(n^2)$ y $4n + 7$ es $O(n)$.
 
 Definición: $f(n)$ es $O(g(n))$ si existen constantes $c > 0$ y $n_0$ tales que $f(n) \le c \cdot g(n)$ para toda $n \ge n_0$. Por ejemplo, $3n^2 + 5n + 2 \le 10n^2$ para toda $n \ge 1$.
+
+La definición es una cota superior: $4n + 7$ también es $O(n^2)$. Por costumbre, cuando se pregunta "¿de qué orden es?" se da la cota **más ajustada**, aquí $O(n)$.
 </Concepto>
 
 Los cuatro patrones de arriba son $O(n)$, $O(n^2)$, $O(n^2)$ (porque $n(n-1)/2 = \tfrac{1}{2}n^2 - \tfrac{1}{2}n$) y $O(\log n)$. En $O$ la base del logaritmo no importa: cambiar de base es multiplicar por una constante.

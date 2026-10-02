@@ -26,7 +26,7 @@ ejercicios:
     tipo: opcion_multiple
     dificultad: 1
     conceptos: [notacion-o-grande]
-    enunciado: 'Un algoritmo hace $f(n) = 4n + 7$ operaciones con una entrada de tamaño $n$. ¿De qué orden es?'
+    enunciado: 'Un algoritmo hace $f(n) = 4n + 7$ operaciones con una entrada de tamaño $n$. ¿De qué orden es (la cota más ajustada)?'
     opciones: ['$O(1)$', '$O(n)$', '$O(n^2)$', '$O(\log n)$']
     correcta: 1
     pistas: ["Quédate con el término que más crece y quítale la constante."]
@@ -95,7 +95,7 @@ ejercicios:
     dificultad: 3
     conceptos: [notacion-o-grande, conteo-operaciones]
     enunciado: |
-      ¿De qué orden es esta función para una lista de $n$ elementos?
+      ¿De qué orden es esta función para una lista de $n$ elementos (la cota más ajustada)?
 
       ```python
       def resumen(lista):

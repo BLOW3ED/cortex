@@ -31,7 +31,7 @@ ejercicios:
     tipo: completar
     dificultad: 2
     conceptos: [validacion-entradas]
-    enunciado: 'Completa con una palabra en cada hueco.'
+    enunciado: 'Completa con una palabra en cada hueco, usando los nombres de la lección.'
     texto: 'Al validar una entrada se revisan tres capas, en este orden: la ___ (que la línea tenga 3 campos), el ___ (que el texto se pueda convertir a número) y el ___ (que el número esté entre los límites permitidos).'
     respuestas: ["forma", "tipo", "rango"]
     explicacion: 'Primero la forma (la estructura), luego el tipo (que cada campo se pueda convertir) y al final el rango (que el valor tenga sentido). El orden importa: no puedes revisar el rango de un número que todavía no lograste convertir.'
@@ -532,7 +532,7 @@ ejercicios:
     dificultad: 5
     conceptos: [integracion-modulos]
     lenguaje: python
-    enunciado: '`reporte(montos)` debe regresar la mediana de los gastos y el primero y el último **en el orden en que se registraron**. `mediana` funciona bien por sí sola, pero dentro de `reporte` los valores de `primero` y `ultimo` salen mal. Encuentra la línea con el error y corrígela.'
+    enunciado: '`reporte(montos)` debe regresar la mediana de los gastos y el primero y el último **en el orden en que se registraron**. `mediana` funciona bien por sí sola, pero dentro de `reporte` los valores de `primero` y `ultimo` salen mal. Encuentra la línea donde nace el problema (la que debería hacer una copia) y corrígela.'
     codigo: |
       def mediana(montos):
           ordenados = montos
